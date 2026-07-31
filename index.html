@@ -5,33 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تصفية حسابات المرشدين</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800;900&family=Montserrat:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800;900&family=Montserrat:wght@400;600;700&display=swap');
 
         :root {
-            --lux-navy: #0d1b2a;
-            --lux-navy-card: #132238;
-            --lux-gold: #c5a059;
-            --lux-gold-light: #e6ca65;
-            --lux-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
-            --lux-bg: #09111e;
-            --card-bg: #111d2e;
-            --text-gold: #dfb15b;
-            --text-light: #f1f5f9;
-            --border-gold: rgba(197, 160, 89, 0.4);
-            --green: #2ecc71;
-            --red: #e74c3c;
+            --vintage-paper: #f4eae1;
+            --vintage-card: #fcf8f2;
+            --pharaoh-navy: #0f2c4a;
+            --pharaoh-gold: #b8860b;
+            --pharaoh-gold-dark: #8b6508;
+            --border-vintage: #a89478;
+            --text-vintage: #2b2319;
+            --green: #276738;
+            --red: #a82323;
         }
 
         body {
             font-family: 'Amiri', serif;
-            background-color: var(--lux-bg);
-            color: var(--text-light);
+            background-color: var(--vintage-paper);
+            color: var(--text-vintage);
             margin: 0;
             padding: 30px 20px;
+            /* خلفية مزخرفة توحي بالورق البردي القديم */
             background-image: 
-                radial-gradient(circle at 50% 0%, rgba(197, 160, 89, 0.08) 0%, transparent 70%),
-                radial-gradient(circle at 100% 100%, rgba(13, 27, 42, 0.5) 0%, transparent 50%);
-            background-attachment: fixed;
+                radial-gradient(#d3c3b0 1px, transparent 0),
+                radial-gradient(#c4b29c 1px, transparent 0);
+            background-size: 20px 20px, 40px 40px;
+            background-position: 0 0, 10px 10px;
         }
 
         .container {
@@ -39,115 +38,123 @@
             margin: 0 auto;
         }
 
-        /* Luxury Header Section */
-        .header-luxury {
-            border: 1px solid var(--border-gold);
-            padding: 30px 40px;
-            background: linear-gradient(145deg, rgba(19, 34, 56, 0.9), rgba(13, 27, 42, 0.95));
-            border-radius: 8px;
+        /* Vintage Pharaoh Header */
+        .header-vintage {
+            border: 3px double var(--pharaoh-gold-dark);
+            padding: 25px 35px;
+            background: var(--vintage-card);
+            border-radius: 4px;
             margin-bottom: 30px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(197, 160, 89, 0.1);
+            box-shadow: 0 8px 20px rgba(43, 35, 25, 0.12), inset 0 0 30px rgba(184, 134, 11, 0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: relative;
-            overflow: hidden;
         }
 
-        .header-luxury::before {
-            content: '';
+        /* زخرفة إطار الزوايا الكلاسيكية */
+        .header-vintage::after {
+            content: "𓋹";
             position: absolute;
-            top: 0;
-            right: 0;
-            left: 0;
-            height: 3px;
-            background: var(--lux-gold-gradient);
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2em;
+            color: var(--pharaoh-gold-dark);
+            opacity: 0.7;
         }
 
         .header-title-right {
             text-align: right;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .horus-icon {
+            width: 45px;
+            height: auto;
+            fill: var(--pharaoh-navy);
         }
 
         .subtitle-styled {
             font-family: 'Amiri', serif;
-            font-size: 2em;
+            font-size: 1.85em;
             font-weight: 700;
-            background: var(--lux-gold-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--pharaoh-navy);
             margin: 0;
             line-height: 1.3;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.3px;
+            border-bottom: 2px solid var(--pharaoh-gold);
+            padding-bottom: 4px;
         }
 
-        /* New Luxury Logo Box */
+        /* Logo Box Left */
         .logo-box-left {
             text-align: center;
             font-family: 'Cinzel', serif;
             direction: ltr;
-            padding-left: 20px;
-            border-left: 1px solid var(--border-gold);
+            padding-left: 25px;
+            border-left: 2px dashed var(--border-vintage);
         }
 
         .logo-title-main {
-            font-size: 1.5em;
+            font-size: 1.4em;
             font-weight: 800;
-            background: var(--lux-gold-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--pharaoh-navy);
             letter-spacing: 2px;
             line-height: 1;
             margin: 0;
         }
 
         .logo-title-sub {
-            font-size: 1.65em;
+            font-size: 1.55em;
             font-weight: 900;
-            color: #ffffff;
+            color: var(--pharaoh-gold-dark);
             letter-spacing: 2.5px;
             line-height: 1.1;
             margin: 4px 0;
-            text-shadow: 0 0 12px rgba(197, 160, 89, 0.3);
         }
 
         .logo-tagline {
             font-family: 'Montserrat', sans-serif;
             font-size: 0.65em;
             font-weight: 600;
-            color: var(--lux-gold);
-            letter-spacing: 1.5px;
+            color: #554838;
+            letter-spacing: 1.2px;
             text-transform: uppercase;
             margin-top: 6px;
             padding-top: 4px;
-            border-top: 1px dashed var(--border-gold);
+            border-top: 1px solid var(--pharaoh-gold);
         }
 
-        /* Luxury Cards */
+        /* Vintage Cards with Hieroglyphic Details */
         .card {
-            background: linear-gradient(145deg, rgba(17, 29, 46, 0.85), rgba(13, 23, 37, 0.95));
-            border: 1px solid var(--border-gold);
-            border-radius: 6px;
+            background: var(--vintage-card);
+            border: 2px solid var(--border-vintage);
+            border-radius: 4px;
             padding: 25px;
             margin-bottom: 25px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            box-shadow: 0 12px 30px rgba(197, 160, 89, 0.15);
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.06);
+            position: relative;
         }
 
         .card h3 {
-            color: var(--lux-gold);
-            border-bottom: 1px solid var(--border-gold);
+            color: var(--pharaoh-navy);
+            border-bottom: 2px double var(--pharaoh-gold);
             padding-bottom: 10px;
             margin-top: 0;
-            font-size: 1.4em;
+            font-size: 1.35em;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .card h3::after {
+            content: "𓁢"; /* رمز فرعوني جمالي */
+            font-size: 1.1em;
+            color: var(--pharaoh-gold-dark);
         }
 
         .grid-2 {
@@ -159,13 +166,13 @@
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         label {
             font-weight: bold;
             font-size: 1.1em;
-            color: var(--text-gold);
+            color: var(--pharaoh-navy);
         }
 
         .required-star {
@@ -173,144 +180,111 @@
         }
 
         input, select {
-            padding: 10px 14px;
-            border: 1px solid var(--border-gold);
-            background-color: rgba(9, 17, 30, 0.7);
-            border-radius: 4px;
+            padding: 9px 12px;
+            border: 1px solid var(--border-vintage);
+            background-color: #fdfbf7;
+            border-radius: 3px;
             font-family: 'Amiri', serif;
-            font-size: 1.1em;
-            color: #ffffff;
+            font-size: 1.05em;
+            color: var(--text-vintage);
             outline: none;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
         }
 
         input:focus, select:focus {
-            border-color: var(--lux-gold-light);
-            background-color: rgba(13, 27, 42, 0.9);
-            box-shadow: 0 0 10px rgba(197, 160, 89, 0.3);
+            border-color: var(--pharaoh-navy);
+            background-color: #ffffff;
+            box-shadow: 0 0 5px rgba(15, 44, 74, 0.2);
         }
 
-        /* Luxury Tables */
+        /* Vintage Tables */
         table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+            border-collapse: collapse;
             margin-top: 15px;
-            border-radius: 4px;
-            overflow: hidden;
-            border: 1px solid var(--border-gold);
         }
 
         th, td {
-            padding: 12px 14px;
+            border: 1px solid var(--border-vintage);
+            padding: 10px 12px;
             text-align: center;
             font-size: 1.05em;
         }
 
         th {
-            background: linear-gradient(180deg, #1f334d 0%, #132238 100%);
-            color: var(--lux-gold);
+            background-color: #e8dbca;
+            color: var(--pharaoh-navy);
             font-weight: bold;
-            border-bottom: 1px solid var(--border-gold);
+            border-bottom: 2px solid var(--pharaoh-gold-dark);
         }
 
         td {
-            background-color: rgba(17, 29, 46, 0.6);
-            border-bottom: 1px solid rgba(197, 160, 89, 0.1);
-            color: #e2e8f0;
+            background-color: var(--vintage-card);
         }
 
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Luxury Buttons */
+        /* Buttons */
         .btn {
-            background: var(--lux-gold-gradient);
-            color: #09111e;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 4px;
+            background-color: var(--pharaoh-navy);
+            color: var(--vintage-paper);
+            border: 1px solid var(--pharaoh-gold-dark);
+            padding: 10px 22px;
+            border-radius: 3px;
             cursor: pointer;
             font-family: 'Amiri', serif;
             font-weight: bold;
             font-size: 1.1em;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.25);
+            transition: all 0.2s;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(230, 202, 101, 0.4);
-            filter: brightness(1.08);
+            background-color: var(--pharaoh-gold-dark);
+            color: #ffffff;
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #c0392b, #e74c3c);
+            background-color: var(--red);
+            border-color: #701010;
             color: white;
-            padding: 4px 10px;
+            padding: 3px 10px;
             font-size: 0.9em;
             box-shadow: none;
         }
 
-        .btn-danger:hover {
-            box-shadow: 0 2px 10px rgba(231, 76, 60, 0.4);
-        }
-
-        /* Summary Box */
+        /* Summary Card */
         .summary-card {
-            border: 1.5px solid var(--lux-gold);
-            background: linear-gradient(145deg, rgba(20, 36, 58, 0.95), rgba(11, 20, 33, 0.98));
+            border: 3px double var(--pharaoh-gold-dark);
+            background-color: #fbf5eb;
         }
 
-        .positive { color: var(--green); font-weight: bold; font-size: 1.3em; text-shadow: 0 0 8px rgba(46, 204, 113, 0.2); }
-        .negative { color: var(--red); font-weight: bold; font-size: 1.3em; text-shadow: 0 0 8px rgba(231, 76, 60, 0.2); }
+        .positive { color: var(--green); font-weight: bold; font-size: 1.25em; }
+        .negative { color: var(--red); font-weight: bold; font-size: 1.25em; }
 
-        /* Print Optimization for High-End Look */
         @media print {
-            body { 
-                background: white !important; 
-                color: #000 !important; 
-                padding: 0; 
-            }
-            .header-luxury, .card, .summary-card { 
-                background: white !important; 
-                color: #000 !important; 
-                border: 1px solid #000 !important; 
-                box-shadow: none !important; 
-            }
-            .subtitle-styled, .logo-title-main { 
-                background: none !important; 
-                -webkit-text-fill-color: #000 !important; 
-                color: #000 !important; 
-            }
-            th { 
-                background: #f0f0f0 !important; 
-                color: #000 !important; 
-            }
-            td { 
-                background: white !important; 
-                color: #000 !important; 
-            }
-            input, select { 
-                background: white !important; 
-                color: #000 !important; 
-                border: 1px solid #ccc !important; 
-            }
             .btn, .no-print { display: none !important; }
+            body { padding: 0; background: white; }
+            .card, .header-vintage { box-shadow: none; border-color: #333; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Luxury Header -->
-    <div class="header-luxury">
+    <!-- Header with Eye of Horus & Vintage Style -->
+    <div class="header-vintage">
         <div class="header-title-right">
+            <!-- عين حورس (Eye of Horus SVG) -->
+            <svg class="horus-icon" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 10 30 Q 45 5 85 30 Q 50 45 10 30 Z" fill="none" stroke="#0f2c4a" stroke-width="4"/>
+                <circle cx="50" cy="27" r="9" fill="#0f2c4a"/>
+                <path d="M 20 30 C 25 50 35 60 45 60" fill="none" stroke="#0f2c4a" stroke-width="4"/>
+                <path d="M 50 38 L 50 70 L 60 70" fill="none" stroke="#0f2c4a" stroke-width="4"/>
+                <path d="M 15 20 Q 50 2 85 20" fill="none" stroke="#b8860b" stroke-width="3"/>
+            </svg>
             <h1 class="subtitle-styled">نظام تصفية واستحقاق حسابات المرشدين السياحيين</h1>
         </div>
 
-        <!-- Luxury PDF Logo -->
+        <!-- PDF Logo -->
         <div class="logo-box-left">
             <div class="logo-title-main">LOOK AT</div>
             <div class="logo-title-sub">EGYPT TOURS</div>
@@ -433,9 +407,9 @@
                     </tr>
                 </tbody>
             </table>
-            <p style="font-size: 0.9em; color: var(--lux-gold); margin-top: 15px; font-style: italic; text-align: right;">* الناتج بالموجب: المرشد ملزم ببرد المبلغ للشركة. الناتج بالسالب: المبلغ مستحق للصرف للمرشد.</p>
+            <p style="font-size: 0.9em; color: #554838; margin-top: 15px; font-style: italic;">* الناتج بالموجب: المرشد ملزم ببرد المبلغ للشركة. الناتج بالسالب: المبلغ مستحق للصرف للمرشد.</p>
 
-            <div style="margin-top: 25px; text-align: left;" class="no-print">
+            <div style="margin-top: 20px; text-align: left;" class="no-print">
                 <button type="submit" class="btn">طباعة التصفية الرسمية</button>
             </div>
         </div>
@@ -456,7 +430,7 @@
             </td>
             <td><input type="number" value="10" step="any" class="shop-comm-pct" oninput="calculateAll()"></td>
             <td><input type="number" value="50" step="any" class="guide-share-pct" oninput="calculateAll()"></td>
-            <td class="guide-comm-val" style="font-weight:bold; color:var(--lux-gold);">0.00</td>
+            <td class="guide-comm-val" style="font-weight:bold;">0.00</td>
             <td class="no-print"><button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); calculateAll();">X</button></td>
         `;
         tbody.appendChild(row);
@@ -477,7 +451,7 @@
             </td>
             <td><input type="number" value="0" step="any" class="opt-cost" oninput="calculateAll()"></td>
             <td><input type="number" value="20" step="any" class="opt-guide-pct" oninput="calculateAll()"></td>
-            <td class="opt-guide-comm-val" style="font-weight:bold; color:var(--lux-gold);">0.00</td>
+            <td class="opt-guide-comm-val" style="font-weight:bold;">0.00</td>
             <td class="no-print"><button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); calculateAll();">X</button></td>
         `;
         tbody.appendChild(row);
@@ -530,9 +504,6 @@
         netElem.className = net >= 0 ? 'positive' : 'negative';
     }
 </script>
-
-</body>
-</html></script>
 
 </body>
 </html>
