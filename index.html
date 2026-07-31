@@ -114,6 +114,13 @@
         .status-approved { color: var(--green); font-weight: bold; }
         .status-rejected { color: var(--red); font-weight: bold; }
 
+        /* شريط التصفية والبحث */
+        .filter-bar {
+            display: flex; gap: 15px; margin-bottom: 15px; background: #fbf5eb;
+            padding: 15px; border: 1px solid var(--border-vintage); border-radius: 4px;
+            align-items: center;
+        }
+
         /* Modal / Pop-up Window */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -290,6 +297,23 @@
     <div id="tab-archive" class="tab-content">
         <div class="card">
             <h3 style="margin-top:0;">سجل التصفيات المحسومة (الأرشيف)</h3>
+            
+            <!-- شريط الفلترة والبحث -->
+            <div class="filter-bar no-print">
+                <div class="form-group" style="flex: 2;">
+                    <label>🔍 فلترة باسم المرشد أو رقم الملف:</label>
+                    <input type="text" id="archiveFilterInput" placeholder="اكتب اسم المرشد أو رقم الملف للبحث..." oninput="loadArchiveTable()">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>الحالة:</label>
+                    <select id="archiveStatusFilter" onchange="loadArchiveTable()">
+                        <option value="ALL">الكل</option>
+                        <option value="معتمد">معتمد ✅</option>
+                        <option value="مرفوض">مرفوض ❌</option>
+                    </select>
+                </div>
+            </div>
+
             <table>
                 <thead>
                     <tr>
@@ -568,18 +592,30 @@
         loadReviewTable();
     }
 
-    // تحميل جدول الأرشيف
+    // تحميل جدول الأرشيف مع دعم الفلترة والبحث
     function loadArchiveTable() {
         const list = JSON.parse(localStorage.getItem('archivedRequests') || '[]');
         const tbody = document.getElementById('archiveTableBody');
         tbody.innerHTML = '';
 
-        if (list.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8">الأرشيف فارغ حالياً.</td></tr>`;
+        const filterQuery = (document.getElementById('archiveFilterInput')?.value || '').toLowerCase().trim();
+        const statusFilter = document.getElementById('archiveStatusFilter')?.value || 'ALL';
+
+        // تصفية النتائج بناءً على الاسم/رقم الملف والحالة
+        const filteredList = list.filter(item => {
+            const matchesQuery = item.guideName.toLowerCase().includes(filterQuery) || item.fileNo.toLowerCase().includes(filterQuery);
+            const matchesStatus = statusFilter === 'ALL' || item.status.includes(statusFilter);
+            return matchesQuery && matchesStatus;
+        });
+
+        if (filteredList.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8">لا توجد نتائج مطابقة للبحث.</td></tr>`;
             return;
         }
 
-        list.forEach((item, index) => {
+        filteredList.forEach((item) => {
+            // البحث عن الفهرس الأصلي للتعامل الصحيح عند الضغط على عرض التفاصيل
+            const originalIndex = list.findIndex(orig => orig.id === item.id);
             const tr = document.createElement('tr');
             const statusClass = item.status.includes('معتمد') ? 'status-approved' : 'status-rejected';
             tr.innerHTML = `
@@ -590,7 +626,7 @@
                 <td>${item.totalExp}</td>
                 <td><b>${item.net}</b></td>
                 <td class="${statusClass}">${item.status}</td>
-                <td><button class="btn btn-info" onclick="viewDetails(${index}, 'archived')">👁️ عرض التصفية</button></td>
+                <td><button class="btn btn-info" onclick="viewDetails(${originalIndex}, 'archived')">👁️ عرض التصفية</button></td>
             `;
             tbody.appendChild(tr);
         });
@@ -702,7 +738,6 @@
         const fileNo = document.getElementById('fileNo').value.trim() || "Settlement";
         const element = document.getElementById('tab-form');
 
-        // إخفاء الأزرار أثناء التحميل مؤقتاً
         const noPrintElems = element.querySelectorAll('.no-print');
         noPrintElems.forEach(el => el.style.display = 'none');
 
@@ -715,7 +750,6 @@
         };
 
         html2pdf().set(opt).from(element).save().then(() => {
-            // إعادة إظهار الأزرار بعد التصدير
             noPrintElems.forEach(el => el.style.display = '');
         });
     }
