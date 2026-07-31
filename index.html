@@ -8,8 +8,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800;900&family=Montserrat:wght@400;600;700&display=swap');
 
         :root {
-            --vintage-paper: #f2e5d5;
-            --vintage-card: #fdfaf6;
+            --vintage-paper: #eee0cf;
+            --vintage-card: #fdfbf7;
             --primary-navy: #0f2c4a;
             --vintage-gold: #b8860b;
             --vintage-gold-dark: #8b6508;
@@ -26,33 +26,27 @@
             padding: 30px 20px;
             min-height: 100vh;
 
-            /* خلفية Vintage محاكية للورق القديم المعتق */
             background-color: var(--vintage-paper);
             background-image: 
-                /* ظلال معتقة على حواف الشاشة */
-                radial-gradient(circle at center, transparent 50%, rgba(139, 101, 8, 0.15) 100%),
-                /* نقش ألياف الورق الكلاسيكي */
-                radial-gradient(#d4c2ab 0.8px, transparent 0.8px),
-                radial-gradient(#bfa88f 0.8px, var(--vintage-paper) 0.8px);
-            background-size: 100% 100%, 16px 16px, 32px 32px;
-            background-position: 0 0, 0 0, 8px 8px;
+                radial-gradient(circle at center, rgba(253, 251, 247, 0.7) 10%, rgba(184, 148, 105, 0.35) 100%),
+                repeating-linear-gradient(45deg, rgba(168, 148, 120, 0.04) 0px, rgba(168, 148, 120, 0.04) 2px, transparent 2px, transparent 5px),
+                repeating-linear-gradient(-45deg, rgba(168, 148, 120, 0.04) 0px, rgba(168, 148, 120, 0.04) 2px, transparent 2px, transparent 5px);
             background-attachment: fixed;
             position: relative;
         }
 
-        /* إطار خارجي حول الصفحة لمنح السيستم مظهر المخطوطات القديمة */
         body::before {
             content: "";
             position: fixed;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            bottom: 10px;
-            border: 2px solid var(--border-vintage);
-            outline: 1px solid var(--vintage-gold);
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            border: 1px solid var(--border-vintage);
+            outline: 2px double var(--vintage-gold);
             pointer-events: none;
             z-index: 999;
-            opacity: 0.5;
+            opacity: 0.4;
         }
 
         .container {
@@ -69,7 +63,7 @@
             background: var(--vintage-card);
             border-radius: 4px;
             margin-bottom: 30px;
-            box-shadow: 0 10px 25px rgba(43, 35, 25, 0.12), inset 0 0 40px rgba(184, 134, 11, 0.06);
+            box-shadow: 0 8px 20px rgba(43, 35, 25, 0.1), inset 0 0 30px rgba(184, 134, 11, 0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -137,7 +131,7 @@
             border-radius: 4px;
             padding: 25px;
             margin-bottom: 25px;
-            box-shadow: 0 6px 15px rgba(43, 35, 25, 0.07), inset 0 0 20px rgba(184, 134, 11, 0.02);
+            box-shadow: 0 4px 12px rgba(43, 35, 25, 0.08);
         }
 
         .card h3 {
@@ -163,7 +157,7 @@
 
         label {
             font-weight: bold;
-            font-size: 1.1em;
+            font-size: 1.05em;
             color: var(--primary-navy);
         }
 
@@ -181,7 +175,7 @@
             color: var(--text-vintage);
             outline: none;
             transition: all 0.2s;
-            width: 90%;
+            width: 100%;
             box-sizing: border-box;
         }
 
@@ -216,10 +210,58 @@
             background-color: var(--vintage-card);
         }
 
+        /* Vertical Shops Styles (التصميم الرأسي للمحلات) */
+        .shop-vertical-card {
+            border: 1px solid var(--border-vintage);
+            background-color: #fcf9f2;
+            border-radius: 4px;
+            padding: 18px;
+            margin-top: 15px;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(184, 134, 11, 0.03);
+        }
+
+        .shop-vertical-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--border-vintage);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .shop-vertical-title {
+            font-weight: bold;
+            color: var(--primary-navy);
+            font-size: 1.15em;
+        }
+
+        .shop-grid-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .comm-result-box {
+            background-color: #e8dbca;
+            border: 1px solid var(--vintage-gold-dark);
+            padding: 8px 12px;
+            border-radius: 3px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary-navy);
+            font-size: 1.1em;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* Buttons */
         .btn {
             background-color: var(--primary-navy);
-            color: var(--vintage-paper);
+            color: #fcf8f2;
             border: 1px solid var(--vintage-gold-dark);
             padding: 10px 22px;
             border-radius: 3px;
@@ -240,7 +282,7 @@
             background-color: var(--red);
             border-color: #701010;
             color: white;
-            padding: 3px 10px;
+            padding: 4px 12px;
             font-size: 0.9em;
             box-shadow: none;
         }
@@ -264,13 +306,12 @@
 <body>
 
 <div class="container">
-    <!-- Clean Vintage Header -->
+    <!-- Header -->
     <div class="header-vintage">
         <div class="header-title-right">
             <h1 class="subtitle-styled">نظام تصفية واستحقاق حسابات المرشدين السياحيين</h1>
         </div>
 
-        <!-- PDF Logo -->
         <div class="logo-box-left">
             <div class="logo-title-main">LOOK AT</div>
             <div class="logo-title-sub">EGYPT TOURS</div>
@@ -285,16 +326,16 @@
             <div class="grid-2">
                 <div class="form-group">
                     <label>اسم المرشد: <span class="required-star">*</span></label>
-                    <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." autocomplete="off" required style="width:100%;">
+                    <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." autocomplete="off" required>
                 </div>
                 <div class="form-group">
                     <label>رقم الملف: <span class="required-star">*</span></label>
-                    <input type="text" id="fileNo" placeholder="مثال: FL-2026-102" required style="width:100%;">
+                    <input type="text" id="fileNo" placeholder="مثال: FL-2026-102" required>
                 </div>
             </div>
         </div>
 
-        <!-- 2. العهده والمصروفات (مع خانة الملاحظات) -->
+        <!-- 2. العهده والمصروفات -->
         <div class="card">
             <h3>العهدة والمصروفات المباشرة (EGP)</h3>
             <table>
@@ -335,26 +376,16 @@
             </table>
         </div>
 
-        <!-- 3. مبيعات المحلات -->
+        <!-- 3. مبيعات المحلات (تصميم رأسي) -->
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>مبيعات المحلات (Shops)</h3>
                 <button type="button" class="btn no-print" onclick="addShopRow()">+ إضافة محل</button>
             </div>
-            <table id="shopsTable">
-                <thead>
-                    <tr>
-                        <th>اسم المحل</th>
-                        <th>المبيعات</th>
-                        <th>العملة</th>
-                        <th>عمولة المحل %</th>
-                        <th>حصة المرشد %</th>
-                        <th>عمولة المرشد (EGP)</th>
-                        <th class="no-print">حذف</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            
+            <div id="shopsContainer">
+                <!-- يتم إضافة المحلات هنا رأسياً عبر السكريبت -->
+            </div>
         </div>
 
         <!-- 4. الرحلات الاختيارية -->
@@ -409,23 +440,48 @@
 </div>
 
 <script>
+    let shopCounter = 0;
+
     function addShopRow() {
-        const tbody = document.querySelector('#shopsTable tbody');
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><input type="text" placeholder="اسم المحل" class="shop-name"></td>
-            <td><input type="number" value="0" step="any" class="shop-sales" oninput="calculateAll()"></td>
-            <td>
-                <select class="shop-curr" onchange="calculateAll()">
-                    <option value="EGP">EGP</option>
-                </select>
-            </td>
-            <td><input type="number" value="10" step="any" class="shop-comm-pct" oninput="calculateAll()"></td>
-            <td><input type="number" value="50" step="any" class="guide-share-pct" oninput="calculateAll()"></td>
-            <td class="guide-comm-val" style="font-weight:bold;">0.00</td>
-            <td class="no-print"><button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); calculateAll();">X</button></td>
+        shopCounter++;
+        const container = document.getElementById('shopsContainer');
+        const shopCard = document.createElement('div');
+        shopCard.className = 'shop-vertical-card';
+        shopCard.innerHTML = `
+            <div class="shop-vertical-header">
+                <span class="shop-vertical-title">بيانات المحل #${shopCounter}</span>
+                <button type="button" class="btn btn-danger no-print" onclick="this.parentElement.parentElement.remove(); calculateAll();">حذف المحل</button>
+            </div>
+            <div class="shop-grid-fields">
+                <div class="form-group">
+                    <label>اسم المحل:</label>
+                    <input type="text" placeholder="مثال: محل برديات / عطور" class="shop-name">
+                </div>
+                <div class="form-group">
+                    <label>إجمالي المبيعات:</label>
+                    <input type="number" value="0" step="any" class="shop-sales" oninput="calculateAll()">
+                </div>
+                <div class="form-group">
+                    <label>العملة:</label>
+                    <select class="shop-curr" onchange="calculateAll()">
+                        <option value="EGP">EGP</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>عمولة المحل %:</label>
+                    <input type="number" value="10" step="any" class="shop-comm-pct" oninput="calculateAll()">
+                </div>
+                <div class="form-group">
+                    <label>حصة المرشد %:</label>
+                    <input type="number" value="50" step="any" class="guide-share-pct" oninput="calculateAll()">
+                </div>
+                <div class="form-group">
+                    <label>عمولة المرشد (EGP):</label>
+                    <div class="comm-result-box guide-comm-val">0.00</div>
+                </div>
+            </div>
         `;
-        tbody.appendChild(row);
+        container.appendChild(shopCard);
         calculateAll();
     }
 
@@ -454,13 +510,13 @@
         let totalShopComm = 0;
         let totalOptComm = 0;
 
-        document.querySelectorAll('#shopsTable tbody tr').forEach(row => {
-            const sales = parseFloat(row.querySelector('.shop-sales').value) || 0;
-            const shopCommPct = (parseFloat(row.querySelector('.shop-comm-pct').value) || 0) / 100;
-            const guideSharePct = (parseFloat(row.querySelector('.guide-share-pct').value) || 0) / 100;
+        document.querySelectorAll('.shop-vertical-card').forEach(card => {
+            const sales = parseFloat(card.querySelector('.shop-sales').value) || 0;
+            const shopCommPct = (parseFloat(card.querySelector('.shop-comm-pct').value) || 0) / 100;
+            const guideSharePct = (parseFloat(card.querySelector('.guide-share-pct').value) || 0) / 100;
 
             const guideComm = sales * shopCommPct * guideSharePct;
-            row.querySelector('.guide-comm-val').innerText = guideComm.toFixed(2);
+            card.querySelector('.guide-comm-val').innerText = guideComm.toFixed(2);
             totalShopComm += guideComm;
         });
 
@@ -495,6 +551,11 @@
         netElem.innerText = net.toFixed(2) + ' EGP';
         netElem.className = net >= 0 ? 'positive' : 'negative';
     }
+
+    // إضافة كارت محل افتراضي عند فتح الصفحة
+    window.onload = function() {
+        addShopRow();
+    };
 </script>
 
 </body>
