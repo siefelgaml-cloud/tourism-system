@@ -97,10 +97,11 @@
         th, td { border: 1px solid var(--border-vintage); padding: 10px 12px; text-align: center; font-size: 1.05em; }
         th { background-color: #e8dbca; color: var(--primary-navy); font-weight: bold; border-bottom: 2px solid var(--vintage-gold-dark); }
 
-        .btn { background-color: var(--primary-navy); color: #fcf8f2; border: 1px solid var(--vintage-gold-dark); padding: 10px 22px; border-radius: 3px; cursor: pointer; font-family: 'Amiri', serif; font-weight: bold; font-size: 1.1em; }
+        .btn { background-color: var(--primary-navy); color: #fcf8f2; border: 1px solid var(--vintage-gold-dark); padding: 10px 22px; border-radius: 3px; cursor: pointer; font-family: 'Amiri', serif; font-weight: bold; font-size: 1.1em; transition: 0.2s; }
         .btn:hover { background-color: var(--vintage-gold-dark); color: #ffffff; }
         .btn-submit { background-color: var(--green); border-color: #1a4726; }
         .btn-danger { background-color: var(--red); border-color: #701010; color: white; padding: 4px 12px; font-size: 0.9em; }
+        .btn-info { background-color: #2b6cb0; border-color: #1a4971; color: white; padding: 5px 12px; font-size: 0.95em; }
 
         .summary-card { border: 3px double var(--vintage-gold-dark); background-color: #fbf5eb; }
         .positive { color: var(--green); font-weight: bold; font-size: 1.25em; }
@@ -109,7 +110,29 @@
         .status-approved { color: var(--green); font-weight: bold; }
         .status-rejected { color: var(--red); font-weight: bold; }
 
-        @media print { .no-print, body::before, .nav-bar { display: none !important; } }
+        /* Modal / Pop-up Window */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.65);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: var(--vintage-card); border: 3px double var(--vintage-gold-dark);
+            border-radius: 6px; width: 90%; max-width: 800px; max-height: 90vh;
+            overflow-y: auto; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .modal-close {
+            position: absolute; top: 15px; left: 15px;
+            background: var(--red); color: white; border: none; font-size: 1.2em;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold;
+        }
+        .detail-section { margin-bottom: 20px; }
+        .detail-section h4 { color: var(--primary-navy); border-bottom: 1px solid var(--vintage-gold); padding-bottom: 5px; margin-bottom: 10px; font-size: 1.2em; }
+
+        @media print { .no-print, body::before, .nav-bar, .modal-close { display: none !important; } }
     </style>
 </head>
 <body>
@@ -247,6 +270,7 @@
                         <th>ما بذمته</th>
                         <th>المصروفات</th>
                         <th>الصافي</th>
+                        <th>عرض التفاصيل</th>
                         <th>الإجراء</th>
                     </tr>
                 </thead>
@@ -271,6 +295,7 @@
                         <th>المصروفات</th>
                         <th>الصافي</th>
                         <th>الحالة النهائيّة</th>
+                        <th>عرض التفاصيل</th>
                     </tr>
                 </thead>
                 <tbody id="archiveTableBody">
@@ -282,6 +307,23 @@
 
 </div>
 
+<!-- نافذة عرض تفاصيل التصفية (Modal) -->
+<div id="detailsModal" class="modal-overlay">
+    <div class="modal-card">
+        <button class="modal-close" onclick="closeModal()">×</button>
+        <h2 style="color: var(--primary-navy); border-bottom: 2px solid var(--vintage-gold); padding-bottom: 8px; margin-top:0;">
+            تفاصيل تصفية حساب مرشد
+        </h2>
+        <div id="modalContent">
+            <!-- يملأ بالبيانات dynamic -->
+        </div>
+        <div style="text-align: left; margin-top: 20px;" class="no-print">
+            <button class="btn" onclick="window.print()">طباعة التقرير 🖨️</button>
+            <button class="btn btn-danger" onclick="closeModal()">إغلاق</button>
+        </div>
+    </div>
+</div>
+
 <script>
     // التحكم في التنقل بين الشاشات
     function switchTab(tabId) {
@@ -290,7 +332,6 @@
 
         document.getElementById(tabId).classList.add('active');
 
-        // تفعيل زر التبويب المناسب
         const btnIndex = tabId === 'tab-form' ? 0 : tabId === 'tab-review' ? 1 : 2;
         document.querySelectorAll('.nav-btn')[btnIndex].classList.add('active');
 
@@ -405,7 +446,7 @@
         netElem.className = net >= 0 ? 'positive' : 'negative';
     }
 
-    // إرسال الطلب للمراجعة
+    // إرسال الطلب للمراجعة وتخزين كافة البيانات بالتفصيل
     function submitSettlement() {
         const guideName = document.getElementById('guideInput').value.trim();
         const fileNo = document.getElementById('fileNo').value.trim();
@@ -415,6 +456,43 @@
             return;
         }
 
+        // جمع كافة بيانات العهدة والمصروفات التفصيلية
+        const details = {
+            floatEgp: document.getElementById('floatEgp').value,
+            floatNotes: document.getElementById('floatNotes').value,
+            lunchEgp: document.getElementById('lunchEgp').value,
+            lunchNotes: document.getElementById('lunchNotes').value,
+            tipsEgp: document.getElementById('tipsEgp').value,
+            tipsNotes: document.getElementById('tipsNotes').value,
+            parkingEgp: document.getElementById('parkingEgp').value,
+            parkingNotes: document.getElementById('parkingNotes').value,
+            feeEgp: document.getElementById('feeEgp').value,
+            feeNotes: document.getElementById('feeNotes').value,
+            shops: [],
+            optionals: []
+        };
+
+        // جمع المحلات
+        document.querySelectorAll('.shop-card-item').forEach(card => {
+            details.shops.push({
+                name: card.querySelector('.shop-name').value,
+                sales: card.querySelector('.shop-sales').value,
+                curr: card.querySelector('.shop-curr').value
+            });
+        });
+
+        // جمع الاختياري
+        document.querySelectorAll('.opt-card-item').forEach(card => {
+            details.optionals.push({
+                name: card.querySelector('.opt-name').value,
+                pax: card.querySelector('.opt-pax').value,
+                price: card.querySelector('.opt-price').value,
+                cost: card.querySelector('.opt-cost').value,
+                pct: card.querySelector('.opt-guide-pct').value,
+                comm: card.querySelector('.opt-guide-comm-val').innerText
+            });
+        });
+
         const newRequest = {
             id: Date.now(),
             guideName,
@@ -423,7 +501,8 @@
             status: 'قيد المراجعة ⏳',
             totalDue: document.getElementById('totalDueEgp').innerText,
             totalExp: document.getElementById('totalExpEgp').innerText,
-            net: document.getElementById('netEgp').innerText
+            net: document.getElementById('netEgp').innerText,
+            details: details
         };
 
         let pendingList = JSON.parse(localStorage.getItem('pendingRequests') || '[]');
@@ -441,7 +520,7 @@
         tbody.innerHTML = '';
 
         if (list.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7">لا توجد طلبات معلقة حالياً.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8">لا توجد طلبات معلقة حالياً.</td></tr>`;
             return;
         }
 
@@ -454,6 +533,7 @@
                 <td>${item.totalDue}</td>
                 <td>${item.totalExp}</td>
                 <td><b>${item.net}</b></td>
+                <td><button class="btn btn-info" onclick="viewDetails(${index}, 'pending')">👁️ عرض التصفية</button></td>
                 <td>
                     <button class="btn btn-submit" style="padding:4px 10px;" onclick="handleAction(${index}, 'معتمد ✅')">اعتماد</button>
                     <button class="btn btn-danger" style="padding:4px 10px;" onclick="handleAction(${index}, 'مرفوض ❌')">رفض</button>
@@ -488,11 +568,11 @@
         tbody.innerHTML = '';
 
         if (list.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7">الأرشيف فارغ حالياً.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8">الأرشيف فارغ حالياً.</td></tr>`;
             return;
         }
 
-        list.forEach((item) => {
+        list.forEach((item, index) => {
             const tr = document.createElement('tr');
             const statusClass = item.status.includes('معتمد') ? 'status-approved' : 'status-rejected';
             tr.innerHTML = `
@@ -503,9 +583,96 @@
                 <td>${item.totalExp}</td>
                 <td><b>${item.net}</b></td>
                 <td class="${statusClass}">${item.status}</td>
+                <td><button class="btn btn-info" onclick="viewDetails(${index}, 'archived')">👁️ عرض التصفية</button></td>
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    // عرض تفاصيل التصفية في نافذة منبثقة (Modal)
+    function viewDetails(index, type) {
+        const storageKey = type === 'pending' ? 'pendingRequests' : 'archivedRequests';
+        const list = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        const item = list[index];
+
+        if (!item || !item.details) {
+            alert('لا توجد تفاصيل كاملة مسجلة لهذا الطلب.');
+            return;
+        }
+
+        const d = item.details;
+
+        let shopsRows = d.shops && d.shops.length > 0 ? d.shops.map(s => `
+            <tr>
+                <td>${s.name || '-'}</td>
+                <td>${s.sales || '0'} ${s.curr}</td>
+            </tr>
+        `).join('') : '<tr><td colspan="2">لا توجد مبيعات محلات</td></tr>';
+
+        let optRows = d.optionals && d.optionals.length > 0 ? d.optionals.map(o => `
+            <tr>
+                <td>${o.name || '-'}</td>
+                <td>${o.pax}</td>
+                <td>${o.price} EGP</td>
+                <td>${o.cost} EGP</td>
+                <td>${o.pct}%</td>
+                <td><b>${o.comm} EGP</b></td>
+            </tr>
+        `).join('') : '<tr><td colspan="6">لا توجد رحلات اختيارية</td></tr>';
+
+        const modalHtml = `
+            <div class="detail-section">
+                <p><b>اسم المرشد:</b> ${item.guideName} | <b>رقم الملف:</b> ${item.fileNo} | <b>التاريخ:</b> ${item.date}</p>
+            </div>
+
+            <div class="detail-section">
+                <h4>1. العهدة والمصروفات المباشرة</h4>
+                <table>
+                    <thead>
+                        <tr><th>البيان</th><th>المبلغ (EGP)</th><th>ملاحظات</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>العهدة المستلمة</td><td><b>${d.floatEgp}</b></td><td>${d.floatNotes || '-'}</td></tr>
+                        <tr><td>مصاريف الغداء</td><td>${d.lunchEgp}</td><td>${d.lunchNotes || '-'}</td></tr>
+                        <tr><td>الإكراميات</td><td>${d.tipsEgp}</td><td>${d.tipsNotes || '-'}</td></tr>
+                        <tr><td>الباركينج والرسوم</td><td>${d.parkingEgp}</td><td>${d.parkingNotes || '-'}</td></tr>
+                        <tr><td>أتعاب المرشد (اليومية)</td><td>${d.feeEgp}</td><td>${d.feeNotes || '-'}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="detail-section">
+                <h4>2. مبيعات المحلات</h4>
+                <table>
+                    <thead><tr><th>اسم المحل</th><th>إجمالي المبيعات</th></tr></thead>
+                    <tbody>${shopsRows}</tbody>
+                </table>
+            </div>
+
+            <div class="detail-section">
+                <h4>3. الرحلات الاختيارية (Optional)</h4>
+                <table>
+                    <thead>
+                        <tr><th>الرحلة</th><th>عدد الأفراد</th><th>السعر</th><th>التكلفة</th><th>نسبة المرشد</th><th>عمولة المرشد</th></tr>
+                    </thead>
+                    <tbody>${optRows}</tbody>
+                </table>
+            </div>
+
+            <div class="detail-section" style="background:#fbf5eb; padding:15px; border:2px double var(--vintage-gold-dark);">
+                <h4 style="margin-top:0;">الملخص المالي النهائي</h4>
+                <p style="margin:5px 0;"><b>إجمالي ما بذمة المرشد:</b> ${item.totalDue}</p>
+                <p style="margin:5px 0;"><b>إجمالي المصروفات والأتعاب:</b> ${item.totalExp}</p>
+                <p style="margin:5px 0; font-size:1.2em;"><b>الصافي النهائي:</b> <span class="${parseFloat(item.net) >= 0 ? 'positive' : 'negative'}">${item.net}</span></p>
+            </div>
+        `;
+
+        document.getElementById('modalContent').innerHTML = modalHtml;
+        document.getElementById('detailsModal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('detailsModal').classList.remove('active');
     }
 
     window.onload = function() {
