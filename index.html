@@ -43,7 +43,7 @@
             pointer-events: none; z-index: 999; opacity: 0.4;
         }
 
-        /* القائمة الجانبية (Sidebar) في اليمين */
+        /* القائمة الجانبية (Sidebar) للكمبيوتر */
         .sidebar {
             width: var(--sidebar-width);
             background: var(--primary-navy);
@@ -87,6 +87,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            justify-content: flex-start;
         }
 
         .nav-btn.active, .nav-btn:hover {
@@ -102,6 +103,7 @@
             flex: 1;
             padding: 30px 20px;
             box-sizing: border-box;
+            width: 100%;
         }
 
         .container { max-width: 1050px; margin: 0 auto; position: relative; z-index: 1; }
@@ -111,6 +113,8 @@
             border: 3px double var(--vintage-gold-dark); padding: 25px 35px; background: var(--vintage-card);
             border-radius: 4px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 8px 20px rgba(43, 35, 25, 0.1);
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .subtitle-styled {
@@ -147,7 +151,8 @@
 
         .comm-result-box { background-color: #e8dbca; border: 1px solid var(--vintage-gold-dark); padding: 8px 12px; border-radius: 3px; text-align: center; font-weight: bold; color: var(--primary-navy); height: 40px; display: flex; align-items: center; justify-content: center; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 600px; }
         th, td { border: 1px solid var(--border-vintage); padding: 10px 12px; text-align: center; font-size: 1.05em; }
         th { background-color: #e8dbca; color: var(--primary-navy); font-weight: bold; border-bottom: 2px solid var(--vintage-gold-dark); }
 
@@ -170,7 +175,7 @@
         .filter-bar {
             display: flex; gap: 15px; margin-bottom: 15px; background: #fbf5eb;
             padding: 15px; border: 1px solid var(--border-vintage); border-radius: 4px;
-            align-items: center;
+            align-items: center; flex-wrap: wrap;
         }
 
         /* Modal / Pop-up Window */
@@ -178,14 +183,14 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.65);
             display: none; justify-content: center; align-items: center;
-            z-index: 1000;
+            z-index: 1000; padding: 10px; box-sizing: border-box;
         }
         .modal-overlay.active { display: flex; }
         .modal-card {
             background: var(--vintage-card); border: 3px double var(--vintage-gold-dark);
-            border-radius: 6px; width: 90%; max-width: 800px; max-height: 90vh;
+            border-radius: 6px; width: 100%; max-width: 800px; max-height: 90vh;
             overflow-y: auto; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            position: relative;
+            position: relative; box-sizing: border-box;
         }
         .modal-close {
             position: absolute; top: 15px; left: 15px;
@@ -195,6 +200,60 @@
         .detail-section { margin-bottom: 20px; }
         .detail-section h4 { color: var(--primary-navy); border-bottom: 1px solid var(--vintage-gold); padding-bottom: 5px; margin-bottom: 10px; font-size: 1.2em; }
 
+        /* ===== إعدادات الهاتف والشاشات الصغيرة (Responsive) ===== */
+        @media screen and (max-width: 768px) {
+            body { flex-direction: column; }
+            body::before { display: none; }
+            .sidebar {
+                position: relative;
+                width: 100%;
+                min-height: auto;
+                height: auto;
+                padding: 15px 10px;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+                border-left: none;
+                border-bottom: 3px double var(--vintage-gold);
+            }
+            .sidebar-title {
+                width: 100%;
+                margin-bottom: 5px;
+                padding-bottom: 5px;
+                font-size: 1em;
+            }
+            .nav-btn {
+                flex: 1;
+                min-width: 100px;
+                padding: 8px 10px;
+                font-size: 0.85em;
+                justify-content: center;
+                text-align: center;
+            }
+            .nav-btn.active, .nav-btn:hover {
+                transform: none;
+            }
+            .main-wrapper {
+                margin-right: 0;
+                padding: 15px 10px;
+            }
+            .header-vintage {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px;
+            }
+            .logo-box-left {
+                border-left: none;
+                border-top: 2px dashed var(--border-vintage);
+                padding-left: 0;
+                padding-top: 15px;
+                width: 100%;
+            }
+            .subtitle-styled { font-size: 1.3em; }
+            .card { padding: 15px; }
+        }
+
         @media print { 
             .no-print, body::before, .sidebar, .modal-close { display: none !important; }
             .main-wrapper { margin-right: 0 !important; padding: 0 !important; }
@@ -203,7 +262,7 @@
 </head>
 <body>
 
-<!-- القائمة الجانبية في اليمين -->
+<!-- القائمة الجانبية (تتحول إلى قائمة علوية في الموبايل) -->
 <div class="sidebar no-print">
     <div class="sidebar-title">قائمة النظام</div>
     <button class="nav-btn active" onclick="switchTab('tab-form')">📝 1. نموذج التصفية</button>
@@ -246,55 +305,57 @@
 
                 <div class="card">
                     <h3>العهدة والمصروفات المباشرة (EGP)</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 25%;">البيان</th>
-                                <th style="width: 30%;">المبلغ (بالجنيه المصري)</th>
-                                <th style="width: 45%;">ملاحظات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><b>العهدة المستلمة</b></td>
-                                <td><input type="number" id="floatEgp" value="0" step="any" oninput="calculateAll()"></td>
-                                <td><input type="text" id="floatNotes" placeholder="مثال: نقداً من الخزينة / تحويل"></td>
-                            </tr>
-                            <tr>
-                                <td>مصاريف الغداء</td>
-                                <td><input type="number" id="lunchEgp" value="0" step="any" oninput="calculateAll()"></td>
-                                <td><input type="text" id="lunchNotes" placeholder="تفاصيل مطعم الغداء..."></td>
-                            </tr>
-                            <tr>
-                                <td>الإكراميات (Tips)</td>
-                                <td><input type="number" id="tipsEgp" value="0" step="any" oninput="calculateAll()"></td>
-                                <td><input type="text" id="tipsNotes" placeholder="إكراميات سائق / مطار / معابد..."></td>
-                            </tr>
-                            <tr>
-                                <td>الباركينج والرسوم</td>
-                                <td><input type="number" id="parkingEgp" value="0" step="any" oninput="calculateAll()"></td>
-                                <td><input type="text" id="parkingNotes" placeholder="رسوم انتظار / بوابات..."></td>
-                            </tr>
-                            <tr>
-                                <td>أتعاب المرشد (اليومية)</td>
-                                <td><input type="number" id="feeEgp" value="0" step="any" oninput="calculateAll()"></td>
-                                <td><input type="text" id="feeNotes" placeholder="عدد الأيام / تفاصيل يومية الإرشاد..."></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%;">البيان</th>
+                                    <th style="width: 30%;">المبلغ (بالجنيه المصري)</th>
+                                    <th style="width: 45%;">ملاحظات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><b>العهدة المستلمة</b></td>
+                                    <td><input type="number" id="floatEgp" value="0" step="any" oninput="calculateAll()"></td>
+                                    <td><input type="text" id="floatNotes" placeholder="مثال: نقداً من الخزينة / تحويل"></td>
+                                </tr>
+                                <tr>
+                                    <td>مصاريف الغداء</td>
+                                    <td><input type="number" id="lunchEgp" value="0" step="any" oninput="calculateAll()"></td>
+                                    <td><input type="text" id="lunchNotes" placeholder="تفاصيل مطعم الغداء..."></td>
+                                </tr>
+                                <tr>
+                                    <td>الإكراميات (Tips)</td>
+                                    <td><input type="number" id="tipsEgp" value="0" step="any" oninput="calculateAll()"></td>
+                                    <td><input type="text" id="tipsNotes" placeholder="إكراميات سائق / مطار / معابد..."></td>
+                                </tr>
+                                <tr>
+                                    <td>الباركينج والرسوم</td>
+                                    <td><input type="number" id="parkingEgp" value="0" step="any" oninput="calculateAll()"></td>
+                                    <td><input type="text" id="parkingNotes" placeholder="رسوم انتظار / بوابات..."></td>
+                                </tr>
+                                <tr>
+                                    <td>أتعاب المرشد (اليومية)</td>
+                                    <td><input type="number" id="feeEgp" value="0" step="any" oninput="calculateAll()"></td>
+                                    <td><input type="text" id="feeNotes" placeholder="عدد الأيام / تفاصيل يومية الإرشاد..."></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3>مبيعات المحلات (Shops)</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
+                        <h3 style="margin:0;">مبيعات المحلات (Shops)</h3>
                         <button type="button" class="btn no-print" onclick="addShopRow()">+ إضافة محل</button>
                     </div>
                     <div id="shopsContainer"></div>
                 </div>
 
                 <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3>الرحلات الاختيارية (Optional Tours)</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
+                        <h3 style="margin:0;">الرحلات الاختيارية (Optional Tours)</h3>
                         <button type="button" class="btn no-print" onclick="addOptionalRow()">+ إضافة رحلة</button>
                     </div>
                     <div id="optionalContainer"></div>
@@ -302,24 +363,26 @@
 
                 <div class="card summary-card">
                     <h3>صافي التصفية النهائي (EGP)</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>إجمالي ما بذمة المرشد</th>
-                                <th>إجمالي المصروفات والأتعاب</th>
-                                <th>الصافي النهائي</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td id="totalDueEgp">0.00 EGP</td>
-                                <td id="totalExpEgp">0.00 EGP</td>
-                                <td id="netEgp" class="positive">0.00 EGP</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>إجمالي ما بذمة المرشد</th>
+                                    <th>إجمالي المصروفات والأتعاب</th>
+                                    <th>الصافي النهائي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td id="totalDueEgp">0.00 EGP</td>
+                                    <td id="totalExpEgp">0.00 EGP</td>
+                                    <td id="netEgp" class="positive">0.00 EGP</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <div style="display:flex; gap:15px; justify-content:flex-end; margin-top:20px;" class="no-print">
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px; flex-wrap:wrap;" class="no-print">
                         <button type="button" class="btn btn-pdf" onclick="downloadFormPDF()">تحميل PDF 📄</button>
                         <button type="button" class="btn" onclick="window.print();">طباعة مسودة</button>
                         <button type="button" class="btn btn-submit" onclick="submitSettlement()">إرسال التصفية للمراجعة 📤</button>
@@ -332,23 +395,25 @@
         <div id="tab-review" class="tab-content">
             <div class="card">
                 <h3>الطلبات الواردة (قيد المراجعة)</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>اسم المرشد</th>
-                            <th>رقم الملف</th>
-                            <th>التاريخ</th>
-                            <th>ما بذمته</th>
-                            <th>المصروفات</th>
-                            <th>الصافي</th>
-                            <th>عرض التفاصيل</th>
-                            <th>الإجراء</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reviewTableBody">
-                        <!-- يملأ ديناميكياً -->
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>اسم المرشد</th>
+                                <th>رقم الملف</th>
+                                <th>التاريخ</th>
+                                <th>ما بذمته</th>
+                                <th>المصروفات</th>
+                                <th>الصافي</th>
+                                <th>عرض التفاصيل</th>
+                                <th>الإجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviewTableBody">
+                            <!-- يملأ ديناميكياً -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -359,11 +424,11 @@
                 
                 <!-- شريط الفلترة والبحث -->
                 <div class="filter-bar no-print">
-                    <div class="form-group" style="flex: 2;">
+                    <div class="form-group" style="flex: 2; min-width:200px;">
                         <label>🔍 فلترة باسم المرشد أو رقم الملف:</label>
-                        <input type="text" id="archiveFilterInput" placeholder="اكتب اسم المرشد أو رقم الملف للبحث..." oninput="loadArchiveTable()">
+                        <input type="text" id="archiveFilterInput" placeholder="اكتب اسم المرشد أو رقم الملف..." oninput="loadArchiveTable()">
                     </div>
-                    <div class="form-group" style="flex: 1;">
+                    <div class="form-group" style="flex: 1; min-width:130px;">
                         <label>الحالة:</label>
                         <select id="archiveStatusFilter" onchange="loadArchiveTable()">
                             <option value="ALL">الكل</option>
@@ -373,23 +438,25 @@
                     </div>
                 </div>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>اسم المرشد</th>
-                            <th>رقم الملف</th>
-                            <th>تاريخ الحسم</th>
-                            <th>ما بذمته</th>
-                            <th>المصروفات</th>
-                            <th>الصافي</th>
-                            <th>الحالة النهائيّة</th>
-                            <th>عرض التفاصيل</th>
-                        </tr>
-                    </thead>
-                    <tbody id="archiveTableBody">
-                        <!-- يملأ ديناميكياً -->
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>اسم المرشد</th>
+                                <th>رقم الملف</th>
+                                <th>تاريخ الحسم</th>
+                                <th>ما بذمته</th>
+                                <th>المصروفات</th>
+                                <th>الصافي</th>
+                                <th>الحالة النهائيّة</th>
+                                <th>عرض التفاصيل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="archiveTableBody">
+                            <!-- يملأ ديناميكياً -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -408,7 +475,7 @@
                 <!-- يملأ بالبيانات dynamic -->
             </div>
         </div>
-        <div style="text-align: left; margin-top: 20px;" class="no-print">
+        <div style="text-align: left; margin-top: 20px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;" class="no-print">
             <button class="btn btn-pdf" onclick="downloadModalPDF()">تحميل PDF 📄</button>
             <button class="btn" onclick="window.print()">طباعة التقرير 🖨️</button>
             <button class="btn btn-danger" onclick="closeModal()">إغلاق</button>
@@ -422,14 +489,13 @@
 
     // التحكم في التنقل بين الشاشات مع التحقق من الرقم السري
     function switchTab(tabId) {
-        // التحقق من الحماية للقسمين المحددين
         if (tabId === 'tab-review' || tabId === 'tab-archive') {
             const userPin = prompt("🔒 هذا القسم محمي برقم سري، يرجى إدخال رمز الدخول:");
             if (userPin !== SECRET_PIN) {
                 if (userPin !== null) {
                     alert("❌ الرقم السري غير صحيح! لا يمكن الدخول.");
                 }
-                return; // إلغاء عملية الانتقال
+                return;
             }
         }
 
@@ -552,7 +618,7 @@
         netElem.className = net >= 0 ? 'positive' : 'negative';
     }
 
-    // إرسال الطلب للمراجعة وتخزين كافة البيانات بالتفصيل
+    // إرسال الطلب للمراجعة
     function submitSettlement() {
         const guideName = document.getElementById('guideInput').value.trim();
         const fileNo = document.getElementById('fileNo').value.trim();
@@ -638,8 +704,8 @@
                 <td><b>${item.net}</b></td>
                 <td><button class="btn btn-info" onclick="viewDetails(${index}, 'pending')">👁️ عرض التصفية</button></td>
                 <td>
-                    <button class="btn btn-submit" style="padding:4px 10px;" onclick="handleAction(${index}, 'معتمد ✅')">اعتماد</button>
-                    <button class="btn btn-danger" style="padding:4px 10px;" onclick="handleAction(${index}, 'مرفوض ❌')">رفض</button>
+                    <button class="btn btn-submit" style="padding:4px 10px; margin:2px;" onclick="handleAction(${index}, 'معتمد ✅')">اعتماد</button>
+                    <button class="btn btn-danger" style="padding:4px 10px; margin:2px;" onclick="handleAction(${index}, 'مرفوض ❌')">رفض</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -664,7 +730,7 @@
         loadReviewTable();
     }
 
-    // تحميل جدول الأرشيف مع دعم الفلترة والبحث
+    // تحميل جدول الأرشيف
     function loadArchiveTable() {
         const list = JSON.parse(localStorage.getItem('archivedRequests') || '[]');
         const tbody = document.getElementById('archiveTableBody');
@@ -741,36 +807,42 @@
 
             <div class="detail-section">
                 <h4>1. العهدة والمصروفات المباشرة</h4>
-                <table>
-                    <thead>
-                        <tr><th>البيان</th><th>المبلغ (EGP)</th><th>ملاحظات</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>العهدة المستلمة</td><td><b>${d.floatEgp}</b></td><td>${d.floatNotes || '-'}</td></tr>
-                        <tr><td>مصاريف الغداء</td><td>${d.lunchEgp}</td><td>${d.lunchNotes || '-'}</td></tr>
-                        <tr><td>الإكراميات</td><td>${d.tipsEgp}</td><td>${d.tipsNotes || '-'}</td></tr>
-                        <tr><td>الباركينج والرسوم</td><td>${d.parkingEgp}</td><td>${d.parkingNotes || '-'}</td></tr>
-                        <tr><td>أتعاب المرشد (اليومية)</td><td>${d.feeEgp}</td><td>${d.feeNotes || '-'}</td></tr>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr><th>البيان</th><th>المبلغ (EGP)</th><th>ملاحظات</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>العهدة المستلمة</td><td><b>${d.floatEgp}</b></td><td>${d.floatNotes || '-'}</td></tr>
+                            <tr><td>مصاريف الغداء</td><td>${d.lunchEgp}</td><td>${d.lunchNotes || '-'}</td></tr>
+                            <tr><td>الإكراميات</td><td>${d.tipsEgp}</td><td>${d.tipsNotes || '-'}</td></tr>
+                            <tr><td>الباركينج والرسوم</td><td>${d.parkingEgp}</td><td>${d.parkingNotes || '-'}</td></tr>
+                            <tr><td>أتعاب المرشد (اليومية)</td><td>${d.feeEgp}</td><td>${d.feeNotes || '-'}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="detail-section">
                 <h4>2. مبيعات المحلات</h4>
-                <table>
-                    <thead><tr><th>اسم المحل</th><th>إجمالي المبيعات</th></tr></thead>
-                    <tbody>${shopsRows}</tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>اسم المحل</th><th>إجمالي المبيعات</th></tr></thead>
+                        <tbody>${shopsRows}</tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="detail-section">
                 <h4>3. الرحلات الاختيارية (Optional)</h4>
-                <table>
-                    <thead>
-                        <tr><th>الرحلة</th><th>عدد الأفراد</th><th>السعر</th><th>التكلفة</th><th>نسبة المرشد</th><th>عمولة المرشد</th></tr>
-                    </thead>
-                    <tbody>${optRows}</tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr><th>الرحلة</th><th>عدد الأفراد</th><th>السعر</th><th>التكلفة</th><th>نسبة المرشد</th><th>عمولة المرشد</th></tr>
+                        </thead>
+                        <tbody>${optRows}</tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="detail-section" style="background:#fbf5eb; padding:15px; border:2px double var(--vintage-gold-dark);">
