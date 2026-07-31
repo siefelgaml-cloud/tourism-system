@@ -8,8 +8,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800;900&family=Montserrat:wght@400;600;700&display=swap');
 
         :root {
-            --vintage-paper: #f4eae1;
-            --vintage-card: #fcf8f2;
+            --vintage-paper: #f2e5d5;
+            --vintage-card: #fdfaf6;
             --primary-navy: #0f2c4a;
             --vintage-gold: #b8860b;
             --vintage-gold-dark: #8b6508;
@@ -21,21 +21,45 @@
 
         body {
             font-family: 'Amiri', serif;
-            background-color: var(--vintage-paper);
             color: var(--text-vintage);
             margin: 0;
             padding: 30px 20px;
-            /* خلفية ورقية كلاسيكية دافئة */
+            min-height: 100vh;
+
+            /* خلفية Vintage محاكية للورق القديم المعتق */
+            background-color: var(--vintage-paper);
             background-image: 
-                radial-gradient(#d3c3b0 1px, transparent 0),
-                radial-gradient(#c4b29c 1px, transparent 0);
-            background-size: 20px 20px, 40px 40px;
-            background-position: 0 0, 10px 10px;
+                /* ظلال معتقة على حواف الشاشة */
+                radial-gradient(circle at center, transparent 50%, rgba(139, 101, 8, 0.15) 100%),
+                /* نقش ألياف الورق الكلاسيكي */
+                radial-gradient(#d4c2ab 0.8px, transparent 0.8px),
+                radial-gradient(#bfa88f 0.8px, var(--vintage-paper) 0.8px);
+            background-size: 100% 100%, 16px 16px, 32px 32px;
+            background-position: 0 0, 0 0, 8px 8px;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        /* إطار خارجي حول الصفحة لمنح السيستم مظهر المخطوطات القديمة */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 2px solid var(--border-vintage);
+            outline: 1px solid var(--vintage-gold);
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.5;
         }
 
         .container {
             max-width: 1050px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         /* Vintage Classic Header */
@@ -45,7 +69,7 @@
             background: var(--vintage-card);
             border-radius: 4px;
             margin-bottom: 30px;
-            box-shadow: 0 8px 20px rgba(43, 35, 25, 0.12), inset 0 0 30px rgba(184, 134, 11, 0.05);
+            box-shadow: 0 10px 25px rgba(43, 35, 25, 0.12), inset 0 0 40px rgba(184, 134, 11, 0.06);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -113,7 +137,7 @@
             border-radius: 4px;
             padding: 25px;
             margin-bottom: 25px;
-            box-shadow: 4px 4px 12px rgba(0,0,0,0.06);
+            box-shadow: 0 6px 15px rgba(43, 35, 25, 0.07), inset 0 0 20px rgba(184, 134, 11, 0.02);
         }
 
         .card h3 {
@@ -231,7 +255,7 @@
         .negative { color: var(--red); font-weight: bold; font-size: 1.25em; }
 
         @media print {
-            .btn, .no-print { display: none !important; }
+            .btn, .no-print, body::before { display: none !important; }
             body { padding: 0; background: white; }
             .card, .header-vintage { box-shadow: none; border-color: #333; }
         }
