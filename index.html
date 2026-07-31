@@ -3,25 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سيستم تصفية حسابات المرشدين</title>
+    <title>Look At Egypt Tours - تصفية حسابات المرشدين</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&display=swap');
+
         :root {
-            --primary: #1e293b;
-            --accent: #2563eb;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #0f172a;
-            --border: #e2e8f0;
-            --green: #16a34a;
-            --red: #dc2626;
+            --vintage-bg: #f5efe6;
+            --card-bg: #fffdf9;
+            --primary-navy: #1a365d;
+            --accent-blue: #0284c7;
+            --border-color: #c5b358;
+            --dark-border: #8b7d3b;
+            --text-color: #2b261f;
+            --green: #2e7d32;
+            --red: #c62828;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            font-family: 'Amiri', 'Segoe UI', serif;
+            background-color: var(--vintage-bg);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
+            background-image: radial-gradient(#e0d7c6 1px, transparent 0);
+            background-size: 24px 24px;
         }
 
         .container {
@@ -29,22 +34,58 @@
             margin: 0 auto;
         }
 
-        h1, h2, h3 {
-            color: var(--primary);
+        .header-vintage {
+            text-align: center;
+            border: 3px double var(--dark-border);
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 4px;
+            margin-bottom: 25px;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .company-logo {
+            max-width: 160px;
+            height: auto;
+            margin-bottom: 10px;
+            filter: sepia(10%) contrast(105%);
+        }
+
+        h1 {
+            color: var(--primary-navy);
+            font-size: 2em;
+            margin: 10px 0 5px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            font-style: italic;
+            color: #6b5e4a;
+            margin-bottom: 0;
+            font-weight: bold;
         }
 
         .card {
             background: var(--card-bg);
-            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid var(--border);
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .card h3 {
+            color: var(--primary-navy);
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 0;
+            font-size: 1.3em;
         }
 
         .grid-3 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 15px;
         }
 
@@ -52,91 +93,112 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
-            margin-bottom: 10px;
         }
 
         label {
-            font-weight: 600;
-            font-size: 0.9em;
+            font-weight: bold;
+            font-size: 1.05em;
+            color: var(--primary-navy);
         }
 
         .required-star {
             color: var(--red);
-            font-weight: bold;
         }
 
         input, select {
             padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            font-size: 1em;
+            border: 1px solid #b8a88a;
+            background-color: #fcfaf5;
+            border-radius: 3px;
+            font-family: 'Amiri', serif;
+            font-size: 1.05em;
+            color: var(--text-color);
             outline: none;
         }
 
         input:focus, select:focus {
-            border-color: var(--accent);
+            border-color: var(--primary-navy);
+            background-color: #fff;
         }
 
         input[readonly] {
-            background-color: #f1f5f9;
-            color: #64748b;
+            background-color: #eee7d7;
+            color: #555;
             cursor: not-allowed;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         th, td {
-            border: 1px solid var(--border);
-            padding: 10px;
+            border: 1px solid var(--border-color);
+            padding: 8px 10px;
             text-align: center;
-            font-size: 0.95em;
+            font-size: 1.05em;
         }
 
         th {
-            background-color: #f1f5f9;
+            background-color: #ebdcb9;
+            color: var(--primary-navy);
+            font-weight: bold;
+        }
+
+        td {
+            background-color: var(--card-bg);
         }
 
         .btn {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
+            background-color: var(--primary-navy);
+            color: #f5efe6;
+            border: 1px solid var(--dark-border);
+            padding: 8px 18px;
+            border-radius: 3px;
             cursor: pointer;
-            font-weight: 600;
+            font-family: 'Amiri', serif;
+            font-weight: bold;
+            font-size: 1.05em;
+            transition: all 0.2s;
         }
 
         .btn:hover {
-            opacity: 0.9;
+            background-color: var(--accent-blue);
+            color: white;
         }
 
         .btn-danger {
             background-color: var(--red);
-            padding: 4px 8px;
+            padding: 2px 8px;
+            font-size: 0.9em;
         }
 
         .summary-card {
-            border-top: 4px solid var(--accent);
+            border: 3px double var(--dark-border);
+            background-color: #fdfaf3;
         }
 
-        .positive { color: var(--green); font-weight: bold; font-size: 1.1em; }
-        .negative { color: var(--red); font-weight: bold; font-size: 1.1em; }
+        .positive { color: var(--green); font-weight: bold; font-size: 1.2em; }
+        .negative { color: var(--red); font-weight: bold; font-size: 1.2em; }
 
         @media print {
-            .btn, .no-print { display: none; }
+            .btn, .no-print { display: none !important; }
             body { padding: 0; background: white; }
-            .card { box-shadow: none; border: 1px solid #ccc; }
+            .card, .header-vintage { box-shadow: none; border-color: #444; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 style="text-align: center;">نظام تصفية حسابات المرشدين السياحيين</h1>
+    <!-- Header with Vintage Style & Logo -->
+    <div class="header-vintage">
+        <!-- Logo Image Placeholder -->
+        <img src="https://i.ibb.co/6y4M5xT/logo.jpg" alt="Look At Egypt Tours" class="company-logo" onerror="this.src='logo.jpg'; this.onerror=null;">
+        <h1>LOOK AT EGYPT TOURS</h1>
+        <p class="subtitle">نظام تصفية واستحاق حسابات المرشدين السياحيين</p>
+    </div>
 
     <form id="settlementForm" onsubmit="event.preventDefault(); window.print();">
         <!-- 1. البيانات الأساسية -->
@@ -169,12 +231,12 @@
 
         <!-- 2. العهده والمصروفات -->
         <div class="card">
-            <h3>العهدة والمصروفات المباشرة (بالجنيه المصري EGP)</h3>
+            <h3>العهدة والمصروفات المباشرة (EGP)</h3>
             <table>
                 <thead>
                     <tr>
                         <th>البيان</th>
-                        <th>المبلغ (EGP)</th>
+                        <th>المبلغ (بالجنيه المصري)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -266,10 +328,10 @@
                     </tr>
                 </tbody>
             </table>
-            <p style="font-size: 0.85em; color: #64748b; margin-top: 10px;">* الناتج بالموجب: المرشد ملزم ببرد المبلغ للشركة. الناتج بالسالب: المبلغ مستحق للصرف للمرشد.</p>
+            <p style="font-size: 0.9em; color: #555; margin-top: 12px; font-style: italic;">* الناتج بالموجب: المرشد ملزم ببرد المبلغ للشركة. الناتج بالسالب: المبلغ مستحق للصرف للمرشد.</p>
             
             <div style="margin-top: 20px; text-align: left;" class="no-print">
-                <button type="submit" class="btn">طباعة التصفية</button>
+                <button type="submit" class="btn">طباعة التصفية الرسمية</button>
             </div>
         </div>
     </form>
