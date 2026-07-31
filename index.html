@@ -27,72 +27,6 @@
       background-size: 24px 24px; /* خلفية محببة خفيفة */
     }
 
-    /* القائمة الجانبية الرأسية (على اليمين) - طابع خشب أو جلد داكن */
-    .sidebar-left {
-      width: 280px;
-      background-color: #2b1d14; /* بني جلد داكن */
-      color: #e6d5c3;
-      display: flex;
-      flex-direction: column;
-      padding: 30px 15px;
-      border-left: 3px double #8c6d53; /* تم التعديل لتصبح الحدود من اليسار ليفصل عن المحتوى */
-      box-shadow: 5px 0 15px rgba(0,0,0,0.3);
-    }
-
-    .sidebar-left h3 {
-      font-family: 'Aref Ruqaa', serif;
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 22px;
-      color: #d4b595;
-      border-bottom: 1px solid #5c3a21;
-      padding-bottom: 12px;
-      letter-spacing: 1px;
-    }
-
-    .sidebar-nav {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .sidebar-nav li a {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 18px;
-      color: #c9b199;
-      text-decoration: none;
-      font-size: 18px;
-      border: 1px solid #4a3324;
-      background-color: #362419;
-      transition: all 0.3s ease;
-    }
-
-    .sidebar-nav li a:hover, 
-    .sidebar-nav li a.active {
-      background-color: #8c6d53;
-      color: #ffffff;
-      border-color: #d4b595;
-      box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
-    }
-
-    /* ختم التنبيه للطلبات كأنه شمع أحمر */
-    .badge {
-      background-color: #8b2626; /* أحمر عقيقي داكن */
-      color: #f4efe6;
-      border: 1px solid #5c1818;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
     /* منطقة المحتوى الرئيسي (على اليسار) */
     .main-content {
       flex: 1;
@@ -181,11 +115,77 @@
       box-shadow: 1px 1px 0px #2d3a30;
       transform: translate(2px, 2px);
     }
+
+    /* القائمة الجانبية الرأسية (على اليمين) - طابع خشب أو جلد داكن */
+    .sidebar-left {
+      width: 280px;
+      background-color: #2b1d14; /* بني جلد داكن */
+      color: #e6d5c3;
+      display: flex;
+      flex-direction: column;
+      padding: 30px 15px;
+      border-left: 3px double #8c6d53;
+      box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+    }
+
+    .sidebar-left h3 {
+      font-family: 'Aref Ruqaa', serif;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 22px;
+      color: #d4b595;
+      border-bottom: 1px solid #5c3a21;
+      padding-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .sidebar-nav {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .sidebar-nav li a {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      color: #c9b199;
+      text-decoration: none;
+      font-size: 18px;
+      border: 1px solid #4a3324;
+      background-color: #362419;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-nav li a:hover, 
+    .sidebar-nav li a.active {
+      background-color: #8c6d53;
+      color: #ffffff;
+      border-color: #d4b595;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+    }
+
+    /* ختم التنبيه للطلبات كأنه شمع أحمر */
+    .badge {
+      background-color: #8b2626; /* أحمر عقيقي داكن */
+      color: #f4efe6;
+      border: 1px solid #5c1818;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
-  <!-- القائمة الجانبية الرأسية (تم نقلها لتكون في البداية على اليمين) -->
+  <!-- 1. القائمة الجانبية (سجل السجلات) أصبحت أولاً في الـ HTML لتظهر على اليمين -->
   <aside class="sidebar-left">
     <h3>سجل السجلات</h3>
     <ul class="sidebar-nav">
@@ -208,7 +208,7 @@
     </ul>
   </aside>
 
-  <!-- المحتوى الرئيسي (نموذج التصفية أصبح على اليسار تلقائياً) -->
+  <!-- 2. المحتوى الرئيسي لنموذج التصفية أصلح ثانياً ليظهر على اليسار -->
   <main class="main-content">
     <div class="card">
       <h2>ــ نموذج تصفية المرشد ــ</h2>
