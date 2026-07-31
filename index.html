@@ -1,259 +1,517 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
+
 <head>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>نظام إدارة التصفية والطلبات - طابع ڤينتج</title>
 
+
+
   <!-- استدعاء خطوط كلاسيكية من Google Fonts -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
 
+
+
   <style>
+
     * {
+
       box-sizing: border-box;
+
       margin: 0;
+
       padding: 0;
+
     }
+
+
 
     body {
+
       display: flex;
+
       background-color: #f4efe6; /* لون ورقي قديم */
+
       color: #3d2b1f; /* بني داكن حبري */
+
       font-family: 'Amiri', serif;
+
       min-height: 100vh;
+
       background-image: radial-gradient(#e2d7c5 1px, transparent 0);
+
       background-size: 24px 24px; /* خلفية محببة خفيفة */
+
     }
+
+
 
     /* منطقة المحتوى الرئيسي (على اليمين) */
+
     .main-content {
+
       flex: 1;
+
       padding: 40px;
+
     }
+
+
 
     /* بطاقة بتصميم ورق قديم وبرواز مضلع */
+
     .card {
+
       background: #fcf8f2;
+
       padding: 35px;
+
       border: 2px solid #8c6d53;
+
       outline: 1px solid #8c6d53;
+
       outline-offset: -6px;
+
       border-radius: 4px;
+
       box-shadow: 5px 5px 15px rgba(61, 43, 31, 0.15);
+
       margin-bottom: 20px;
+
       position: relative;
+
     }
+
+
 
     h2 {
+
       font-family: 'Aref Ruqaa', serif;
+
       font-size: 28px;
+
       margin-bottom: 25px;
+
       color: #5c3a21;
+
       border-bottom: 2px dashed #b89c83;
+
       padding-bottom: 12px;
+
       text-align: center;
+
     }
+
+
 
     .form-group {
+
       margin-bottom: 20px;
+
     }
+
+
 
     label {
+
       display: block;
+
       margin-bottom: 8px;
+
       font-weight: bold;
+
       font-size: 18px;
+
       color: #4a3324;
+
     }
+
+
 
     input, select, textarea {
+
       width: 100%;
+
       padding: 10px 14px;
+
       background-color: #f4efe6;
+
       border: 1px solid #a3856c;
+
       border-radius: 2px;
+
       font-family: 'Amiri', serif;
+
       font-size: 16px;
+
       color: #2b1d14;
+
       box-shadow: inset 1px 1px 4px rgba(0,0,0,0.08);
+
       outline: none;
+
     }
+
+
 
     input:focus, select:focus, textarea:focus {
+
       border-color: #5c3a21;
+
       background-color: #ffffff;
+
     }
+
+
 
     .row {
+
       display: flex;
+
       gap: 20px;
+
     }
+
+
 
     .row .form-group {
+
       flex: 1;
+
     }
+
+
 
     /* زرار كلاسيكي زيتي داكن مع إطار زر قديم */
+
     .btn-submit {
+
       background-color: #4a5d4e; /* أخضر زيتي ڤينتج */
+
       color: #f4efe6;
+
       border: 2px solid #2d3a30;
+
       padding: 12px 25px;
+
       font-family: 'Aref Ruqaa', serif;
+
       font-size: 20px;
+
       cursor: pointer;
+
       width: 100%;
+
       margin-top: 10px;
+
       box-shadow: 3px 3px 0px #2d3a30;
+
       transition: all 0.2s ease;
+
     }
+
+
 
     .btn-submit:hover {
+
       background-color: #38473b;
+
       box-shadow: 1px 1px 0px #2d3a30;
+
       transform: translate(2px, 2px);
+
     }
+
+
 
     /* القائمة الجانبية الرأسية (على اليسار) - طابع خشب أو جلد داكن */
+
     .sidebar-left {
+
       width: 280px;
+
       background-color: #2b1d14; /* بني جلد داكن */
+
       color: #e6d5c3;
+
       display: flex;
+
       flex-direction: column;
+
       padding: 30px 15px;
+
       border-right: 3px double #8c6d53;
+
       box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+
     }
+
+
 
     .sidebar-left h3 {
+
       font-family: 'Aref Ruqaa', serif;
+
       text-align: center;
+
       margin-bottom: 30px;
+
       font-size: 22px;
+
       color: #d4b595;
+
       border-bottom: 1px solid #5c3a21;
+
       padding-bottom: 12px;
+
       letter-spacing: 1px;
+
     }
+
+
 
     .sidebar-nav {
+
       list-style: none;
+
       display: flex;
+
       flex-direction: column;
+
       gap: 15px;
+
     }
+
+
 
     .sidebar-nav li a {
+
       display: flex;
+
       justify-content: space-between;
+
       align-items: center;
+
       padding: 12px 18px;
+
       color: #c9b199;
+
       text-decoration: none;
+
       font-size: 18px;
+
       border: 1px solid #4a3324;
+
       background-color: #362419;
+
       transition: all 0.3s ease;
+
     }
+
+
 
     .sidebar-nav li a:hover, 
+
     .sidebar-nav li a.active {
+
       background-color: #8c6d53;
+
       color: #ffffff;
+
       border-color: #d4b595;
+
       box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+
     }
+
+
 
     /* ختم التنبيه للطلبات كأنه شمع أحمر */
+
     .badge {
+
       background-color: #8b2626; /* أحمر عقيقي داكن */
+
       color: #f4efe6;
+
       border: 1px solid #5c1818;
+
       border-radius: 50%;
+
       width: 24px;
+
       height: 24px;
+
       display: inline-flex;
+
       align-items: center;
+
       justify-content: center;
+
       font-size: 14px;
+
       font-weight: bold;
+
     }
+
   </style>
+
 </head>
+
 <body>
 
+
+
   <!-- المحتوى الرئيسي (عرض نموذج التصفية) -->
+
   <main class="main-content">
+
     <div class="card">
+
       <h2>ــ نموذج تصفية المرشد ــ</h2>
+
       
+
       <form>
+
         <div class="row">
+
           <div class="form-group">
+
             <label>اسم المرشد / المشرف:</label>
+
             <input type="text" value="أحمد محمود" readonly>
+
           </div>
+
           <div class="form-group">
+
             <label>تاريخ التصفية:</label>
+
             <input type="date" value="2026-07-31">
+
           </div>
+
         </div>
+
+
 
         <div class="row">
+
           <div class="form-group">
+
             <label>إجمالي المستحقات (ج.م):</label>
+
             <input type="number" placeholder="0.00">
+
           </div>
+
           <div class="form-group">
+
             <label>إجمالي الخصومات والعهد (ج.م):</label>
+
             <input type="number" placeholder="0.00">
+
           </div>
+
         </div>
 
+
+
         <div class="form-group">
+
           <label>حالة العهدة المستلمة:</label>
+
           <select>
+
             <option>تم تسليم جميع العهد بحالة سليمة</option>
+
             <option>يوجد عهدة تالفة (تخصم من المستحق)</option>
+
             <option>يوجد عهدة مفقودة</option>
+
           </select>
+
         </div>
 
+
+
         <div class="form-group">
+
           <label>ملاحظات وتوصيات التصفية:</label>
+
           <textarea rows="3" placeholder="أدخل الملاحظات والتفاصيل هنا..."></textarea>
+
         </div>
+
+
 
         <button type="button" class="btn-submit">اعتماد وإصدار التصفية</button>
+
       </form>
+
     </div>
+
   </main>
 
+
+
   <!-- القائمة الجانبية الرأسية في اليسار -->
+
   <aside class="sidebar-left">
+
     <h3>سجل السجلات</h3>
+
     <ul class="sidebar-nav">
+
       <li>
+
         <a href="#" class="active">
+
           <span>تصفية المرشد</span>
+
         </a>
+
       </li>
+
       <li>
+
         <a href="#">
+
           <span>استلام الطلبات</span>
+
           <span class="badge">5</span>
+
         </a>
+
       </li>
+
       <li>
+
         <a href="#">
+
           <span>الأرشيف العام</span>
+
         </a>
+
       </li>
+
     </ul>
+
   </aside>
 
+
+
 </body>
-</html>
+
+</html> 
