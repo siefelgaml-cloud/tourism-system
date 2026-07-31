@@ -196,22 +196,15 @@
 <div class="container">
     <!-- Header with Embedded Logo -->
     <div class="header-vintage">
-        <!-- Embedded SVG Logo -->
         <svg class="company-logo" viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg">
-            <!-- Frame -->
             <rect x="30" y="10" width="240" height="130" fill="none" stroke="#22252a" stroke-width="4"/>
-            <!-- Eye of Horus Outline -->
             <path d="M 50,42 Q 130,2 250,42 Q 180,105 50,42 Z" fill="none" stroke="#22252a" stroke-width="3"/>
             <path d="M 50,42 Q 150,15 250,42" fill="none" stroke="#0072bc" stroke-width="5"/>
-            <!-- Pupil Outer -->
             <path d="M 125,75 Q 150,48 185,75 Q 150,102 125,75 Z" fill="none" stroke="#22252a" stroke-width="3"/>
-            <!-- Pupil Inner -->
             <circle cx="155" cy="75" r="14" fill="#0072bc" stroke="#22252a" stroke-width="2"/>
             <circle cx="158" cy="72" r="4" fill="#ffffff"/>
-            <!-- Lower Extensions -->
             <path d="M 55,100 C 65,120 100,125 150,100" fill="none" stroke="#22252a" stroke-width="4"/>
             <path d="M 185,92 L 185,130 L 175,130 L 175,98 Z" fill="#0072bc" stroke="#22252a" stroke-width="2"/>
-            <!-- Text -->
             <text x="150" y="180" font-family="'Segoe UI', Arial, sans-serif" font-weight="800" font-size="28" fill="#0072bc" text-anchor="middle" letter-spacing="1">LOOK AT</text>
             <text x="150" y="218" font-family="'Segoe UI', Arial, sans-serif" font-weight="900" font-size="34" fill="#00385d" text-anchor="middle" letter-spacing="1.5">EGYPT</text>
             <text x="150" y="254" font-family="'Segoe UI', Arial, sans-serif" font-weight="800" font-size="28" fill="#0072bc" text-anchor="middle" letter-spacing="1">TOURS</text>
@@ -228,20 +221,21 @@
             <div class="grid-3">
                 <div class="form-group">
                     <label>اسم المرشد: <span class="required-star">*</span></label>
-                    <select id="guideSelect" onchange="updateGuideCode()" required>
-                        <option value="">-- اختر اسم المرشد --</option>
-                        <option value="G-001">محمد أبو المجد</option>
-                        <option value="G-002">عماد ضيف</option>
-                        <option value="G-003">فايد</option>
-                        <option value="G-004">راندا احمد</option>
-                        <option value="G-005">محمد شتا</option>
-                        <option value="G-006">عماد رافت</option>
-                        <option value="G-007">وائل عاطف</option>
-                    </select>
+                    <!-- Searchable Input Field -->
+                    <input type="text" id="guideInput" list="guidesList" placeholder="اكتب اسم المرشد..." oninput="updateGuideCode()" autocomplete="off" required>
+                    <datalist id="guidesList">
+                        <option value="محمد أبو المجد" data-code="G-001"></option>
+                        <option value="عماد ضيف" data-code="G-002"></option>
+                        <option value="فايد" data-code="G-003"></option>
+                        <option value="راندا احمد" data-code="G-004"></option>
+                        <option value="محمد شتا" data-code="G-005"></option>
+                        <option value="عماد رافت" data-code="G-006"></option>
+                        <option value="وائل عاطف" data-code="G-007"></option>
+                    </datalist>
                 </div>
                 <div class="form-group">
                     <label>كود المرشد: <span class="required-star">*</span></label>
-                    <input type="text" id="guideCode" placeholder="يظهر تلقائياً" readonly required>
+                    <input type="text" id="guideCode" placeholder="يظهر تلقائياً عند كتابة الاسم" readonly required>
                 </div>
                 <div class="form-group">
                     <label>رقم الملف: <span class="required-star">*</span></label>
@@ -359,10 +353,26 @@
 </div>
 
 <script>
+    // القاموس المرجعي لربط الأسماء بالأكواد
+    const guidesDatabase = {
+        "محمد أبو المجد": "G-001",
+        "عماد ضيف": "G-002",
+        "فايد": "G-003",
+        "راندا احمد": "G-004",
+        "محمد شتا": "G-005",
+        "عماد رافت": "G-006",
+        "وائل عاطف": "G-007"
+    };
+
     function updateGuideCode() {
-        const guideSelect = document.getElementById('guideSelect');
+        const inputVal = document.getElementById('guideInput').value.trim();
         const guideCodeInput = document.getElementById('guideCode');
-        guideCodeInput.value = guideSelect.value;
+
+        if (guidesDatabase[inputVal]) {
+            guideCodeInput.value = guidesDatabase[inputVal];
+        } else {
+            guideCodeInput.value = "";
+        }
     }
 
     function addShopRow() {
