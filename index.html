@@ -85,10 +85,10 @@
             font-size: 1.3em;
         }
 
-        .grid-3 {
+        .grid-2 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
         }
 
         .form-group {
@@ -121,12 +121,6 @@
         input:focus, select:focus {
             border-color: var(--primary-navy);
             background-color: #fff;
-        }
-
-        input[readonly] {
-            background-color: #eee7d7;
-            color: #555;
-            cursor: not-allowed;
         }
 
         table {
@@ -218,14 +212,10 @@
         <!-- 1. البيانات الأساسية -->
         <div class="card">
             <h3>بيانات الرحلة والمرشد</h3>
-            <div class="grid-3">
+            <div class="grid-2">
                 <div class="form-group">
                     <label>اسم المرشد: <span class="required-star">*</span></label>
                     <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." autocomplete="off" required>
-                </div>
-                <div class="form-group">
-                    <label>كود المرشد:</label>
-                    <input type="text" id="guideCode" placeholder="أدخل كود المرشد..." autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label>رقم الملف: <span class="required-star">*</span></label>
