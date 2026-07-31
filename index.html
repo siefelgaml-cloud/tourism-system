@@ -25,7 +25,6 @@
             margin: 0;
             padding: 30px 20px;
             min-height: 100vh;
-
             background-color: var(--vintage-paper);
             background-image: 
                 radial-gradient(circle at center, rgba(253, 251, 247, 0.7) 10%, rgba(184, 148, 105, 0.35) 100%),
@@ -38,10 +37,7 @@
         body::before {
             content: "";
             position: fixed;
-            top: 12px;
-            left: 12px;
-            right: 12px;
-            bottom: 12px;
+            top: 12px; left: 12px; right: 12px; bottom: 12px;
             border: 1px solid var(--border-vintage);
             outline: 2px double var(--vintage-gold);
             pointer-events: none;
@@ -56,7 +52,6 @@
             z-index: 1;
         }
 
-        /* Header */
         .header-vintage {
             border: 3px double var(--vintage-gold-dark);
             padding: 25px 35px;
@@ -69,10 +64,6 @@
             align-items: center;
         }
 
-        .header-title-right {
-            text-align: right;
-        }
-
         .subtitle-styled {
             font-family: 'Amiri', serif;
             font-size: 1.85em;
@@ -80,12 +71,10 @@
             color: var(--primary-navy);
             margin: 0;
             line-height: 1.3;
-            letter-spacing: 0.3px;
             border-bottom: 2px solid var(--vintage-gold);
             padding-bottom: 6px;
         }
 
-        /* Logo Box */
         .logo-box-left {
             text-align: center;
             font-family: 'Cinzel', serif;
@@ -94,37 +83,10 @@
             border-left: 2px dashed var(--border-vintage);
         }
 
-        .logo-title-main {
-            font-size: 1.4em;
-            font-weight: 800;
-            color: var(--primary-navy);
-            letter-spacing: 2px;
-            line-height: 1;
-            margin: 0;
-        }
+        .logo-title-main { font-size: 1.4em; font-weight: 800; color: var(--primary-navy); margin: 0; }
+        .logo-title-sub { font-size: 1.55em; font-weight: 900; color: var(--vintage-gold-dark); margin: 4px 0; }
+        .logo-tagline { font-family: 'Montserrat', sans-serif; font-size: 0.65em; font-weight: 600; color: #554838; text-transform: uppercase; margin-top: 6px; padding-top: 4px; border-top: 1px solid var(--vintage-gold); }
 
-        .logo-title-sub {
-            font-size: 1.55em;
-            font-weight: 900;
-            color: var(--vintage-gold-dark);
-            letter-spacing: 2.5px;
-            line-height: 1.1;
-            margin: 4px 0;
-        }
-
-        .logo-tagline {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.65em;
-            font-weight: 600;
-            color: #554838;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            margin-top: 6px;
-            padding-top: 4px;
-            border-top: 1px solid var(--vintage-gold);
-        }
-
-        /* Cards */
         .card {
             background: var(--vintage-card);
             border: 2px solid var(--border-vintage);
@@ -143,27 +105,10 @@
             font-weight: 700;
         }
 
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        label {
-            font-weight: bold;
-            font-size: 1.05em;
-            color: var(--primary-navy);
-        }
-
-        .required-star {
-            color: var(--red);
-        }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-weight: bold; font-size: 1.05em; color: var(--primary-navy); }
+        .required-star { color: var(--red); }
 
         input, select {
             padding: 9px 12px;
@@ -174,26 +119,16 @@
             font-size: 1.05em;
             color: var(--text-vintage);
             outline: none;
-            transition: all 0.2s;
             width: 100%;
             box-sizing: border-box;
         }
 
-        input:focus, select:focus {
-            border-color: var(--primary-navy);
-            background-color: #ffffff;
-            box-shadow: 0 0 5px rgba(15, 44, 74, 0.2);
-        }
-
-        /* Vertical Card Styles */
         .vertical-item-card {
             border: 1px solid var(--border-vintage);
             background-color: #fcf9f2;
             border-radius: 4px;
             padding: 18px;
             margin-top: 15px;
-            position: relative;
-            box-shadow: inset 0 0 10px rgba(184, 134, 11, 0.03);
         }
 
         .vertical-card-header {
@@ -205,18 +140,8 @@
             margin-bottom: 15px;
         }
 
-        .vertical-card-title {
-            font-weight: bold;
-            color: var(--primary-navy);
-            font-size: 1.15em;
-        }
-
-        .vertical-grid-fields {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            align-items: end;
-        }
+        .vertical-card-title { font-weight: bold; color: var(--primary-navy); font-size: 1.15em; }
+        .vertical-grid-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: end; }
 
         .comm-result-box {
             background-color: #e8dbca;
@@ -233,32 +158,11 @@
             justify-content: center;
         }
 
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid var(--border-vintage); padding: 10px 12px; text-align: center; font-size: 1.05em; }
+        th { background-color: #e8dbca; color: var(--primary-navy); font-weight: bold; border-bottom: 2px solid var(--vintage-gold-dark); }
+        td { background-color: var(--vintage-card); }
 
-        th, td {
-            border: 1px solid var(--border-vintage);
-            padding: 10px 12px;
-            text-align: center;
-            font-size: 1.05em;
-        }
-
-        th {
-            background-color: #e8dbca;
-            color: var(--primary-navy);
-            font-weight: bold;
-            border-bottom: 2px solid var(--vintage-gold-dark);
-        }
-
-        td {
-            background-color: var(--vintage-card);
-        }
-
-        /* Buttons */
         .btn {
             background-color: var(--primary-navy);
             color: #fcf8f2;
@@ -270,31 +174,23 @@
             font-weight: bold;
             font-size: 1.1em;
             transition: all 0.2s;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
         }
 
-        .btn:hover {
-            background-color: var(--vintage-gold-dark);
-            color: #ffffff;
-        }
+        .btn:hover { background-color: var(--vintage-gold-dark); color: #ffffff; }
+        .btn-submit { background-color: var(--green); border-color: #1a4726; }
+        .btn-submit:hover { background-color: #1e522c; }
+        .btn-danger { background-color: var(--red); border-color: #701010; color: white; padding: 4px 12px; font-size: 0.9em; }
 
-        .btn-danger {
-            background-color: var(--red);
-            border-color: #701010;
-            color: white;
-            padding: 4px 12px;
-            font-size: 0.9em;
-            box-shadow: none;
-        }
-
-        /* Summary Card */
-        .summary-card {
-            border: 3px double var(--vintage-gold-dark);
-            background-color: #fbf5eb;
-        }
-
+        .summary-card { border: 3px double var(--vintage-gold-dark); background-color: #fbf5eb; }
         .positive { color: var(--green); font-weight: bold; font-size: 1.25em; }
         .negative { color: var(--red); font-weight: bold; font-size: 1.25em; }
+
+        .actions-group {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
 
         @media print {
             .btn, .no-print, body::before { display: none !important; }
@@ -306,12 +202,10 @@
 <body>
 
 <div class="container">
-    <!-- Header -->
     <div class="header-vintage">
         <div class="header-title-right">
             <h1 class="subtitle-styled">نظام تصفية واستحقاق حسابات المرشدين السياحيين</h1>
         </div>
-
         <div class="logo-box-left">
             <div class="logo-title-main">LOOK AT</div>
             <div class="logo-title-sub">EGYPT TOURS</div>
@@ -319,14 +213,14 @@
         </div>
     </div>
 
-    <form id="settlementForm" onsubmit="event.preventDefault(); window.print();">
+    <form id="settlementForm">
         <!-- 1. البيانات الأساسية -->
         <div class="card">
             <h3>بيانات الرحلة والمرشد</h3>
             <div class="grid-2">
                 <div class="form-group">
                     <label>اسم المرشد: <span class="required-star">*</span></label>
-                    <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." autocomplete="off" required>
+                    <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." required>
                 </div>
                 <div class="form-group">
                     <label>رقم الملف: <span class="required-star">*</span></label>
@@ -335,7 +229,7 @@
             </div>
         </div>
 
-        <!-- 2. العهده والمصروفات -->
+        <!-- 2. العهدة والمصروفات -->
         <div class="card">
             <h3>العهدة والمصروفات المباشرة (EGP)</h3>
             <table>
@@ -382,10 +276,7 @@
                 <h3>مبيعات المحلات (Shops)</h3>
                 <button type="button" class="btn no-print" onclick="addShopRow()">+ إضافة محل</button>
             </div>
-            
-            <div id="shopsContainer">
-                <!-- يتم إضافة المحلات هنا رأسياً -->
-            </div>
+            <div id="shopsContainer"></div>
         </div>
 
         <!-- 4. الرحلات الاختيارية -->
@@ -394,10 +285,7 @@
                 <h3>الرحلات الاختيارية (Optional Tours)</h3>
                 <button type="button" class="btn no-print" onclick="addOptionalRow()">+ إضافة رحلة</button>
             </div>
-
-            <div id="optionalContainer">
-                <!-- يتم إضافة الرحلات الاختيارية هنا رأسياً -->
-            </div>
+            <div id="optionalContainer"></div>
         </div>
 
         <!-- 5. ملخص التصفية النهائي -->
@@ -421,8 +309,9 @@
             </table>
             <p style="font-size: 0.9em; color: #554838; margin-top: 15px; font-style: italic;">* الناتج بالموجب: المرشد ملزم ببرد المبلغ للشركة. الناتج بالسالب: المبلغ مستحق للصرف للمرشد.</p>
 
-            <div style="margin-top: 20px; text-align: left;" class="no-print">
-                <button type="submit" class="btn">طباعة التصفية الرسمية</button>
+            <div class="actions-group no-print">
+                <button type="button" class="btn" onclick="window.print();">طباعة مسودة</button>
+                <button type="button" class="btn btn-submit" onclick="submitSettlement()">إرسال التصفية للمراجعة 📤</button>
             </div>
         </div>
     </form>
@@ -543,6 +432,36 @@
         const netElem = document.getElementById('netEgp');
         netElem.innerText = net.toFixed(2) + ' EGP';
         netElem.className = net >= 0 ? 'positive' : 'negative';
+    }
+
+    function submitSettlement() {
+        const guideName = document.getElementById('guideInput').value.trim();
+        const fileNo = document.getElementById('fileNo').value.trim();
+
+        if (!guideName || !fileNo) {
+            alert('يرجى ملء اسم المرشد ورقم الملف قبل إرسال التصفية.');
+            return;
+        }
+
+        const data = {
+            guideName,
+            fileNo,
+            date: new Date().toLocaleString('ar-EG'),
+            status: 'قيد المراجعة ⏳',
+            floatEgp: document.getElementById('floatEgp').value,
+            lunchEgp: document.getElementById('lunchEgp').value,
+            tipsEgp: document.getElementById('tipsEgp').value,
+            parkingEgp: document.getElementById('parkingEgp').value,
+            feeEgp: document.getElementById('feeEgp').value,
+            totalDue: document.getElementById('totalDueEgp').innerText,
+            totalExp: document.getElementById('totalExpEgp').innerText,
+            net: document.getElementById('netEgp').innerText
+        };
+
+        localStorage.setItem('reviewData', JSON.stringify(data));
+        alert('تم إرسال طلب التصفية لمرحلة المراجعة بنجاح!');
+        window.location.href = 'review.html';
+        window.location.href = 'review.html';
     }
 
     window.onload = function() {
