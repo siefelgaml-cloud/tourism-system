@@ -27,7 +27,7 @@
       background-size: 24px 24px; /* خلفية محببة خفيفة */
     }
 
-    /* منطقة المحتوى الرئيسي (على اليسار) */
+    /* منطقة المحتوى الرئيسي (على اليمين) */
     .main-content {
       flex: 1;
       padding: 40px;
@@ -116,7 +116,7 @@
       transform: translate(2px, 2px);
     }
 
-    /* القائمة الجانبية الرأسية (على اليمين) - طابع خشب أو جلد داكن */
+    /* القائمة الجانبية الرأسية (على اليسار) - طابع خشب أو جلد داكن */
     .sidebar-left {
       width: 280px;
       background-color: #2b1d14; /* بني جلد داكن */
@@ -124,8 +124,8 @@
       display: flex;
       flex-direction: column;
       padding: 30px 15px;
-      border-left: 3px double #8c6d53;
-      box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+      border-right: 3px double #8c6d53;
+      box-shadow: -5px 0 15px rgba(0,0,0,0.3);
     }
 
     .sidebar-left h3 {
@@ -185,30 +185,7 @@
 </head>
 <body>
 
-  <!-- 1. القائمة الجانبية (سجل السجلات) أصبحت أولاً في الـ HTML لتظهر على اليمين -->
-  <aside class="sidebar-left">
-    <h3>سجل السجلات</h3>
-    <ul class="sidebar-nav">
-      <li>
-        <a href="#" class="active">
-          <span>تصفية المرشد</span>
-        </a>
-      </li>
-      <li>
-        <a href="#">
-          <span>استلام الطلبات</span>
-          <span class="badge">5</span>
-        </a>
-      </li>
-      <li>
-        <a href="#">
-          <span>الأرشيف العام</span>
-        </a>
-      </li>
-    </ul>
-  </aside>
-
-  <!-- 2. المحتوى الرئيسي لنموذج التصفية أصلح ثانياً ليظهر على اليسار -->
+  <!-- المحتوى الرئيسي (عرض نموذج التصفية) -->
   <main class="main-content">
     <div class="card">
       <h2>ــ نموذج تصفية المرشد ــ</h2>
@@ -254,6 +231,29 @@
       </form>
     </div>
   </main>
+
+  <!-- القائمة الجانبية الرأسية في اليسار -->
+  <aside class="sidebar-left">
+    <h3>سجل السجلات</h3>
+    <ul class="sidebar-nav">
+      <li>
+        <a href="#" class="active">
+          <span>تصفية المرشد</span>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <span>استلام الطلبات</span>
+          <span class="badge">5</span>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <span>الأرشيف العام</span>
+        </a>
+      </li>
+    </ul>
+  </aside>
 
 </body>
 </html>
