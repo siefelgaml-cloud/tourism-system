@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تصفية حسابات المرشدين</title>
+    <title>نظام تصفية واستحقاق حسابات المرشدين</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800;900&family=Montserrat:wght@400;600;700&display=swap');
 
@@ -28,180 +28,101 @@
             background-color: var(--vintage-paper);
             background-image: 
                 radial-gradient(circle at center, rgba(253, 251, 247, 0.7) 10%, rgba(184, 148, 105, 0.35) 100%),
-                repeating-linear-gradient(45deg, rgba(168, 148, 120, 0.04) 0px, rgba(168, 148, 120, 0.04) 2px, transparent 2px, transparent 5px),
-                repeating-linear-gradient(-45deg, rgba(168, 148, 120, 0.04) 0px, rgba(168, 148, 120, 0.04) 2px, transparent 2px, transparent 5px);
+                repeating-linear-gradient(45deg, rgba(168, 148, 120, 0.04) 0px, rgba(168, 148, 120, 0.04) 2px, transparent 2px, transparent 5px);
             background-attachment: fixed;
             position: relative;
         }
 
         body::before {
-            content: "";
-            position: fixed;
-            top: 12px; left: 12px; right: 12px; bottom: 12px;
-            border: 1px solid var(--border-vintage);
-            outline: 2px double var(--vintage-gold);
-            pointer-events: none;
-            z-index: 999;
-            opacity: 0.4;
+            content: ""; position: fixed; top: 12px; left: 12px; right: 12px; bottom: 12px;
+            border: 1px solid var(--border-vintage); outline: 2px double var(--vintage-gold);
+            pointer-events: none; z-index: 999; opacity: 0.4;
         }
 
-        .container {
-            max-width: 1050px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
+        .container { max-width: 1050px; margin: 0 auto; position: relative; z-index: 1; }
 
+        /* Navigation Bar */
+        .nav-bar {
+            display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;
+        }
+        .nav-btn {
+            background: var(--primary-navy); color: #fff;
+            padding: 10px 20px; border-radius: 3px; font-weight: bold; border: 1px solid var(--vintage-gold);
+            cursor: pointer; font-family: 'Amiri', serif; font-size: 1.1em; transition: all 0.3s;
+        }
+        .nav-btn.active, .nav-btn:hover { background: var(--vintage-gold-dark); color: #fff; }
+
+        /* Header */
         .header-vintage {
-            border: 3px double var(--vintage-gold-dark);
-            padding: 25px 35px;
-            background: var(--vintage-card);
-            border-radius: 4px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 20px rgba(43, 35, 25, 0.1), inset 0 0 30px rgba(184, 134, 11, 0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            border: 3px double var(--vintage-gold-dark); padding: 25px 35px; background: var(--vintage-card);
+            border-radius: 4px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 8px 20px rgba(43, 35, 25, 0.1);
         }
 
         .subtitle-styled {
-            font-family: 'Amiri', serif;
-            font-size: 1.85em;
-            font-weight: 700;
-            color: var(--primary-navy);
-            margin: 0;
-            line-height: 1.3;
-            border-bottom: 2px solid var(--vintage-gold);
-            padding-bottom: 6px;
+            font-family: 'Amiri', serif; font-size: 1.85em; font-weight: 700; color: var(--primary-navy);
+            margin: 0; line-height: 1.3; border-bottom: 2px solid var(--vintage-gold); padding-bottom: 6px;
         }
 
-        .logo-box-left {
-            text-align: center;
-            font-family: 'Cinzel', serif;
-            direction: ltr;
-            padding-left: 25px;
-            border-left: 2px dashed var(--border-vintage);
-        }
-
+        .logo-box-left { text-align: center; font-family: 'Cinzel', serif; direction: ltr; padding-left: 25px; border-left: 2px dashed var(--border-vintage); }
         .logo-title-main { font-size: 1.4em; font-weight: 800; color: var(--primary-navy); margin: 0; }
         .logo-title-sub { font-size: 1.55em; font-weight: 900; color: var(--vintage-gold-dark); margin: 4px 0; }
         .logo-tagline { font-family: 'Montserrat', sans-serif; font-size: 0.65em; font-weight: 600; color: #554838; text-transform: uppercase; margin-top: 6px; padding-top: 4px; border-top: 1px solid var(--vintage-gold); }
 
-        .card {
-            background: var(--vintage-card);
-            border: 2px solid var(--border-vintage);
-            border-radius: 4px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 12px rgba(43, 35, 25, 0.08);
-        }
+        /* Tab Content Control */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-        .card h3 {
-            color: var(--primary-navy);
-            border-bottom: 2px double var(--vintage-gold);
-            padding-bottom: 10px;
-            margin-top: 0;
-            font-size: 1.35em;
-            font-weight: 700;
-        }
+        /* Cards & Form */
+        .card { background: var(--vintage-card); border: 2px solid var(--border-vintage); border-radius: 4px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(43, 35, 25, 0.08); }
+        .card h3 { color: var(--primary-navy); border-bottom: 2px double var(--vintage-gold); padding-bottom: 10px; margin-top: 0; font-size: 1.35em; }
 
         .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
         .form-group { display: flex; flex-direction: column; gap: 6px; }
         label { font-weight: bold; font-size: 1.05em; color: var(--primary-navy); }
-        .required-star { color: var(--red); }
 
         input, select {
-            padding: 9px 12px;
-            border: 1px solid var(--border-vintage);
-            background-color: #fdfbf7;
-            border-radius: 3px;
-            font-family: 'Amiri', serif;
-            font-size: 1.05em;
-            color: var(--text-vintage);
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
+            padding: 9px 12px; border: 1px solid var(--border-vintage); background-color: #fdfbf7;
+            border-radius: 3px; font-family: 'Amiri', serif; font-size: 1.05em; color: var(--text-vintage);
+            outline: none; width: 100%; box-sizing: border-box;
         }
 
-        .vertical-item-card {
-            border: 1px solid var(--border-vintage);
-            background-color: #fcf9f2;
-            border-radius: 4px;
-            padding: 18px;
-            margin-top: 15px;
-        }
-
-        .vertical-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px dashed var(--border-vintage);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .vertical-card-title { font-weight: bold; color: var(--primary-navy); font-size: 1.15em; }
+        .vertical-item-card { border: 1px solid var(--border-vintage); background-color: #fcf9f2; border-radius: 4px; padding: 18px; margin-top: 15px; }
+        .vertical-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-vintage); padding-bottom: 10px; margin-bottom: 15px; }
         .vertical-grid-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: end; }
 
-        .comm-result-box {
-            background-color: #e8dbca;
-            border: 1px solid var(--vintage-gold-dark);
-            padding: 8px 12px;
-            border-radius: 3px;
-            text-align: center;
-            font-weight: bold;
-            color: var(--primary-navy);
-            font-size: 1.1em;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .comm-result-box { background-color: #e8dbca; border: 1px solid var(--vintage-gold-dark); padding: 8px 12px; border-radius: 3px; text-align: center; font-weight: bold; color: var(--primary-navy); height: 40px; display: flex; align-items: center; justify-content: center; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid var(--border-vintage); padding: 10px 12px; text-align: center; font-size: 1.05em; }
         th { background-color: #e8dbca; color: var(--primary-navy); font-weight: bold; border-bottom: 2px solid var(--vintage-gold-dark); }
-        td { background-color: var(--vintage-card); }
 
-        .btn {
-            background-color: var(--primary-navy);
-            color: #fcf8f2;
-            border: 1px solid var(--vintage-gold-dark);
-            padding: 10px 22px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-family: 'Amiri', serif;
-            font-weight: bold;
-            font-size: 1.1em;
-            transition: all 0.2s;
-        }
-
+        .btn { background-color: var(--primary-navy); color: #fcf8f2; border: 1px solid var(--vintage-gold-dark); padding: 10px 22px; border-radius: 3px; cursor: pointer; font-family: 'Amiri', serif; font-weight: bold; font-size: 1.1em; }
         .btn:hover { background-color: var(--vintage-gold-dark); color: #ffffff; }
         .btn-submit { background-color: var(--green); border-color: #1a4726; }
-        .btn-submit:hover { background-color: #1e522c; }
         .btn-danger { background-color: var(--red); border-color: #701010; color: white; padding: 4px 12px; font-size: 0.9em; }
 
         .summary-card { border: 3px double var(--vintage-gold-dark); background-color: #fbf5eb; }
         .positive { color: var(--green); font-weight: bold; font-size: 1.25em; }
         .negative { color: var(--red); font-weight: bold; font-size: 1.25em; }
 
-        .actions-group {
-            display: flex;
-            gap: 15px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
+        .status-approved { color: var(--green); font-weight: bold; }
+        .status-rejected { color: var(--red); font-weight: bold; }
 
-        @media print {
-            .btn, .no-print, body::before { display: none !important; }
-            body { padding: 0; background: white; }
-            .card, .header-vintage { box-shadow: none; border-color: #333; }
-        }
+        @media print { .no-print, body::before, .nav-bar { display: none !important; } }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- الشريط العلوي للتنقل -->
+    <div class="nav-bar no-print">
+        <button class="nav-btn active" onclick="switchTab('tab-form')">1. نموذج تصفية المرشد</button>
+        <button class="nav-btn" onclick="switchTab('tab-review')">2. استلام ومراجعة الطلبات</button>
+        <button class="nav-btn" onclick="switchTab('tab-archive')">3. الأرشيف</button>
+    </div>
+
+    <!-- الهيدر -->
     <div class="header-vintage">
         <div class="header-title-right">
             <h1 class="subtitle-styled">نظام تصفية واستحقاق حسابات المرشدين السياحيين</h1>
@@ -213,114 +134,175 @@
         </div>
     </div>
 
-    <form id="settlementForm">
-        <!-- 1. البيانات الأساسية -->
-        <div class="card">
-            <h3>بيانات الرحلة والمرشد</h3>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>اسم المرشد: <span class="required-star">*</span></label>
-                    <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." required>
-                </div>
-                <div class="form-group">
-                    <label>رقم الملف: <span class="required-star">*</span></label>
-                    <input type="text" id="fileNo" placeholder="مثال: FL-2026-102" required>
+    <!-- ===== الشاشة الأولى: نموذج التصفية ===== -->
+    <div id="tab-form" class="tab-content active">
+        <form id="settlementForm" onsubmit="event.preventDefault();">
+            <div class="card">
+                <h3>بيانات الرحلة والمرشد</h3>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>اسم المرشد: <span style="color:var(--red)">*</span></label>
+                        <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الملف: <span style="color:var(--red)">*</span></label>
+                        <input type="text" id="fileNo" placeholder="مثال: FL-2026-102" required>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 2. العهدة والمصروفات -->
+            <div class="card">
+                <h3>العهدة والمصروفات المباشرة (EGP)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">البيان</th>
+                            <th style="width: 30%;">المبلغ (بالجنيه المصري)</th>
+                            <th style="width: 45%;">ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><b>العهدة المستلمة</b></td>
+                            <td><input type="number" id="floatEgp" value="0" step="any" oninput="calculateAll()"></td>
+                            <td><input type="text" id="floatNotes" placeholder="مثال: نقداً من الخزينة / تحويل"></td>
+                        </tr>
+                        <tr>
+                            <td>مصاريف الغداء</td>
+                            <td><input type="number" id="lunchEgp" value="0" step="any" oninput="calculateAll()"></td>
+                            <td><input type="text" id="lunchNotes" placeholder="تفاصيل مطعم الغداء..."></td>
+                        </tr>
+                        <tr>
+                            <td>الإكراميات (Tips)</td>
+                            <td><input type="number" id="tipsEgp" value="0" step="any" oninput="calculateAll()"></td>
+                            <td><input type="text" id="tipsNotes" placeholder="إكراميات سائق / مطار / معابد..."></td>
+                        </tr>
+                        <tr>
+                            <td>الباركينج والرسوم</td>
+                            <td><input type="number" id="parkingEgp" value="0" step="any" oninput="calculateAll()"></td>
+                            <td><input type="text" id="parkingNotes" placeholder="رسوم انتظار / بوابات..."></td>
+                        </tr>
+                        <tr>
+                            <td>أتعاب المرشد (اليومية)</td>
+                            <td><input type="number" id="feeEgp" value="0" step="any" oninput="calculateAll()"></td>
+                            <td><input type="text" id="feeNotes" placeholder="عدد الأيام / تفاصيل يومية الإرشاد..."></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>مبيعات المحلات (Shops)</h3>
+                    <button type="button" class="btn no-print" onclick="addShopRow()">+ إضافة محل</button>
+                </div>
+                <div id="shopsContainer"></div>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>الرحلات الاختيارية (Optional Tours)</h3>
+                    <button type="button" class="btn no-print" onclick="addOptionalRow()">+ إضافة رحلة</button>
+                </div>
+                <div id="optionalContainer"></div>
+            </div>
+
+            <div class="card summary-card">
+                <h3>صافي التصفية النهائي (EGP)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>إجمالي ما بذمة المرشد</th>
+                            <th>إجمالي المصروفات والأتعاب</th>
+                            <th>الصافي النهائي</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="totalDueEgp">0.00 EGP</td>
+                            <td id="totalExpEgp">0.00 EGP</td>
+                            <td id="netEgp" class="positive">0.00 EGP</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style="display:flex; gap:15px; justify-content:flex-end; margin-top:20px;" class="no-print">
+                    <button type="button" class="btn" onclick="window.print();">طباعة مسودة</button>
+                    <button type="button" class="btn btn-submit" onclick="submitSettlement()">إرسال التصفية للمراجعة 📤</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- ===== الشاشة الثانية: مراجعة واستلام الطلبات ===== -->
+    <div id="tab-review" class="tab-content">
         <div class="card">
-            <h3>العهدة والمصروفات المباشرة (EGP)</h3>
+            <h3>الطلبات الواردة (قيد المراجعة)</h3>
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 25%;">البيان</th>
-                        <th style="width: 30%;">المبلغ (بالجنيه المصري)</th>
-                        <th style="width: 45%;">ملاحظات</th>
+                        <th>اسم المرشد</th>
+                        <th>رقم الملف</th>
+                        <th>التاريخ</th>
+                        <th>ما بذمته</th>
+                        <th>المصروفات</th>
+                        <th>الصافي</th>
+                        <th>الإجراء</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td><b>العهدة المستلمة</b></td>
-                        <td><input type="number" id="floatEgp" value="0" step="any" oninput="calculateAll()"></td>
-                        <td><input type="text" id="floatNotes" placeholder="مثال: نقداً من الخزينة / تحويل"></td>
-                    </tr>
-                    <tr>
-                        <td>مصاريف الغداء</td>
-                        <td><input type="number" id="lunchEgp" value="0" step="any" oninput="calculateAll()"></td>
-                        <td><input type="text" id="lunchNotes" placeholder="تفاصيل مطعم الغداء..."></td>
-                    </tr>
-                    <tr>
-                        <td>الإكراميات (Tips)</td>
-                        <td><input type="number" id="tipsEgp" value="0" step="any" oninput="calculateAll()"></td>
-                        <td><input type="text" id="tipsNotes" placeholder="إكراميات سائق / مطار / معابد..."></td>
-                    </tr>
-                    <tr>
-                        <td>الباركينج والرسوم</td>
-                        <td><input type="number" id="parkingEgp" value="0" step="any" oninput="calculateAll()"></td>
-                        <td><input type="text" id="parkingNotes" placeholder="رسوم انتظار / بوابات..."></td>
-                    </tr>
-                    <tr>
-                        <td>أتعاب المرشد (اليومية)</td>
-                        <td><input type="number" id="feeEgp" value="0" step="any" oninput="calculateAll()"></td>
-                        <td><input type="text" id="feeNotes" placeholder="عدد الأيام / تفاصيل يومية الإرشاد..."></td>
-                    </tr>
+                <tbody id="reviewTableBody">
+                    <!-- يملأ ديناميكياً -->
                 </tbody>
             </table>
         </div>
+    </div>
 
-        <!-- 3. مبيعات المحلات -->
+    <!-- ===== الشاشة الثالثة: الأرشيف ===== -->
+    <div id="tab-archive" class="tab-content">
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>مبيعات المحلات (Shops)</h3>
-                <button type="button" class="btn no-print" onclick="addShopRow()">+ إضافة محل</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
+                <h3 style="margin:0;">سجل التصفيات المحسومة (الأرشيف)</h3>
+                <button class="btn btn-danger no-print" onclick="clearArchive()">مسح الأرشيف 🗑️</button>
             </div>
-            <div id="shopsContainer"></div>
-        </div>
-
-        <!-- 4. الرحلات الاختيارية -->
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>الرحلات الاختيارية (Optional Tours)</h3>
-                <button type="button" class="btn no-print" onclick="addOptionalRow()">+ إضافة رحلة</button>
-            </div>
-            <div id="optionalContainer"></div>
-        </div>
-
-        <!-- 5. ملخص التصفية النهائي -->
-        <div class="card summary-card">
-            <h3>صافي التصفية النهائي (EGP)</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>إجمالي ما بذمة المرشد</th>
-                        <th>إجمالي المصروفات والأتعاب</th>
-                        <th>الصافي النهائي</th>
+                        <th>اسم المرشد</th>
+                        <th>رقم الملف</th>
+                        <th>تاريخ الحسم</th>
+                        <th>ما بذمته</th>
+                        <th>المصروفات</th>
+                        <th>الصافي</th>
+                        <th>الحالة النهائيّة</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td id="totalDueEgp">0.00 EGP</td>
-                        <td id="totalExpEgp">0.00 EGP</td>
-                        <td id="netEgp" class="positive">0.00 EGP</td>
-                    </tr>
+                <tbody id="archiveTableBody">
+                    <!-- يملأ ديناميكياً -->
                 </tbody>
             </table>
-            <p style="font-size: 0.9em; color: #554838; margin-top: 15px; font-style: italic;">* الناتج بالموجب: المرشد ملزم ببرد المبلغ للشركة. الناتج بالسالب: المبلغ مستحق للصرف للمرشد.</p>
-
-            <div class="actions-group no-print">
-                <button type="button" class="btn" onclick="window.print();">طباعة مسودة</button>
-                <button type="button" class="btn btn-submit" onclick="submitSettlement()">إرسال التصفية للمراجعة 📤</button>
-            </div>
         </div>
-    </form>
+    </div>
+
 </div>
 
 <script>
-    let shopCounter = 0;
-    let optionalCounter = 0;
+    // التحكم في التنقل بين الشاشات
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
 
+        document.getElementById(tabId).classList.add('active');
+
+        // تفعيل زر التبويب المناسب
+        const btnIndex = tabId === 'tab-form' ? 0 : tabId === 'tab-review' ? 1 : 2;
+        document.querySelectorAll('.nav-btn')[btnIndex].classList.add('active');
+
+        if (tabId === 'tab-review') loadReviewTable();
+        if (tabId === 'tab-archive') loadArchiveTable();
+    }
+
+    // إضافة محلات
+    let shopCounter = 0;
     function addShopRow() {
         shopCounter++;
         const container = document.getElementById('shopsContainer');
@@ -328,8 +310,8 @@
         shopCard.className = 'vertical-item-card shop-card-item';
         shopCard.innerHTML = `
             <div class="vertical-card-header">
-                <span class="vertical-card-title">بيانات المحل #${shopCounter}</span>
-                <button type="button" class="btn btn-danger no-print" onclick="this.parentElement.parentElement.remove(); calculateAll();">حذف المحل</button>
+                <span><b>بيانات المحل #${shopCounter}</b></span>
+                <button type="button" class="btn btn-danger no-print" onclick="this.parentElement.parentElement.remove(); calculateAll();">حذف</button>
             </div>
             <div class="vertical-grid-fields">
                 <div class="form-group" style="grid-column: span 2;">
@@ -338,13 +320,11 @@
                 </div>
                 <div class="form-group">
                     <label>إجمالي المبيعات:</label>
-                    <input type="number" value="0" step="any" class="shop-sales" oninput="calculateAll()">
+                    <input type="number" value="0" class="shop-sales" oninput="calculateAll()">
                 </div>
                 <div class="form-group">
                     <label>العملة:</label>
-                    <select class="shop-curr" onchange="calculateAll()">
-                        <option value="EGP">EGP</option>
-                    </select>
+                    <select class="shop-curr"><option value="EGP">EGP</option></select>
                 </div>
             </div>
         `;
@@ -352,6 +332,8 @@
         calculateAll();
     }
 
+    // إضافة رحلات اختيارية
+    let optionalCounter = 0;
     function addOptionalRow() {
         optionalCounter++;
         const container = document.getElementById('optionalContainer');
@@ -359,38 +341,32 @@
         optCard.className = 'vertical-item-card opt-card-item';
         optCard.innerHTML = `
             <div class="vertical-card-header">
-                <span class="vertical-card-title">الرحلة الاختيارية #${optionalCounter}</span>
-                <button type="button" class="btn btn-danger no-print" onclick="this.parentElement.parentElement.remove(); calculateAll();">حذف الرحلة</button>
+                <span><b>الرحلة الاختيارية #${optionalCounter}</b></span>
+                <button type="button" class="btn btn-danger no-print" onclick="this.parentElement.parentElement.remove(); calculateAll();">حذف</button>
             </div>
             <div class="vertical-grid-fields">
                 <div class="form-group">
                     <label>اسم الرحلة:</label>
-                    <input type="text" placeholder="مثال: منطاد طائر / رحلة بحرية" class="opt-name">
+                    <input type="text" class="opt-name">
                 </div>
                 <div class="form-group">
                     <label>عدد الأفراد:</label>
-                    <input type="number" value="1" step="any" class="opt-pax" oninput="calculateAll()">
+                    <input type="number" value="1" class="opt-pax" oninput="calculateAll()">
                 </div>
                 <div class="form-group">
                     <label>السعر للفرد:</label>
-                    <input type="number" value="0" step="any" class="opt-price" oninput="calculateAll()">
-                </div>
-                <div class="form-group">
-                    <label>العملة:</label>
-                    <select class="opt-curr" onchange="calculateAll()">
-                        <option value="EGP">EGP</option>
-                    </select>
+                    <input type="number" value="0" class="opt-price" oninput="calculateAll()">
                 </div>
                 <div class="form-group">
                     <label>التكلفة المباشرة:</label>
-                    <input type="number" value="0" step="any" class="opt-cost" oninput="calculateAll()">
+                    <input type="number" value="0" class="opt-cost" oninput="calculateAll()">
                 </div>
                 <div class="form-group">
                     <label>نسبة المرشد %:</label>
-                    <input type="number" value="20" step="any" class="opt-guide-pct" oninput="calculateAll()">
+                    <input type="number" value="20" class="opt-guide-pct" oninput="calculateAll()">
                 </div>
                 <div class="form-group">
-                    <label>عمولة المرشد (EGP):</label>
+                    <label>عمولة المرشد:</label>
                     <div class="comm-result-box opt-guide-comm-val">0.00</div>
                 </div>
             </div>
@@ -399,19 +375,17 @@
         calculateAll();
     }
 
+    // الحسابات
     function calculateAll() {
         let totalOptComm = 0;
-
         document.querySelectorAll('.opt-card-item').forEach(card => {
             const pax = parseFloat(card.querySelector('.opt-pax').value) || 0;
             const price = parseFloat(card.querySelector('.opt-price').value) || 0;
             const cost = parseFloat(card.querySelector('.opt-cost').value) || 0;
             const guidePct = (parseFloat(card.querySelector('.opt-guide-pct').value) || 0) / 100;
 
-            const totalSales = pax * price;
-            const netProfit = totalSales - cost;
+            const netProfit = (pax * price) - cost;
             const guideComm = netProfit > 0 ? netProfit * guidePct : 0;
-
             card.querySelector('.opt-guide-comm-val').innerText = guideComm.toFixed(2);
             totalOptComm += guideComm;
         });
@@ -434,34 +408,114 @@
         netElem.className = net >= 0 ? 'positive' : 'negative';
     }
 
+    // إرسال الطلب للمراجعة
     function submitSettlement() {
         const guideName = document.getElementById('guideInput').value.trim();
         const fileNo = document.getElementById('fileNo').value.trim();
 
         if (!guideName || !fileNo) {
-            alert('يرجى ملء اسم المرشد ورقم الملف قبل إرسال التصفية.');
+            alert('يرجى ملء اسم المرشد ورقم الملف أولاً.');
             return;
         }
 
-        const data = {
+        const newRequest = {
+            id: Date.now(),
             guideName,
             fileNo,
             date: new Date().toLocaleString('ar-EG'),
             status: 'قيد المراجعة ⏳',
-            floatEgp: document.getElementById('floatEgp').value,
-            lunchEgp: document.getElementById('lunchEgp').value,
-            tipsEgp: document.getElementById('tipsEgp').value,
-            parkingEgp: document.getElementById('parkingEgp').value,
-            feeEgp: document.getElementById('feeEgp').value,
             totalDue: document.getElementById('totalDueEgp').innerText,
             totalExp: document.getElementById('totalExpEgp').innerText,
             net: document.getElementById('netEgp').innerText
         };
 
-        localStorage.setItem('reviewData', JSON.stringify(data));
-        alert('تم إرسال طلب التصفية لمرحلة المراجعة بنجاح!');
-        window.location.href = 'review.html';
-        window.location.href = 'review.html';
+        let pendingList = JSON.parse(localStorage.getItem('pendingRequests') || '[]');
+        pendingList.push(newRequest);
+        localStorage.setItem('pendingRequests', JSON.stringify(pendingList));
+
+        alert('تم إرسال التصفية لمرحلة المراجعة بنجاح!');
+        switchTab('tab-review');
+    }
+
+    // تحميل جدول المراجعة
+    function loadReviewTable() {
+        const list = JSON.parse(localStorage.getItem('pendingRequests') || '[]');
+        const tbody = document.getElementById('reviewTableBody');
+        tbody.innerHTML = '';
+
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7">لا توجد طلبات معلقة حالياً.</td></tr>`;
+            return;
+        }
+
+        list.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><b>${item.guideName}</b></td>
+                <td>${item.fileNo}</td>
+                <td>${item.date}</td>
+                <td>${item.totalDue}</td>
+                <td>${item.totalExp}</td>
+                <td><b>${item.net}</b></td>
+                <td>
+                    <button class="btn btn-submit" style="padding:4px 10px;" onclick="handleAction(${index}, 'معتمد ✅')">اعتماد</button>
+                    <button class="btn btn-danger" style="padding:4px 10px;" onclick="handleAction(${index}, 'مرفوض ❌')">رفض</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // اعتماد أو رفض الطلب ونقله للأرشيف
+    function handleAction(index, newStatus) {
+        let pending = JSON.parse(localStorage.getItem('pendingRequests') || '[]');
+        let archived = JSON.parse(localStorage.getItem('archivedRequests') || '[]');
+
+        let item = pending.splice(index, 1)[0];
+        item.status = newStatus;
+        item.actionDate = new Date().toLocaleString('ar-EG');
+
+        archived.push(item);
+
+        localStorage.setItem('pendingRequests', JSON.stringify(pending));
+        localStorage.setItem('archivedRequests', JSON.stringify(archived));
+
+        alert(`تم نقل الطلب إلى الأرشيف بالحالة: ${newStatus}`);
+        loadReviewTable();
+    }
+
+    // تحميل جدول الأرشيف
+    function loadArchiveTable() {
+        const list = JSON.parse(localStorage.getItem('archivedRequests') || '[]');
+        const tbody = document.getElementById('archiveTableBody');
+        tbody.innerHTML = '';
+
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7">الأرشيف فارغ حالياً.</td></tr>`;
+            return;
+        }
+
+        list.forEach((item) => {
+            const tr = document.createElement('tr');
+            const statusClass = item.status.includes('معتمد') ? 'status-approved' : 'status-rejected';
+            tr.innerHTML = `
+                <td><b>${item.guideName}</b></td>
+                <td>${item.fileNo}</td>
+                <td>${item.actionDate || item.date}</td>
+                <td>${item.totalDue}</td>
+                <td>${item.totalExp}</td>
+                <td><b>${item.net}</b></td>
+                <td class="${statusClass}">${item.status}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function clearArchive() {
+        if (confirm('هل أنت تأكد من مسح جميع السجلات من الأرشيف؟')) {
+            localStorage.removeItem('archivedRequests');
+            loadArchiveTable();
+        }
     }
 
     window.onload = function() {
