@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Look At Egypt Tours - تصفية حسابات المرشدين</title>
+    <title>تصفية حسابات المرشدين</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
         :root {
             --vintage-bg: #f5efe6;
@@ -34,8 +34,8 @@
             margin: 0 auto;
         }
 
+        /* الهيدر المطور: الشعار شمال والترويسة يمين */
         .header-vintage {
-            text-align: right;
             border: 3px double var(--dark-border);
             padding: 20px 30px;
             background: var(--card-bg);
@@ -43,30 +43,28 @@
             margin-bottom: 25px;
             box-shadow: 3px 3px 10px rgba(0,0,0,0.08);
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .company-logo {
-            max-width: 160px;
-            height: auto;
-            margin-bottom: 10px;
-            display: block;
+        .header-title-right {
+            text-align: right;
         }
 
-        h1 {
+        .subtitle-styled {
+            font-family: 'Amiri', serif;
+            font-size: 1.85em;
+            font-weight: 700;
             color: var(--primary-navy);
-            font-size: 1.8em;
-            margin: 5px 0 2px 0;
-            letter-spacing: 0.5px;
+            margin: 0;
+            line-height: 1.4;
+            letter-spacing: 0.3px;
         }
 
-        .subtitle {
-            font-style: italic;
-            color: #6b5e4a;
-            margin-bottom: 0;
-            font-weight: bold;
-            font-size: 0.95em;
+        .company-logo-left {
+            max-width: 140px;
+            height: auto;
+            display: block;
         }
 
         .card {
@@ -190,9 +188,14 @@
 <body>
 
 <div class="container">
-    <!-- Header Aligned to the Far Right -->
+    <!-- Header: Title on Far Right, Graphic Logo on Far Left -->
     <div class="header-vintage">
-        <svg class="company-logo" viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg">
+        <div class="header-title-right">
+            <h1 class="subtitle-styled">نظام تصفية واستحقاق حسابات المرشدين السياحيين</h1>
+        </div>
+
+        <!-- SVG Icon Only (Without Text) Aligned to Far Left -->
+        <svg class="company-logo-left" viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg">
             <rect x="30" y="10" width="240" height="130" fill="none" stroke="#22252a" stroke-width="4"/>
             <path d="M 50,42 Q 130,2 250,42 Q 180,105 50,42 Z" fill="none" stroke="#22252a" stroke-width="3"/>
             <path d="M 50,42 Q 150,15 250,42" fill="none" stroke="#0072bc" stroke-width="5"/>
@@ -201,13 +204,7 @@
             <circle cx="158" cy="72" r="4" fill="#ffffff"/>
             <path d="M 55,100 C 65,120 100,125 150,100" fill="none" stroke="#22252a" stroke-width="4"/>
             <path d="M 185,92 L 185,130 L 175,130 L 175,98 Z" fill="#0072bc" stroke="#22252a" stroke-width="2"/>
-            <text x="150" y="180" font-family="'Segoe UI', Arial, sans-serif" font-weight="800" font-size="28" fill="#0072bc" text-anchor="middle" letter-spacing="1">LOOK AT</text>
-            <text x="150" y="218" font-family="'Segoe UI', Arial, sans-serif" font-weight="900" font-size="34" fill="#00385d" text-anchor="middle" letter-spacing="1.5">EGYPT</text>
-            <text x="150" y="254" font-family="'Segoe UI', Arial, sans-serif" font-weight="800" font-size="28" fill="#0072bc" text-anchor="middle" letter-spacing="1">TOURS</text>
         </svg>
-
-        <h1>LOOK AT EGYPT TOURS</h1>
-        <p class="subtitle">نظام تصفية واستحقاق حسابات المرشدين السياحيين</p>
     </div>
 
     <form id="settlementForm" onsubmit="event.preventDefault(); window.print();">
