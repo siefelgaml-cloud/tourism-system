@@ -19,7 +19,6 @@
 
     body {
       display: flex;
-      flex-direction: row; /* القائمة على اليمين والمحتوى على اليسار */
       background-color: #f4efe6; /* لون ورقي قديم */
       color: #3d2b1f; /* بني داكن حبري */
       font-family: 'Amiri', serif;
@@ -29,18 +28,18 @@
     }
 
     /* القائمة الجانبية الرأسية (على اليمين) - طابع خشب أو جلد داكن */
-    .sidebar-right {
+    .sidebar-left {
       width: 280px;
       background-color: #2b1d14; /* بني جلد داكن */
       color: #e6d5c3;
       display: flex;
       flex-direction: column;
       padding: 30px 15px;
-      border-left: 3px double #8c6d53;
+      border-left: 3px double #8c6d53; /* تم التعديل لتصبح الحدود من اليسار ليفصل عن المحتوى */
       box-shadow: 5px 0 15px rgba(0,0,0,0.3);
     }
 
-    .sidebar-right h3 {
+    .sidebar-left h3 {
       font-family: 'Aref Ruqaa', serif;
       text-align: center;
       margin-bottom: 30px;
@@ -186,8 +185,8 @@
 </head>
 <body>
 
-  <!-- القائمة الجانبية الرأسية في اليمين -->
-  <aside class="sidebar-right">
+  <!-- القائمة الجانبية الرأسية (تم نقلها لتكون في البداية على اليمين) -->
+  <aside class="sidebar-left">
     <h3>سجل السجلات</h3>
     <ul class="sidebar-nav">
       <li>
@@ -197,19 +196,19 @@
       </li>
       <li>
         <a href="#">
-          <span>استلام ومراجعة الطلبات</span>
+          <span>استلام الطلبات</span>
           <span class="badge">5</span>
         </a>
       </li>
       <li>
         <a href="#">
-          <span>الأرشيف</span>
+          <span>الأرشيف العام</span>
         </a>
       </li>
     </ul>
   </aside>
 
-  <!-- المحتوى الرئيسي (عرض نموذج التصفية في اليسار) -->
+  <!-- المحتوى الرئيسي (نموذج التصفية أصبح على اليسار تلقائياً) -->
   <main class="main-content">
     <div class="card">
       <h2>ــ نموذج تصفية المرشد ــ</h2>
