@@ -77,6 +77,12 @@
             border-color: var(--accent);
         }
 
+        input[readonly] {
+            background-color: #f1f5f9;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -139,11 +145,17 @@
             <div class="grid-3">
                 <div class="form-group">
                     <label>اسم المرشد: <span class="required-star">*</span></label>
-                    <input type="text" id="guideName" placeholder="أدخل اسم المرشد" required>
+                    <select id="guideSelect" onchange="updateGuideCode()" required>
+                        <option value="">-- اختر اسم المرشد --</option>
+                        <option value="G-101">أحمد محمود</option>
+                        <option value="G-102">محمد علي</option>
+                        <option value="G-103">سارة يوسف</option>
+                        <option value="G-104">عمر خالد</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>تاريخ الرحلة: <span class="required-star">*</span></label>
-                    <input type="date" id="tourDate" required>
+                    <label>كود المرشد: <span class="required-star">*</span></label>
+                    <input type="text" id="guideCode" placeholder="يظهر تلقائياً عند اختيار المرشد" readonly required>
                 </div>
                 <div class="form-group">
                     <label>رقم الملف: <span class="required-star">*</span></label>
@@ -287,6 +299,12 @@
 </div>
 
 <script>
+    function updateGuideCode() {
+        const guideSelect = document.getElementById('guideSelect');
+        const guideCodeInput = document.getElementById('guideCode');
+        guideCodeInput.value = guideSelect.value;
+    }
+
     function addShopRow() {
         const tbody = document.querySelector('#shopsTable tbody');
         const row = document.createElement('tr');
@@ -385,9 +403,6 @@
             netElem.className = net >= 0 ? 'positive' : 'negative';
         });
     }
-
-    // إعداد تاريخ اليوم تلقائياً
-    document.getElementById('tourDate').valueAsDate = new Date();
 </script>
 
 </body>
