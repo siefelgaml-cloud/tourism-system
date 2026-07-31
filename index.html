@@ -221,12 +221,11 @@
             <div class="grid-3">
                 <div class="form-group">
                     <label>اسم المرشد: <span class="required-star">*</span></label>
-                    <!-- حقل إدخال حر بدون أي دروب داون -->
-                    <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." oninput="updateGuideCode()" autocomplete="off" required>
+                    <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." autocomplete="off" required>
                 </div>
                 <div class="form-group">
-                    <label>كود المرشد: <span class="required-star">*</span></label>
-                    <input type="text" id="guideCode" placeholder="يظهر تلقائياً عند كتابة الاسم" readonly required>
+                    <label>كود المرشد:</label>
+                    <input type="text" id="guideCode" placeholder="أدخل كود المرشد..." autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label>رقم الملف: <span class="required-star">*</span></label>
@@ -344,47 +343,6 @@
 </div>
 
 <script>
-    // قاعدة البيانات المستخرجة من الجدول المرفق
-    const guidesDatabase = [
-        { code: "G-001", name: "محمد أبو المجد" },
-        { code: "G-002", name: "عماد ضيف" },
-        { code: "G-003", name: "فايد" },
-        { code: "G-004", name: "راندا احمد" },
-        { code: "G-005", name: "محمد شتا" },
-        { code: "G-006", name: "عماد رافت" },
-        { code: "G-007", name: "وائل عاطف" }
-    ];
-
-    // دالة تنظيف النص للتعرف على الأسماء حتى لو اختلف شكل الألف أو المسافات
-    function normalizeText(text) {
-        return text.trim()
-                   .replace(/[أإآ]/g, 'ا')
-                   .replace(/\s+/g, ' ')
-                   .toLowerCase();
-    }
-
-    function updateGuideCode() {
-        const inputVal = normalizeText(document.getElementById('guideInput').value);
-        const guideCodeInput = document.getElementById('guideCode');
-
-        if (inputVal === "") {
-            guideCodeInput.value = "";
-            return;
-        }
-
-        // البحث داخل قاعدة البيانات عن طابق الاسم
-        const found = guidesDatabase.find(guide => {
-            const normName = normalizeText(guide.name);
-            return normName === inputVal || (inputVal.length >= 3 && normName.includes(inputVal));
-        });
-
-        if (found) {
-            guideCodeInput.value = found.code;
-        } else {
-            guideCodeInput.value = "";
-        }
-    }
-
     function addShopRow() {
         const tbody = document.querySelector('#shopsTable tbody');
         const row = document.createElement('tr');
