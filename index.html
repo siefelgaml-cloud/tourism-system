@@ -260,10 +260,7 @@
     <!-- ===== الشاشة الثالثة: الأرشيف ===== -->
     <div id="tab-archive" class="tab-content">
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
-                <h3 style="margin:0;">سجل التصفيات المحسومة (الأرشيف)</h3>
-                <button class="btn btn-danger no-print" onclick="clearArchive()">مسح الأرشيف 🗑️</button>
-            </div>
+            <h3 style="margin-top:0;">سجل التصفيات المحسومة (الأرشيف)</h3>
             <table>
                 <thead>
                     <tr>
@@ -509,13 +506,6 @@
             `;
             tbody.appendChild(tr);
         });
-    }
-
-    function clearArchive() {
-        if (confirm('هل أنت تأكد من مسح جميع السجلات من الأرشيف؟')) {
-            localStorage.removeItem('archivedRequests');
-            loadArchiveTable();
-        }
     }
 
     window.onload = function() {
