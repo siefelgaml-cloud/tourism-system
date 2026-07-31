@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سيستم تصفية حسابات المرشدين</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #2563eb;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+            --green: #16a34a;
+            --red: #dc2626;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 {
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        input, select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 1em;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        th {
+            background-color: #f1f5f9;
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-danger {
+            background-color: var(--red);
+            padding: 4px 8px;
+        }
+
+        .summary-card {
+            border-top: 4px solid var(--accent);
+        }
+
+        .positive { color: var(--green); font-weight: bold; }
+        .negative { color: var(--red); font-weight: bold; }
+
+        @media print {
+            .btn, .no-print { display: none; }
+            body { padding: 0; background: white; }
+            .card { box-shadow: none; border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 style="text-align: center;">نظام تصفية حسابات المرشدين السياحيين</h1>
+
+    <!-- 1. البيانات الأساسية -->
+    <div class="card">
+        <h3>بيانات الرحلة والمرشد</h3>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>اسم المرشد:</label>
+                <input type="text" id="guideName" placeholder="أدخل اسم المرشد">
+            </div>
+            <div class="form-group">
+                <label>تاريخ الرحلة:</label>
+                <input type="date" id="tourDate">
+            </div>
+            <div class="form-group">
+                <label>رقم الجولة/الحافلة:</label>
+                <input type="text" id="busNo" placeholder="مثال: Bus 12">
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. العهده والمصروفات -->
+    <div class="card">
+        <h3>العهدة والمصروفات المباشرة</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>البيان</th>
+                    <th>بالجنيه (EGP)</th>
+                    <th>بالدولار (USD)</th>
+                    <th>باليورو (EUR)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>العهدة المستلمة</b></td>
+                    <td><input type="number" id="floatEgp" value="0" oninput="calculateAll()"></td>
+                    <td><input type="number" id="floatUsd" value="0" oninput="calculateAll()"></td>
+                    <td><input type="number" id="floatEur" value="0" oninput="calculateAll()"></td>
+                </tr>
+                <tr>
+                    <td>مصاريف الغداء</td>
+                    <td><input type="number" id="lunchEgp" value="0" oninput="calculateAll()"></td>
+                    <td><input type="number" id="lunchUsd" value="0" oninput="calculateAll()"></td>
+                    <td><input type="number" id="lunchEur" value="0" oninput="calculateAll()"></td>
+                </tr>
+                <tr>
+                    <td>الإكراميات (Tips)</td>
+                    <td><input type="number" id="tipsEgp" value="0" oninput="calculateAll()"></td>
+                    <td><input type="number" id="tipsUsd" value="0" oninput="calculateAll()"></td>
+                    <td><input type="number" id="tipsEur" value="0" oninput="calculateAll()"></td>
+                </tr>
+                <tr>
+                    <td>الباركينج والرسوم</td>
+                    <td><input type="number" id="parkingEgp" value="0" oninput="calculateAll()"></td>
+                    <td><input type="number" id="parkingUsd" value="0" oninput="calculateAll()"></td>
+                    <td><input type="number" id="parkingEur" value="0" oninput="calculateAll()"></td>
+                </tr>
+                <tr>
+                    <td>أتعاب المرشد (اليومية)</td>
+                    <td><input type="number" id="feeEgp" value="0" oninput="calculateAll()"></td>
+                    <td><input type="number" id="feeUsd" value="0" oninput="calculateAll()"></td>
+                    <td><input type="number" id="feeEur" value="0" oninput="calculateAll()"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 3. مبيعات المحلات -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>مبيعات المحلات (Shops)</h3>
+            <button class="btn no-print" onclick="addShopRow()">+ إضافة محل</button>
+        </div>
+        <table id="shopsTable">
+            <thead>
+                <tr>
+                    <th>اسم المحل</th>
+                    <th>المبيعات</th>
+                    <th>العملة</th>
+                    <th>عمولة المحل %</th>
+                    <th>حصة المرشد %</th>
+                    <th>عمولة المرشد</th>
+                    <th class="no-print">حذف</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- 4. الرحلات الاختيارية -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>الرحلات الاختيارية (Optional Tours)</h3>
+            <button class="btn no-print" onclick="addOptionalRow()">+ إضافة رحلة</button>
+        </div>
+        <table id="optionalTable">
+            <thead>
+                <tr>
+                    <th>اسم الرحلة</th>
+                    <th>عدد الأفراد</th>
+                    <th>السعر للفرد</th>
+                    <th>العملة</th>
+                    <th>التكلفة المباشرة</th>
+                    <th>نسبة المرشد %</th>
+                    <th>عمولة المرشد</th>
+                    <th class="no-print">حذف</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- 5. ملخص التصفية النهائي -->
+    <div class="card summary-card">
+        <h3>صافي التصفية النهائي</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>العملة</th>
+                    <th>إجمالي ما بذمة المرشد (عهدة + عمولات)</th>
+                    <th>إجمالي المصروفات والأتعاب</th>
+                    <th>الصافي النهائي</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>جنيه (EGP)</b></td>
+                    <td id="totalDueEgp">0.00</td>
+                    <td id="totalExpEgp">0.00</td>
+                    <td id="netEgp" class="positive">0.00</td>
+                </tr>
+                <tr>
+                    <td><b>دولار (USD)</b></td>
+                    <td id="totalDueUsd">0.00</td>
+                    <td id="totalExpUsd">0.00</td>
+                    <td id="netUsd" class="positive">0.00</td>
+                </tr>
+                <tr>
+                    <td><b>يورو (EUR)</b></td>
+                    <td id="totalDueEur">0.00</td>
+                    <td id="totalExpEur">0.00</td>
+                    <td id="netEur" class="positive">0.00</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="font-size: 0.85em; color: #64748b; margin-top: 10px;">* الناتج بالموجب: المرشد ملزم ببرد المبلغ للشركة. الناتج بالسالب: المبلغ مستحق للصرف للمرشد.</p>
+        
+        <div style="margin-top: 20px; text-align: left;" class="no-print">
+            <button class="btn" onclick="window.print()">طباعة التصفية</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function addShopRow() {
+        const tbody = document.querySelector('#shopsTable tbody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" placeholder="اسم المحل" class="shop-name"></td>
+            <td><input type="number" value="0" class="shop-sales" oninput="calculateAll()"></td>
+            <td>
+                <select class="shop-curr" onchange="calculateAll()">
+                    <option value="EGP">EGP</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                </select>
+            </td>
+            <td><input type="number" value="10" class="shop-comm-pct" oninput="calculateAll()"></td>
+            <td><input type="number" value="50" class="guide-share-pct" oninput="calculateAll()"></td>
+            <td class="guide-comm-val">0.00</td>
+            <td class="no-print"><button class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); calculateAll();">X</button></td>
+        `;
+        tbody.appendChild(row);
+        calculateAll();
+    }
+
+    function addOptionalRow() {
+        const tbody = document.querySelector('#optionalTable tbody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" placeholder="اسم الأوبشنال" class="opt-name"></td>
+            <td><input type="number" value="1" class="opt-pax" oninput="calculateAll()"></td>
+            <td><input type="number" value="0" class="opt-price" oninput="calculateAll()"></td>
+            <td>
+                <select class="opt-curr" onchange="calculateAll()">
+                    <option value="USD">USD</option>
+                    <option value="EGP">EGP</option>
+                    <option value="EUR">EUR</option>
+                </select>
+            </td>
+            <td><input type="number" value="0" class="opt-cost" oninput="calculateAll()"></td>
+            <td><input type="number" value="20" class="opt-guide-pct" oninput="calculateAll()"></td>
+            <td class="opt-guide-comm-val">0.00</td>
+            <td class="no-print"><button class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); calculateAll();">X</button></td>
+        `;
+        tbody.appendChild(row);
+        calculateAll();
+    }
+
+    function calculateAll() {
+        let comm = { EGP: 0, USD: 0, EUR: 0 };
+
+        // 1. حساب مبيعات المحلات
+        document.querySelectorAll('#shopsTable tbody tr').forEach(row => {
+            const sales = parseFloat(row.querySelector('.shop-sales').value) || 0;
+            const curr = row.querySelector('.shop-curr').value;
+            const shopCommPct = (parseFloat(row.querySelector('.shop-comm-pct').value) || 0) / 100;
+            const guideSharePct = (parseFloat(row.querySelector('.guide-share-pct').value) || 0) / 100;
+
+            const guideComm = sales * shopCommPct * guideSharePct;
+            row.querySelector('.guide-comm-val').innerText = guideComm.toFixed(2);
+            comm[curr] += guideComm;
+        });
+
+        // 2. حساب الرحلات الاختيارية
+        document.querySelectorAll('#optionalTable tbody tr').forEach(row => {
+            const pax = parseFloat(row.querySelector('.opt-pax').value) || 0;
+            const price = parseFloat(row.querySelector('.opt-price').value) || 0;
+            const cost = parseFloat(row.querySelector('.opt-cost').value) || 0;
+            const curr = row.querySelector('.opt-curr').value;
+            const guidePct = (parseFloat(row.querySelector('.opt-guide-pct').value) || 0) / 100;
+
+            const totalSales = pax * price;
+            const netProfit = totalSales - cost;
+            const guideComm = netProfit > 0 ? netProfit * guidePct : 0;
+
+            row.querySelector('.opt-guide-comm-val').innerText = guideComm.toFixed(2);
+            comm[curr] += guideComm;
+        });
+
+        // 3. التجميع وحساب صافي المصروفات والعهدة لكل عملة
+        ['Egp', 'Usd', 'Eur'].forEach(c => {
+            const code = c.toUpperCase();
+            
+            const floatVal = parseFloat(document.getElementById(`float${c}`).value) || 0;
+            const lunch = parseFloat(document.getElementById(`lunch${c}`).value) || 0;
+            const tips = parseFloat(document.getElementById(`tips${c}`).value) || 0;
+            const parking = parseFloat(document.getElementById(`parking${c}`).value) || 0;
+            const fee = parseFloat(document.getElementById(`fee${c}`).value) || 0;
+
+            const totalDue = floatVal + comm[code];
+            const totalExp = lunch + tips + parking + fee;
+            const net = totalDue - totalExp;
+
+            document.getElementById(`totalDue${c}`).innerText = totalDue.toFixed(2);
+            document.getElementById(`totalExp${c}`).innerText = totalExp.toFixed(2);
+            
+            const netElem = document.getElementById(`net${c}`);
+            netElem.innerText = net.toFixed(2);
+            netElem.className = net >= 0 ? 'positive' : 'negative';
+        });
+    }
+
+    // إعداد تاريخ اليوم تلقائياً
+    document.getElementById('tourDate').valueAsDate = new Date();
+</script>
+
+</body>
+</html>
