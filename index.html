@@ -5,46 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تصفية حسابات المرشدين</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800&family=Montserrat:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800;900&family=Montserrat:wght@400;500;600;700&display=swap');
 
         :root {
-            --vintage-bg: #f5efe6;
-            --card-bg: #fffdf9;
-            --primary-navy: #1a365d;
-            --accent-blue: #0284c7;
-            --border-color: #c5b358;
-            --dark-border: #8b7d3b;
-            --text-color: #2b261f;
-            --green: #2e7d32;
-            --red: #c62828;
+            --lux-navy: #0d1b2a;
+            --lux-navy-card: #132238;
+            --lux-gold: #c5a059;
+            --lux-gold-light: #e6ca65;
+            --lux-gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+            --lux-bg: #09111e;
+            --card-bg: #111d2e;
+            --text-gold: #dfb15b;
+            --text-light: #f1f5f9;
+            --border-gold: rgba(197, 160, 89, 0.4);
+            --green: #2ecc71;
+            --red: #e74c3c;
         }
 
         body {
-            font-family: 'Amiri', 'Segoe UI', serif;
-            background-color: var(--vintage-bg);
-            color: var(--text-color);
+            font-family: 'Amiri', serif;
+            background-color: var(--lux-bg);
+            color: var(--text-light);
             margin: 0;
-            padding: 20px;
-            background-image: radial-gradient(#e0d7c6 1px, transparent 0);
-            background-size: 24px 24px;
+            padding: 30px 20px;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(197, 160, 89, 0.08) 0%, transparent 70%),
+                radial-gradient(circle at 100% 100%, rgba(13, 27, 42, 0.5) 0%, transparent 50%);
+            background-attachment: fixed;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1050px;
             margin: 0 auto;
         }
 
-        /* الهيدر: الترويسة يمين، الشعار الجديد شمال */
-        .header-vintage {
-            border: 3px double var(--dark-border);
-            padding: 20px 30px;
-            background: var(--card-bg);
-            border-radius: 4px;
-            margin-bottom: 25px;
-            box-shadow: 3px 3px 10px rgba(0,0,0,0.08);
+        /* Luxury Header Section */
+        .header-luxury {
+            border: 1px solid var(--border-gold);
+            padding: 30px 40px;
+            background: linear-gradient(145deg, rgba(19, 34, 56, 0.9), rgba(13, 27, 42, 0.95));
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(197, 160, 89, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-luxury::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 3px;
+            background: var(--lux-gold-gradient);
         }
 
         .header-title-right {
@@ -53,85 +70,102 @@
 
         .subtitle-styled {
             font-family: 'Amiri', serif;
-            font-size: 1.85em;
+            font-size: 2em;
             font-weight: 700;
-            color: var(--primary-navy);
+            background: var(--lux-gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin: 0;
-            line-height: 1.4;
-            letter-spacing: 0.3px;
+            line-height: 1.3;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
-        /* الشعار الجديد المصمم من ملف PDF */
+        /* New Luxury Logo Box */
         .logo-box-left {
             text-align: center;
-            font-family: 'Cinzel', 'Times New Roman', serif;
+            font-family: 'Cinzel', serif;
             direction: ltr;
+            padding-left: 20px;
+            border-left: 1px solid var(--border-gold);
         }
 
         .logo-title-main {
-            font-size: 1.35em;
+            font-size: 1.5em;
             font-weight: 800;
-            color: #004b87;
-            letter-spacing: 1.5px;
-            line-height: 1.1;
+            background: var(--lux-gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            line-height: 1;
             margin: 0;
         }
 
         .logo-title-sub {
-            font-size: 1.5em;
-            font-weight: 800;
-            color: #003057;
-            letter-spacing: 2px;
+            font-size: 1.65em;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 2.5px;
             line-height: 1.1;
-            margin: 2px 0 6px 0;
+            margin: 4px 0;
+            text-shadow: 0 0 12px rgba(197, 160, 89, 0.3);
         }
 
         .logo-tagline {
             font-family: 'Montserrat', sans-serif;
             font-size: 0.65em;
             font-weight: 600;
-            color: #666;
-            letter-spacing: 0.8px;
+            color: var(--lux-gold);
+            letter-spacing: 1.5px;
             text-transform: uppercase;
-            border-top: 1px solid #c5b358;
+            margin-top: 6px;
             padding-top: 4px;
-            margin: 0;
+            border-top: 1px dashed var(--border-gold);
         }
 
+        /* Luxury Cards */
         .card {
-            background: var(--card-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
-            position: relative;
+            background: linear-gradient(145deg, rgba(17, 29, 46, 0.85), rgba(13, 23, 37, 0.95));
+            border: 1px solid var(--border-gold);
+            border-radius: 6px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 30px rgba(197, 160, 89, 0.15);
         }
 
         .card h3 {
-            color: var(--primary-navy);
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 8px;
+            color: var(--lux-gold);
+            border-bottom: 1px solid var(--border-gold);
+            padding-bottom: 10px;
             margin-top: 0;
-            font-size: 1.3em;
+            font-size: 1.4em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .grid-2 {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            gap: 25px;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
         }
 
         label {
             font-weight: bold;
-            font-size: 1.05em;
-            color: var(--primary-navy);
+            font-size: 1.1em;
+            color: var(--text-gold);
         }
 
         .required-star {
@@ -139,93 +173,144 @@
         }
 
         input, select {
-            padding: 8px 12px;
-            border: 1px solid #b8a88a;
-            background-color: #fcfaf5;
-            border-radius: 3px;
+            padding: 10px 14px;
+            border: 1px solid var(--border-gold);
+            background-color: rgba(9, 17, 30, 0.7);
+            border-radius: 4px;
             font-family: 'Amiri', serif;
-            font-size: 1.05em;
-            color: var(--text-color);
+            font-size: 1.1em;
+            color: #ffffff;
             outline: none;
+            transition: all 0.3s ease;
         }
 
         input:focus, select:focus {
-            border-color: var(--primary-navy);
-            background-color: #fff;
+            border-color: var(--lux-gold-light);
+            background-color: rgba(13, 27, 42, 0.9);
+            box-shadow: 0 0 10px rgba(197, 160, 89, 0.3);
         }
 
+        /* Luxury Tables */
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             margin-top: 15px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--border-gold);
         }
 
         th, td {
-            border: 1px solid var(--border-color);
-            padding: 8px 10px;
+            padding: 12px 14px;
             text-align: center;
             font-size: 1.05em;
         }
 
         th {
-            background-color: #ebdcb9;
-            color: var(--primary-navy);
+            background: linear-gradient(180deg, #1f334d 0%, #132238 100%);
+            color: var(--lux-gold);
             font-weight: bold;
+            border-bottom: 1px solid var(--border-gold);
         }
 
         td {
-            background-color: var(--card-bg);
+            background-color: rgba(17, 29, 46, 0.6);
+            border-bottom: 1px solid rgba(197, 160, 89, 0.1);
+            color: #e2e8f0;
         }
 
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Luxury Buttons */
         .btn {
-            background-color: var(--primary-navy);
-            color: #f5efe6;
-            border: 1px solid var(--dark-border);
-            padding: 8px 18px;
-            border-radius: 3px;
+            background: var(--lux-gold-gradient);
+            color: #09111e;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
             cursor: pointer;
             font-family: 'Amiri', serif;
             font-weight: bold;
-            font-size: 1.05em;
-            transition: all 0.2s;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.25);
         }
 
         .btn:hover {
-            background-color: var(--accent-blue);
-            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(230, 202, 101, 0.4);
+            filter: brightness(1.08);
         }
 
         .btn-danger {
-            background-color: var(--red);
-            padding: 2px 8px;
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+            color: white;
+            padding: 4px 10px;
             font-size: 0.9em;
+            box-shadow: none;
         }
 
+        .btn-danger:hover {
+            box-shadow: 0 2px 10px rgba(231, 76, 60, 0.4);
+        }
+
+        /* Summary Box */
         .summary-card {
-            border: 3px double var(--dark-border);
-            background-color: #fdfaf3;
+            border: 1.5px solid var(--lux-gold);
+            background: linear-gradient(145deg, rgba(20, 36, 58, 0.95), rgba(11, 20, 33, 0.98));
         }
 
-        .positive { color: var(--green); font-weight: bold; font-size: 1.2em; }
-        .negative { color: var(--red); font-weight: bold; font-size: 1.2em; }
+        .positive { color: var(--green); font-weight: bold; font-size: 1.3em; text-shadow: 0 0 8px rgba(46, 204, 113, 0.2); }
+        .negative { color: var(--red); font-weight: bold; font-size: 1.3em; text-shadow: 0 0 8px rgba(231, 76, 60, 0.2); }
 
+        /* Print Optimization for High-End Look */
         @media print {
+            body { 
+                background: white !important; 
+                color: #000 !important; 
+                padding: 0; 
+            }
+            .header-luxury, .card, .summary-card { 
+                background: white !important; 
+                color: #000 !important; 
+                border: 1px solid #000 !important; 
+                box-shadow: none !important; 
+            }
+            .subtitle-styled, .logo-title-main { 
+                background: none !important; 
+                -webkit-text-fill-color: #000 !important; 
+                color: #000 !important; 
+            }
+            th { 
+                background: #f0f0f0 !important; 
+                color: #000 !important; 
+            }
+            td { 
+                background: white !important; 
+                color: #000 !important; 
+            }
+            input, select { 
+                background: white !important; 
+                color: #000 !important; 
+                border: 1px solid #ccc !important; 
+            }
             .btn, .no-print { display: none !important; }
-            body { padding: 0; background: white; }
-            .card, .header-vintage { box-shadow: none; border-color: #444; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Header: Title on Far Right, New PDF Logo on Far Left -->
-    <div class="header-vintage">
+    <!-- Luxury Header -->
+    <div class="header-luxury">
         <div class="header-title-right">
             <h1 class="subtitle-styled">نظام تصفية واستحقاق حسابات المرشدين السياحيين</h1>
         </div>
 
-        <!-- New Logo Box -->
+        <!-- Luxury PDF Logo -->
         <div class="logo-box-left">
             <div class="logo-title-main">LOOK AT</div>
             <div class="logo-title-sub">EGYPT TOURS</div>
@@ -348,9 +433,9 @@
                     </tr>
                 </tbody>
             </table>
-            <p style="font-size: 0.9em; color: #555; margin-top: 12px; font-style: italic;">* الناتج بالموجب: المرشد ملزم ببرد المبلغ للشركة. الناتج بالسالب: المبلغ مستحق للصرف للمرشد.</p>
+            <p style="font-size: 0.9em; color: var(--lux-gold); margin-top: 15px; font-style: italic; text-align: right;">* الناتج بالموجب: المرشد ملزم ببرد المبلغ للشركة. الناتج بالسالب: المبلغ مستحق للصرف للمرشد.</p>
 
-            <div style="margin-top: 20px; text-align: left;" class="no-print">
+            <div style="margin-top: 25px; text-align: left;" class="no-print">
                 <button type="submit" class="btn">طباعة التصفية الرسمية</button>
             </div>
         </div>
@@ -371,7 +456,7 @@
             </td>
             <td><input type="number" value="10" step="any" class="shop-comm-pct" oninput="calculateAll()"></td>
             <td><input type="number" value="50" step="any" class="guide-share-pct" oninput="calculateAll()"></td>
-            <td class="guide-comm-val">0.00</td>
+            <td class="guide-comm-val" style="font-weight:bold; color:var(--lux-gold);">0.00</td>
             <td class="no-print"><button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); calculateAll();">X</button></td>
         `;
         tbody.appendChild(row);
@@ -392,7 +477,7 @@
             </td>
             <td><input type="number" value="0" step="any" class="opt-cost" oninput="calculateAll()"></td>
             <td><input type="number" value="20" step="any" class="opt-guide-pct" oninput="calculateAll()"></td>
-            <td class="opt-guide-comm-val">0.00</td>
+            <td class="opt-guide-comm-val" style="font-weight:bold; color:var(--lux-gold);">0.00</td>
             <td class="no-print"><button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); calculateAll();">X</button></td>
         `;
         tbody.appendChild(row);
@@ -445,6 +530,9 @@
         netElem.className = net >= 0 ? 'positive' : 'negative';
     }
 </script>
+
+</body>
+</html></script>
 
 </body>
 </html>
