@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تصفية حسابات المرشدين</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800&family=Montserrat:wght@400;600;700&display=swap');
 
         :root {
             --vintage-bg: #f5efe6;
@@ -34,7 +34,7 @@
             margin: 0 auto;
         }
 
-        /* الهيدر المطور: الشعار شمال والترويسة يمين */
+        /* الهيدر: الترويسة يمين، الشعار الجديد شمال */
         .header-vintage {
             border: 3px double var(--dark-border);
             padding: 20px 30px;
@@ -61,10 +61,41 @@
             letter-spacing: 0.3px;
         }
 
-        .company-logo-left {
-            max-width: 140px;
-            height: auto;
-            display: block;
+        /* الشعار الجديد المصمم من ملف PDF */
+        .logo-box-left {
+            text-align: center;
+            font-family: 'Cinzel', 'Times New Roman', serif;
+            direction: ltr;
+        }
+
+        .logo-title-main {
+            font-size: 1.35em;
+            font-weight: 800;
+            color: #004b87;
+            letter-spacing: 1.5px;
+            line-height: 1.1;
+            margin: 0;
+        }
+
+        .logo-title-sub {
+            font-size: 1.5em;
+            font-weight: 800;
+            color: #003057;
+            letter-spacing: 2px;
+            line-height: 1.1;
+            margin: 2px 0 6px 0;
+        }
+
+        .logo-tagline {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.65em;
+            font-weight: 600;
+            color: #666;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            border-top: 1px solid #c5b358;
+            padding-top: 4px;
+            margin: 0;
         }
 
         .card {
@@ -188,23 +219,18 @@
 <body>
 
 <div class="container">
-    <!-- Header: Title on Far Right, Graphic Logo on Far Left -->
+    <!-- Header: Title on Far Right, New PDF Logo on Far Left -->
     <div class="header-vintage">
         <div class="header-title-right">
             <h1 class="subtitle-styled">نظام تصفية واستحقاق حسابات المرشدين السياحيين</h1>
         </div>
 
-        <!-- SVG Icon Only (Without Text) Aligned to Far Left -->
-        <svg class="company-logo-left" viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg">
-            <rect x="30" y="10" width="240" height="130" fill="none" stroke="#22252a" stroke-width="4"/>
-            <path d="M 50,42 Q 130,2 250,42 Q 180,105 50,42 Z" fill="none" stroke="#22252a" stroke-width="3"/>
-            <path d="M 50,42 Q 150,15 250,42" fill="none" stroke="#0072bc" stroke-width="5"/>
-            <path d="M 125,75 Q 150,48 185,75 Q 150,102 125,75 Z" fill="none" stroke="#22252a" stroke-width="3"/>
-            <circle cx="155" cy="75" r="14" fill="#0072bc" stroke="#22252a" stroke-width="2"/>
-            <circle cx="158" cy="72" r="4" fill="#ffffff"/>
-            <path d="M 55,100 C 65,120 100,125 150,100" fill="none" stroke="#22252a" stroke-width="4"/>
-            <path d="M 185,92 L 185,130 L 175,130 L 175,98 Z" fill="#0072bc" stroke="#22252a" stroke-width="2"/>
-        </svg>
+        <!-- New Logo Box -->
+        <div class="logo-box-left">
+            <div class="logo-title-main">LOOK AT</div>
+            <div class="logo-title-sub">EGYPT TOURS</div>
+            <div class="logo-tagline">The Luxury DMC of Egypt</div>
+        </div>
     </div>
 
     <form id="settlementForm" onsubmit="event.preventDefault(); window.print();">
