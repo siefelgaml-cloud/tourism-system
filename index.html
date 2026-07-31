@@ -221,17 +221,8 @@
             <div class="grid-3">
                 <div class="form-group">
                     <label>اسم المرشد: <span class="required-star">*</span></label>
-                    <!-- Searchable Input Field -->
-                    <input type="text" id="guideInput" list="guidesList" placeholder="اكتب اسم المرشد..." oninput="updateGuideCode()" autocomplete="off" required>
-                    <datalist id="guidesList">
-                        <option value="محمد أبو المجد" data-code="G-001"></option>
-                        <option value="عماد ضيف" data-code="G-002"></option>
-                        <option value="فايد" data-code="G-003"></option>
-                        <option value="راندا احمد" data-code="G-004"></option>
-                        <option value="محمد شتا" data-code="G-005"></option>
-                        <option value="عماد رافت" data-code="G-006"></option>
-                        <option value="وائل عاطف" data-code="G-007"></option>
-                    </datalist>
+                    <!-- Open Text Input without dropdown or datalist -->
+                    <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." oninput="updateGuideCode()" autocomplete="off" required>
                 </div>
                 <div class="form-group">
                     <label>كود المرشد: <span class="required-star">*</span></label>
@@ -344,7 +335,7 @@
                 </tbody>
             </table>
             <p style="font-size: 0.9em; color: #555; margin-top: 12px; font-style: italic;">* الناتج بالموجب: المرشد ملزم ببرد المبلغ للشركة. الناتج بالسالب: المبلغ مستحق للصرف للمرشد.</p>
-            
+
             <div style="margin-top: 20px; text-align: left;" class="no-print">
                 <button type="submit" class="btn">طباعة التصفية الرسمية</button>
             </div>
@@ -353,7 +344,7 @@
 </div>
 
 <script>
-    // القاموس المرجعي لربط الأسماء بالأكواد
+    // قاعدة البيانات المحفوظة في السيستم لربط الأسماء بالأكواد
     const guidesDatabase = {
         "محمد أبو المجد": "G-001",
         "عماد ضيف": "G-002",
@@ -368,11 +359,16 @@
         const inputVal = document.getElementById('guideInput').value.trim();
         const guideCodeInput = document.getElementById('guideCode');
 
-        if (guidesDatabase[inputVal]) {
-            guideCodeInput.value = guidesDatabase[inputVal];
-        } else {
-            guideCodeInput.value = "";
+        // البحث التلقائي المرن في قاعدة البيانات
+        let foundCode = "";
+        for (let name in guidesDatabase) {
+            if (name === inputVal || name.includes(inputVal) && inputVal.length >= 3) {
+                foundCode = guidesDatabase[name];
+                break;
+            }
         }
+
+        guideCodeInput.value = foundCode;
     }
 
     function addShopRow() {
@@ -459,7 +455,7 @@
 
         document.getElementById('totalDueEgp').innerText = totalDue.toFixed(2) + ' EGP';
         document.getElementById('totalExpEgp').innerText = totalExp.toFixed(2) + ' EGP';
-        
+
         const netElem = document.getElementById('netEgp');
         netElem.innerText = net.toFixed(2) + ' EGP';
         netElem.className = net >= 0 ? 'positive' : 'negative';
