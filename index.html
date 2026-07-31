@@ -56,7 +56,7 @@
             z-index: 1;
         }
 
-        /* Vintage Classic Header */
+        /* Header */
         .header-vintage {
             border: 3px double var(--vintage-gold-dark);
             padding: 25px 35px;
@@ -85,7 +85,7 @@
             padding-bottom: 6px;
         }
 
-        /* Logo Box Left */
+        /* Logo Box */
         .logo-box-left {
             text-align: center;
             font-family: 'Cinzel', serif;
@@ -124,7 +124,7 @@
             border-top: 1px solid var(--vintage-gold);
         }
 
-        /* Vintage Cards */
+        /* Cards */
         .card {
             background: var(--vintage-card);
             border: 2px solid var(--border-vintage);
@@ -185,7 +185,55 @@
             box-shadow: 0 0 5px rgba(15, 44, 74, 0.2);
         }
 
-        /* Vintage Tables */
+        /* Vertical Card Styles (التصميم الرأسي) */
+        .vertical-item-card {
+            border: 1px solid var(--border-vintage);
+            background-color: #fcf9f2;
+            border-radius: 4px;
+            padding: 18px;
+            margin-top: 15px;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(184, 134, 11, 0.03);
+        }
+
+        .vertical-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--border-vintage);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .vertical-card-title {
+            font-weight: bold;
+            color: var(--primary-navy);
+            font-size: 1.15em;
+        }
+
+        .vertical-grid-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .comm-result-box {
+            background-color: #e8dbca;
+            border: 1px solid var(--vintage-gold-dark);
+            padding: 8px 12px;
+            border-radius: 3px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary-navy);
+            font-size: 1.1em;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -208,54 +256,6 @@
 
         td {
             background-color: var(--vintage-card);
-        }
-
-        /* Vertical Shops Styles (التصميم الرأسي للمحلات) */
-        .shop-vertical-card {
-            border: 1px solid var(--border-vintage);
-            background-color: #fcf9f2;
-            border-radius: 4px;
-            padding: 18px;
-            margin-top: 15px;
-            position: relative;
-            box-shadow: inset 0 0 10px rgba(184, 134, 11, 0.03);
-        }
-
-        .shop-vertical-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px dashed var(--border-vintage);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .shop-vertical-title {
-            font-weight: bold;
-            color: var(--primary-navy);
-            font-size: 1.15em;
-        }
-
-        .shop-grid-fields {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            align-items: end;
-        }
-
-        .comm-result-box {
-            background-color: #e8dbca;
-            border: 1px solid var(--vintage-gold-dark);
-            padding: 8px 12px;
-            border-radius: 3px;
-            text-align: center;
-            font-weight: bold;
-            color: var(--primary-navy);
-            font-size: 1.1em;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         /* Buttons */
@@ -384,31 +384,20 @@
             </div>
             
             <div id="shopsContainer">
-                <!-- يتم إضافة المحلات هنا رأسياً عبر السكريبت -->
+                <!-- يتم إضافة المحلات هنا رأسياً -->
             </div>
         </div>
 
-        <!-- 4. الرحلات الاختيارية -->
+        <!-- 4. الرحلات الاختيارية (تصميم رأسي) -->
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>الرحلات الاختيارية (Optional Tours)</h3>
                 <button type="button" class="btn no-print" onclick="addOptionalRow()">+ إضافة رحلة</button>
             </div>
-            <table id="optionalTable">
-                <thead>
-                    <tr>
-                        <th>اسم الرحلة</th>
-                        <th>عدد الأفراد</th>
-                        <th>السعر للفرد</th>
-                        <th>العملة</th>
-                        <th>التكلفة المباشرة</th>
-                        <th>نسبة المرشد %</th>
-                        <th>عمولة المرشد (EGP)</th>
-                        <th class="no-print">حذف</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+
+            <div id="optionalContainer">
+                <!-- يتم إضافة الرحلات الاختيارية هنا رأسياً -->
+            </div>
         </div>
 
         <!-- 5. ملخص التصفية النهائي -->
@@ -441,18 +430,19 @@
 
 <script>
     let shopCounter = 0;
+    let optionalCounter = 0;
 
     function addShopRow() {
         shopCounter++;
         const container = document.getElementById('shopsContainer');
         const shopCard = document.createElement('div');
-        shopCard.className = 'shop-vertical-card';
+        shopCard.className = 'vertical-item-card shop-card-item';
         shopCard.innerHTML = `
-            <div class="shop-vertical-header">
-                <span class="shop-vertical-title">بيانات المحل #${shopCounter}</span>
+            <div class="vertical-card-header">
+                <span class="vertical-card-title">بيانات المحل #${shopCounter}</span>
                 <button type="button" class="btn btn-danger no-print" onclick="this.parentElement.parentElement.remove(); calculateAll();">حذف المحل</button>
             </div>
-            <div class="shop-grid-fields">
+            <div class="vertical-grid-fields">
                 <div class="form-group">
                     <label>اسم المحل:</label>
                     <input type="text" placeholder="مثال: محل برديات / عطور" class="shop-name">
@@ -486,23 +476,49 @@
     }
 
     function addOptionalRow() {
-        const tbody = document.querySelector('#optionalTable tbody');
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><input type="text" placeholder="اسم الأوبشنال" class="opt-name"></td>
-            <td><input type="number" value="1" step="any" class="opt-pax" oninput="calculateAll()"></td>
-            <td><input type="number" value="0" step="any" class="opt-price" oninput="calculateAll()"></td>
-            <td>
-                <select class="opt-curr" onchange="calculateAll()">
-                    <option value="EGP">EGP</option>
-                </select>
-            </td>
-            <td><input type="number" value="0" step="any" class="opt-cost" oninput="calculateAll()"></td>
-            <td><input type="number" value="20" step="any" class="opt-guide-pct" oninput="calculateAll()"></td>
-            <td class="opt-guide-comm-val" style="font-weight:bold;">0.00</td>
-            <td class="no-print"><button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove(); calculateAll();">X</button></td>
+        optionalCounter++;
+        const container = document.getElementById('optionalContainer');
+        const optCard = document.createElement('div');
+        optCard.className = 'vertical-item-card opt-card-item';
+        optCard.innerHTML = `
+            <div class="vertical-card-header">
+                <span class="vertical-card-title">الرحلة الاختيارية #${optionalCounter}</span>
+                <button type="button" class="btn btn-danger no-print" onclick="this.parentElement.parentElement.remove(); calculateAll();">حذف الرحلة</button>
+            </div>
+            <div class="vertical-grid-fields">
+                <div class="form-group">
+                    <label>اسم الرحلة:</label>
+                    <input type="text" placeholder="مثال: منطاد طائر / رحلة بحرية" class="opt-name">
+                </div>
+                <div class="form-group">
+                    <label>عدد الأفراد:</label>
+                    <input type="number" value="1" step="any" class="opt-pax" oninput="calculateAll()">
+                </div>
+                <div class="form-group">
+                    <label>السعر للفرد:</label>
+                    <input type="number" value="0" step="any" class="opt-price" oninput="calculateAll()">
+                </div>
+                <div class="form-group">
+                    <label>العملة:</label>
+                    <select class="opt-curr" onchange="calculateAll()">
+                        <option value="EGP">EGP</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>التكلفة المباشرة:</label>
+                    <input type="number" value="0" step="any" class="opt-cost" oninput="calculateAll()">
+                </div>
+                <div class="form-group">
+                    <label>نسبة المرشد %:</label>
+                    <input type="number" value="20" step="any" class="opt-guide-pct" oninput="calculateAll()">
+                </div>
+                <div class="form-group">
+                    <label>عمولة المرشد (EGP):</label>
+                    <div class="comm-result-box opt-guide-comm-val">0.00</div>
+                </div>
+            </div>
         `;
-        tbody.appendChild(row);
+        container.appendChild(optCard);
         calculateAll();
     }
 
@@ -510,7 +526,7 @@
         let totalShopComm = 0;
         let totalOptComm = 0;
 
-        document.querySelectorAll('.shop-vertical-card').forEach(card => {
+        document.querySelectorAll('.shop-card-item').forEach(card => {
             const sales = parseFloat(card.querySelector('.shop-sales').value) || 0;
             const shopCommPct = (parseFloat(card.querySelector('.shop-comm-pct').value) || 0) / 100;
             const guideSharePct = (parseFloat(card.querySelector('.guide-share-pct').value) || 0) / 100;
@@ -520,17 +536,17 @@
             totalShopComm += guideComm;
         });
 
-        document.querySelectorAll('#optionalTable tbody tr').forEach(row => {
-            const pax = parseFloat(row.querySelector('.opt-pax').value) || 0;
-            const price = parseFloat(row.querySelector('.opt-price').value) || 0;
-            const cost = parseFloat(row.querySelector('.opt-cost').value) || 0;
-            const guidePct = (parseFloat(row.querySelector('.opt-guide-pct').value) || 0) / 100;
+        document.querySelectorAll('.opt-card-item').forEach(card => {
+            const pax = parseFloat(card.querySelector('.opt-pax').value) || 0;
+            const price = parseFloat(card.querySelector('.opt-price').value) || 0;
+            const cost = parseFloat(card.querySelector('.opt-cost').value) || 0;
+            const guidePct = (parseFloat(card.querySelector('.opt-guide-pct').value) || 0) / 100;
 
             const totalSales = pax * price;
             const netProfit = totalSales - cost;
             const guideComm = netProfit > 0 ? netProfit * guidePct : 0;
 
-            row.querySelector('.opt-guide-comm-val').innerText = guideComm.toFixed(2);
+            card.querySelector('.opt-guide-comm-val').innerText = guideComm.toFixed(2);
             totalOptComm += guideComm;
         });
 
@@ -552,9 +568,10 @@
         netElem.className = net >= 0 ? 'positive' : 'negative';
     }
 
-    // إضافة كارت محل افتراضي عند فتح الصفحة
+    // إضافة كارت افتراضي لكل قسم عند الفتح
     window.onload = function() {
         addShopRow();
+        addOptionalRow();
     };
 </script>
 
