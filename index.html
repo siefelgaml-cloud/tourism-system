@@ -221,8 +221,8 @@
             <div class="grid-3">
                 <div class="form-group">
                     <label>اسم المرشد: <span class="required-star">*</span></label>
-                    <!-- Open Text Input without dropdown or datalist -->
-                    <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." oninput="updateGuideCode()" autocomplete="off" required>
+                    <!-- Plain Blank Input Box -->
+                    <input type="text" id="guideInput" placeholder="اكتب الاسم هنا..." oninput="updateGuideCode()" autocomplete="off" required>
                 </div>
                 <div class="form-group">
                     <label>كود المرشد: <span class="required-star">*</span></label>
@@ -344,7 +344,7 @@
 </div>
 
 <script>
-    // قاعدة البيانات المحفوظة في السيستم لربط الأسماء بالأكواد
+    // قاعدة البيانات البرمجية للأسماء والأكواد
     const guidesDatabase = {
         "محمد أبو المجد": "G-001",
         "عماد ضيف": "G-002",
@@ -359,10 +359,9 @@
         const inputVal = document.getElementById('guideInput').value.trim();
         const guideCodeInput = document.getElementById('guideCode');
 
-        // البحث التلقائي المرن في قاعدة البيانات
         let foundCode = "";
         for (let name in guidesDatabase) {
-            if (name === inputVal || name.includes(inputVal) && inputVal.length >= 3) {
+            if (name === inputVal || (inputVal.length >= 3 && name.includes(inputVal))) {
                 foundCode = guidesDatabase[name];
                 break;
             }
@@ -416,7 +415,6 @@
         let totalShopComm = 0;
         let totalOptComm = 0;
 
-        // 1. حساب مبيعات المحلات
         document.querySelectorAll('#shopsTable tbody tr').forEach(row => {
             const sales = parseFloat(row.querySelector('.shop-sales').value) || 0;
             const shopCommPct = (parseFloat(row.querySelector('.shop-comm-pct').value) || 0) / 100;
@@ -427,7 +425,6 @@
             totalShopComm += guideComm;
         });
 
-        // 2. حساب الرحلات الاختيارية
         document.querySelectorAll('#optionalTable tbody tr').forEach(row => {
             const pax = parseFloat(row.querySelector('.opt-pax').value) || 0;
             const price = parseFloat(row.querySelector('.opt-price').value) || 0;
@@ -442,7 +439,6 @@
             totalOptComm += guideComm;
         });
 
-        // 3. التجميع وحساب صافي المصروفات والعهدة بالجنيه
         const floatVal = parseFloat(document.getElementById('floatEgp').value) || 0;
         const lunch = parseFloat(document.getElementById('lunchEgp').value) || 0;
         const tips = parseFloat(document.getElementById('tipsEgp').value) || 0;
