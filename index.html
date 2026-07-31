@@ -25,7 +25,6 @@
             color: var(--text-vintage);
             margin: 0;
             padding: 30px 20px;
-            /* خلفية مزخرفة توحي بالورق البردي القديم */
             background-image: 
                 radial-gradient(#d3c3b0 1px, transparent 0),
                 radial-gradient(#c4b29c 1px, transparent 0);
@@ -52,16 +51,15 @@
             position: relative;
         }
 
-        /* زخرفة إطار الزوايا الكلاسيكية */
         .header-vintage::after {
             content: "𓋹";
             position: absolute;
-            bottom: 5px;
+            bottom: 4px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 1.2em;
             color: var(--pharaoh-gold-dark);
-            opacity: 0.7;
+            opacity: 0.75;
         }
 
         .header-title-right {
@@ -72,7 +70,7 @@
         }
 
         .horus-icon {
-            width: 45px;
+            width: 48px;
             height: auto;
             fill: var(--pharaoh-navy);
         }
@@ -128,7 +126,7 @@
             border-top: 1px solid var(--pharaoh-gold);
         }
 
-        /* Vintage Cards with Hieroglyphic Details */
+        /* Vintage Cards */
         .card {
             background: var(--vintage-card);
             border: 2px solid var(--border-vintage);
@@ -152,7 +150,7 @@
         }
 
         .card h3::after {
-            content: "𓁢"; /* رمز فرعوني جمالي */
+            content: "𓁢";
             font-size: 1.1em;
             color: var(--pharaoh-gold-dark);
         }
@@ -270,10 +268,10 @@
 <body>
 
 <div class="container">
-    <!-- Header with Eye of Horus & Vintage Style -->
+    <!-- Vintage Header -->
     <div class="header-vintage">
         <div class="header-title-right">
-            <!-- عين حورس (Eye of Horus SVG) -->
+            <!-- عين حورس SVG -->
             <svg class="horus-icon" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 10 30 Q 45 5 85 30 Q 50 45 10 30 Z" fill="none" stroke="#0f2c4a" stroke-width="4"/>
                 <circle cx="50" cy="27" r="9" fill="#0f2c4a"/>
