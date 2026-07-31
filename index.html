@@ -207,8 +207,8 @@
 <div class="sidebar no-print">
     <div class="sidebar-title">قائمة النظام</div>
     <button class="nav-btn active" onclick="switchTab('tab-form')">📝 1. نموذج التصفية</button>
-    <button class="nav-btn" onclick="switchTab('tab-review')">📥 2. مراجعة الطلبات</button>
-    <button class="nav-btn" onclick="switchTab('tab-archive')">📁 3. الأرشيف والبحث</button>
+    <button class="nav-btn" onclick="switchTab('tab-review')">🔒 2. مراجعة الطلبات</button>
+    <button class="nav-btn" onclick="switchTab('tab-archive')">🔒 3. الأرشيف والبحث</button>
 </div>
 
 <!-- المنطقة الرئيسية للمحتوى -->
@@ -418,9 +418,21 @@
 
 <script>
     let currentModalFileNo = "Settlement";
+    const SECRET_PIN = "991997"; // الرقم السري المقيد
 
-    // التحكم في التنقل بين الشاشات
+    // التحكم في التنقل بين الشاشات مع التحقق من الرقم السري
     function switchTab(tabId) {
+        // التحقق من الحماية للقسمين المحددين
+        if (tabId === 'tab-review' || tabId === 'tab-archive') {
+            const userPin = prompt("🔒 هذا القسم محمي برقم سري، يرجى إدخال رمز الدخول:");
+            if (userPin !== SECRET_PIN) {
+                if (userPin !== null) {
+                    alert("❌ الرقم السري غير صحيح! لا يمكن الدخول.");
+                }
+                return; // إلغاء عملية الانتقال
+            }
+        }
+
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
 
