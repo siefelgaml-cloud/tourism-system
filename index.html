@@ -6,6 +6,8 @@
     <title>نظام تصفية واستحقاق حسابات المرشدين</title>
     <!-- مكتبة html2pdf لتصدير الملفات إلى PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- مكتبة SheetJS لتصدير البيانات إلى ملفات Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800;900&family=Montserrat:wght@400;600;700&display=swap');
@@ -143,6 +145,8 @@
         .btn-submit { background-color: var(--green); border-color: #1a4726; }
         .btn-pdf { background-color: #c53030; border-color: #742a2a; color: white; }
         .btn-pdf:hover { background-color: #9b2c2c; }
+        .btn-excel { background-color: #1d6f42; border-color: #144e2e; color: white; }
+        .btn-excel:hover { background-color: #155231; }
         .btn-danger { background-color: var(--red); border-color: #701010; color: white; padding: 4px 12px; font-size: 0.9em; }
         .btn-info { background-color: #2b6cb0; border-color: #1a4971; color: white; padding: 5px 12px; font-size: 0.95em; }
 
@@ -367,7 +371,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
                     <h3 style="margin-top:0;">سجل التصفيات المحسومة (الأرشيف)</h3>
                     <div class="no-print" style="display:flex; gap:8px; margin-bottom:10px;">
-                        <button class="btn btn-info" style="font-size:0.85em; padding:6px 12px;" onclick="exportBackupData()">تصدير نسخة احتياطية 💾</button>
+                        <button class="btn btn-excel" style="font-size:0.85em; padding:6px 12px;" onclick="exportBackupData()">تصدير أكسيل Excel 📊</button>
                     </div>
                 </div>
                 
@@ -446,7 +450,6 @@
 
     // 1. استرجاع البيانات المضمون محلياً ثم سحابياً
     async function fetchCloudData() {
-        // قراءة الذاكرة المحلية أولاً لضمان عدم ضياع أي بيانات سابقة
         let localData = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('local_backup_db');
         if (localData) {
             try {
@@ -462,7 +465,6 @@
         renderArchiveTable();
         updateBadge();
 
-        // قراءة البيانات من السحابة ومدمجها مع المحليات
         if (FIXED_BIN_ID) {
             try {
                 let res = await fetch(`${API_URL}/${FIXED_BIN_ID}`);
@@ -471,7 +473,6 @@
                     let fetchedRecord = json.record || json.data;
 
                     if (fetchedRecord) {
-                        // دمَج الأرشيف السحابي والمحلي بدون تكرار
                         if (Array.isArray(fetchedRecord.archive)) {
                             fetchedRecord.archive.forEach(remoteItem => {
                                 if (!cloudData.archive.some(localItem => localItem.id === remoteItem.id)) {
@@ -487,7 +488,6 @@
                             });
                         }
                         
-                        // حفظ النتيجة المدمجة محلياً
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
                         renderReviewTable();
                         renderArchiveTable();
@@ -502,11 +502,9 @@
 
     // 2. حفظ البيانات المزدوج (محلياً + سحابياً)
     async function saveCloudData() {
-        // حفظ فوري في جهاز المستخدم
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
         localStorage.setItem('local_backup_db', JSON.stringify(cloudData));
 
-        // رفع البيانات للسحابة
         try {
             if (FIXED_BIN_ID) {
                 await fetch(`${API_URL}/${FIXED_BIN_ID}`, {
@@ -865,14 +863,34 @@
         html2pdf().set(opt).from(element).save();
     }
 
+    // تصدير أرشيف التصفيات إلى ملف Excel (.xlsx)
     function exportBackupData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cloudData, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `Backup_Settlements_${new Date().toISOString().slice(0,10)}.json`);
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
+        if (!cloudData.archive || cloudData.archive.length === 0) {
+            alert("⚠️ لا توجد بيانات أرشيف متوفرة للتصدير حالياً!");
+            return;
+        }
+
+        const excelRows = cloudData.archive.map(item => ({
+            "اسم المرشد": item.guideName || "",
+            "رقم الملف": item.fileNo || "",
+            "تاريخ الحسم": item.finalDate || item.date || "",
+            "العهدة (EGP)": item.floatEgp || 0,
+            "أتعاب المرشد (EGP)": item.feeEgp || 0,
+            "مصاريف غداء": item.lunchEgp || 0,
+            "إكراميات": item.tipsEgp || 0,
+            "باركينج ورسوم": item.parkingEgp || 0,
+            "إجمالي ما بذمته": item.totalDue || "",
+            "إجمالي المصروفات": item.totalExp || "",
+            "الصافي النهائي": item.netAmount || "",
+            "حالة الطلب": item.status || ""
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(excelRows);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "الأرشيف");
+
+        const dateStr = new Date().toISOString().slice(0, 10);
+        XLSX.writeFile(workbook, `Archive_Settlements_${dateStr}.xlsx`);
     }
 
     window.onload = function() {
