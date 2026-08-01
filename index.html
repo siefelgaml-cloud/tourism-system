@@ -191,7 +191,7 @@
 
 <div class="sidebar no-print">
     <div class="sidebar-title">قائمة النظام</div>
-    <button class="nav-btn active" onclick="switchTab('tab-form', true)">📝 1. نموذج التصفية</button>
+    <button class="nav-btn active" onclick="switchTab('tab-form')">📝 1. نموذج التصفية</button>
     <button class="nav-btn" onclick="switchTab('tab-review')">🔒 2. مراجعة الطلبات</button>
     <button class="nav-btn" onclick="switchTab('tab-archive')">🔒 3. الأرشيف والبحث</button>
 </div>
@@ -458,8 +458,8 @@
         }
     }
 
-    function switchTab(tabId, bypassPin = false) {
-        if (!bypassPin && (tabId === 'tab-review' || tabId === 'tab-archive')) {
+    function switchTab(tabId) {
+        if (tabId === 'tab-review' || tabId === 'tab-archive') {
             const userPin = prompt("🔒 هذا القسم محمي برقم سري، يرجى إدخال رمز الدخول:");
             if (userPin !== SECRET_PIN) {
                 if (userPin !== null) alert("❌ الرقم السري غير صحيح!");
@@ -638,18 +638,15 @@
         if (!cloudData.pending) cloudData.pending = [];
         cloudData.pending.push(newRequest);
 
-        // المزامنة والتحويل
-        renderReviewTable();
-        alert('✅ تم تحويل التصفية إلى شاشة المراجعة بنجاح!');
-        
-        // إعادة إعادة تعيين النموذج
+        // تنظيف النموذج بعد الإرسال
         document.getElementById('settlementForm').reset();
         document.getElementById('shopsContainer').innerHTML = '';
         document.getElementById('optionalContainer').innerHTML = '';
         calculateAll();
 
-        // فتح شاشة المراجعة بدون الحاجة لإدخال الرقم السري مجدداً فور الإرسال
-        switchTab('tab-review', true);
+        alert('✅ تم إرسال التصفية بنجاح إلى قائمة المراجعة!');
+
+        // حفظ البيانات سحابياً دون التنقل من الصفحة
         await saveCloudData();
     }
 
