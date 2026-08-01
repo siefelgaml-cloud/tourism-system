@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام تصفية واستحقاق حسابات المرشدين</title>
-    <!-- مكتبة html2pdf لتصدير الملفات إلى PDF (للمودال والأرشيف) -->
+    <!-- مكتبة html2pdf لتصدير الملفات إلى PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- مكتبة xlsx-js-style لتصدير البيانات إلى ملفات Excel مع دعم الألوان والتنسيقات -->
+    <!-- مكتبة xlsx-js-style لتصدير البيانات إلى ملفات Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+    <!-- مكتبات Firebase للمزامنة اللحظية بين الهاتف والكمبيوتر -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800;900&family=Montserrat:wght@400;600;700&display=swap');
@@ -332,7 +336,6 @@
                         </table>
                     </div>
 
-                    <!-- تم الإبقاء فقط على زر إرسال التصفية للمراجعة -->
                     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px; flex-wrap:wrap;" class="no-print">
                         <button type="button" class="btn btn-submit" onclick="submitSettlement()">إرسال التصفية للمراجعة 📤</button>
                     </div>
@@ -439,81 +442,46 @@
 
 <script>
     const SECRET_PIN = "991997";
-    const API_URL = "https://api.jsonbin.io/v3/b";
-    
-    let FIXED_BIN_ID = "65ca1234abc1234567890def";
     const STORAGE_KEY = "tafseya_app_permanent_db";
+
+    // إعدادات Firebase المفتوحة للمزامنة المباشرة
+    const firebaseConfig = {
+        databaseURL: "https://tafseya-system-default-rtdb.europe-west1.firebasedatabase.app/"
+    };
+    
+    // تهيئة السيرفر المباشر
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
 
     let cloudData = { pending: [], archive: [] };
     let currentModalFileNo = "Settlement";
 
-    // 1. استرجاع البيانات المضمون محلياً ثم سحابياً
-    async function fetchCloudData() {
-        let localData = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('local_backup_db');
-        if (localData) {
-            try {
-                cloudData = JSON.parse(localData);
-                if (!cloudData.pending) cloudData.pending = [];
-                if (!cloudData.archive) cloudData.archive = [];
-            } catch (err) {
-                console.error("خطأ قراءة الذاكرة المحلية:", err);
+    // الاستماع اللحظي للبيانات من أي هاتف أو كمبيوتر في نفس الوقت
+    function initRealtimeSync() {
+        db.ref('tafseya_data').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                cloudData.pending = data.pending || [];
+                cloudData.archive = data.archive || [];
+            } else {
+                cloudData = { pending: [], archive: [] };
             }
-        }
-
-        renderReviewTable();
-        renderArchiveTable();
-        updateBadge();
-
-        if (FIXED_BIN_ID) {
-            try {
-                let res = await fetch(`${API_URL}/${FIXED_BIN_ID}`);
-                if (res.ok) {
-                    let json = await res.json();
-                    let fetchedRecord = json.record || json.data;
-
-                    if (fetchedRecord) {
-                        if (Array.isArray(fetchedRecord.archive)) {
-                            fetchedRecord.archive.forEach(remoteItem => {
-                                if (!cloudData.archive.some(localItem => localItem.id === remoteItem.id)) {
-                                    cloudData.archive.push(remoteItem);
-                                }
-                            });
-                        }
-                        if (Array.isArray(fetchedRecord.pending)) {
-                            fetchedRecord.pending.forEach(remoteItem => {
-                                if (!cloudData.pending.some(localItem => localItem.id === remoteItem.id)) {
-                                    cloudData.pending.push(remoteItem);
-                                }
-                            });
-                        }
-                        
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
-                        renderReviewTable();
-                        renderArchiveTable();
-                        updateBadge();
-                    }
-                }
-            } catch (e) {
-                console.log("يعمل النظام حالياً بالاعتماد الكامل على الذاكرة المحلية الحصينة.");
-            }
-        }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
+            renderReviewTable();
+            renderArchiveTable();
+            updateBadge();
+        });
     }
 
-    // 2. حفظ البيانات المزدوج (محلياً + سحابياً)
+    // حفظ البيانات في القاعدة اللحظية الموحدة
     async function saveCloudData() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
-        localStorage.setItem('local_backup_db', JSON.stringify(cloudData));
-
         try {
-            if (FIXED_BIN_ID) {
-                await fetch(`${API_URL}/${FIXED_BIN_ID}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(cloudData)
-                });
-            }
+            await db.ref('tafseya_data').set(cloudData);
         } catch (e) {
-            console.error("خطأ المزامنة السحابية:", e);
+            console.error("خطأ التحديث اللحظي:", e);
         }
     }
 
@@ -704,9 +672,8 @@
 
         cloudData.pending.push(formData);
         await saveCloudData();
-        updateBadge();
 
-        alert("✅ تم إرسال التصفية بنجاح إلى قائمة المراجعة!");
+        alert("✅ تم إرسال التصفية بنجاح إلى المراجعة وستظهر في الكمبيوتر فوراً!");
         document.getElementById('settlementForm').reset();
         document.getElementById('shopsContainer').innerHTML = '';
         document.getElementById('optionalContainer').innerHTML = '';
@@ -748,9 +715,6 @@
         item.finalDate = new Date().toLocaleDateString('ar-EG');
         cloudData.archive.push(item);
         await saveCloudData();
-        renderReviewTable();
-        renderArchiveTable();
-        updateBadge();
     }
 
     async function rejectItem(index) {
@@ -760,9 +724,6 @@
         item.finalDate = new Date().toLocaleDateString('ar-EG');
         cloudData.archive.push(item);
         await saveCloudData();
-        renderReviewTable();
-        renderArchiveTable();
-        updateBadge();
     }
 
     function renderArchiveTable() {
@@ -850,7 +811,6 @@
         html2pdf().set(opt).from(element).save();
     }
 
-    // تصدير أرشيف التصفيات إلى ملف Excel مُميز كجدول مع هيدلاين باللون الأزرق السماوي
     function exportBackupData() {
         if (!cloudData.archive || cloudData.archive.length === 0) {
             alert("⚠️ لا توجد بيانات أرشيف متوفرة للتصدير حالياً!");
@@ -883,7 +843,7 @@
 
         const headerStyle = {
             font: { bold: true, color: { rgb: "000000" }, name: "Calibri", sz: 11 },
-            fill: { fgColor: { rgb: "87CEEB" } }, // لون أزرق سماوي
+            fill: { fgColor: { rgb: "87CEEB" } },
             alignment: { horizontal: "center", vertical: "center" },
             border: {
                 top: { style: "thin", color: { rgb: "A89478" } },
@@ -929,7 +889,7 @@
     }
 
     window.onload = function() {
-        fetchCloudData();
+        initRealtimeSync();
     };
 </script>
 
