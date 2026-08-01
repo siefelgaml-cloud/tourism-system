@@ -6,266 +6,463 @@
     <title>نظام إدارة التصفيات والمراجعة</title>
     <style>
         :root {
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --primary-color: #1e293b;
-            --accent-color: #0f172a;
-            --text-color: #334155;
-            --border-color: #e2e8f0;
-            --success-color: #16a34a;
-            --danger-color: #dc2626;
+            --bg-color: #f4f1ea;
+            --card-bg: #fffbf5;
+            --primary-color: #0f172a;
+            --accent-color: #b45309;
+            --text-color: #1e293b;
+            --border-color: #d97706;
+            --success-color: #15803d;
+            --danger-color: #b91c1c;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-        h2, h3 {
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-        .nav-tabs {
+            padding: 0;
             display: flex;
-            gap: 10px;
+            min-height: 100vh;
+        }
+
+        /* القائمة الجانبية */
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h2 {
+            font-size: 1.2rem;
             margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+            color: #f59e0b;
         }
-        .tab-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            background: #e2e8f0;
-            color: var(--primary-color);
-            font-weight: bold;
-            border-radius: 8px;
+
+        .menu-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: 0.3s;
+            background-color: #1e293b;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .tab-btn.active {
-            background: var(--primary-color);
+
+        .menu-item:hover, .menu-item.active {
+            background-color: #b45309;
             color: white;
         }
-        .section { display: none; }
-        .section.active { display: block; }
-        .form-group {
+
+        /* المحتوى الرئيسي */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .section-card {
+            background-color: var(--card-bg);
+            border: 1px solid #fef3c7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
             margin-bottom: 15px;
         }
+
+        .form-group {
+            flex: 1;
+        }
+
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            font-size: 0.9rem;
         }
+
         input, select, textarea {
             width: 100%;
             padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
             box-sizing: border-box;
+            background-color: #fff;
         }
-        button.btn-submit {
-            background: var(--success-color);
+
+        .btn {
+            background-color: var(--primary-color);
             color: white;
+            padding: 10px 20px;
             border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #334155;
+        }
+
+        .btn-add {
+            background-color: #0f172a;
+            color: white;
+            padding: 8px 15px;
+            margin-bottom: 15px;
+        }
+
+        /* جداول البيانات */
+        table {
             width: 100%;
+            border-collapse: collapse;
             margin-top: 10px;
         }
-        .card {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+        }
+
+        .summary-box {
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
             padding: 15px;
-            margin-bottom: 15px;
-            background: #fafafa;
+            border-radius: 6px;
+            text-align: center;
         }
-        .status-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            color: white;
-            background: #eab308;
-        }
+
+        .net-positive { color: var(--success-color); font-weight: bold; }
+        .net-negative { color: var(--danger-color); font-weight: bold; }
+
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('form')">📄 نموذج التصفية</button>
-        <button class="tab-btn" onclick="switchTab('review')">🔒 مراجعة الطلبات</button>
-    </div>
-
-    <!-- قسم إدخال التصفية -->
-    <div id="section-form" class="section active">
-        <h2>إدخال تصفية جديدة</h2>
-        <form id="settlementForm">
-            <div class="form-group">
-                <label>اسم المرشد / المندوب:</label>
-                <input type="text" id="guideName" required placeholder="أدخل الاسم">
-            </div>
-            <div class="form-group">
-                <label>تفاصيل التصفية / البيان:</label>
-                <textarea id="details" rows="3" required placeholder="أدخل المصروفات أو الإيرادات..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>المبلغ الإجمالي (EGP):</label>
-                <input type="number" id="amount" required placeholder="0.00">
-            </div>
-            <button type="button" class="btn-submit" onclick="submitSettlement()">إرسال التصفية للمراجعة 📤</button>
-        </form>
-    </div>
-
-    <!-- قسم المراجعة -->
-    <div id="section-review" class="section">
-        <h2>قائمة الطلبات للمراجعة</h2>
-        <div id="pinBox">
-            <p>أدخل الرقم السري للوصول للطلبات:</p>
-            <input type="password" id="pinInput" placeholder="****">
-            <button class="btn-submit" style="margin-top:10px;" onclick="verifyPin()">دخول</button>
+    <!-- القائمة الجانبية -->
+    <div class="sidebar">
+        <h2>قائمة النظام</h2>
+        <div class="menu-item active" onclick="showPage('form-page')">
+            <span>📝 1. نموذج التصفية</span>
         </div>
-        <div id="requestsList" style="display:none; margin-top:20px;">
-            <button onclick="loadRequests()" style="margin-bottom:15px; padding:8px 12px; cursor:pointer;">🔄 تحديث البيانات</button>
-            <div id="cardsContainer">جاري التحميل...</div>
+        <div class="menu-item" onclick="showPage('review-page')">
+            <span>🔒 2. مراجعة الطلبات</span>
+        </div>
+        <div class="menu-item" onclick="showPage('archive-page')">
+            <span>🔒 3. الأرشيف والبحث</span>
         </div>
     </div>
-</div>
 
-<script>
-    const SECRET_PIN = "991997";
-    const API_URL = "https://api.jsonbin.io/v3/b/65e9f8a1dc7461202e88a001";
-    const MASTER_KEY = "$2a$10$C8.c4a2A0N.7Yn.y5o.kce0QJ/vH5.k8/6d/sX.a5d1a5d1a5d1a";
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content">
 
-    // التنقل بين التبويبات
-    function switchTab(tab) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-        
-        if(tab === 'form') {
-            document.querySelectorAll('.tab-btn')[0].classList.add('active');
-            document.getElementById('section-form').classList.add('active');
-        } else {
-            document.querySelectorAll('.tab-btn')[1].classList.add('active');
-            document.getElementById('section-review').classList.add('active');
-        }
-    }
-
-    // إرسال البيانات للستورج السحابي
-    async function sendDataToCloud(data) {
-        try {
-            let res = await fetch(API_URL, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': MASTER_KEY
-                },
-                body: JSON.stringify(data)
-            });
-            return res.ok;
-        } catch(e) { 
-            console.error(e);
-            return false; 
-        }
-    }
-
-    // جلب البيانات من السحابة
-    async function loadDataFromCloud() {
-        try {
-            let res = await fetch(`${API_URL}/latest`, {
-                headers: { 'X-Master-Key': MASTER_KEY }
-            });
-            let data = await res.json();
-            return data.record || { pending: [] };
-        } catch(e) {
-            console.error(e);
-            return { pending: [] };
-        }
-    }
-
-    // زر الإرسال
-    async function submitSettlement() {
-        const guideName = document.getElementById('guideName').value.trim();
-        const details = document.getElementById('details').value.trim();
-        const amount = document.getElementById('amount').value.trim();
-
-        if(!guideName || !amount) {
-            alert("يرجى ملء كافة البيانات المطلوبة!");
-            return;
-        }
-
-        const newEntry = {
-            id: Date.now(),
-            guideName: guideName,
-            details: details,
-            amount: amount,
-            date: new Date().toLocaleString('ar-EG')
-        };
-
-        // جلب القديم وإضافة الجديد عليه
-        let currentData = await loadDataFromCloud();
-        if (!currentData.pending) currentData.pending = [];
-        currentData.pending.push(newEntry);
-
-        let success = await sendDataToCloud(currentData);
-        if(success) {
-            alert("✅ تم إرسال التصفية بنجاح إلى قائمة المراجعة!");
-            document.getElementById('settlementForm').reset();
-        } else {
-            alert("❌ حدث خطأ أثناء الإرسال، برجاء المحاولة لاحقاً.");
-        }
-    }
-
-    // التحقق من PIN
-    function verifyPin() {
-        const pin = document.getElementById('pinInput').value;
-        if(pin === SECRET_PIN) {
-            document.getElementById('pinBox').style.display = 'none';
-            document.getElementById('requestsList').style.display = 'block';
-            loadRequests();
-        } else {
-            alert("الرقم السري غير صحيح!");
-        }
-    }
-
-    // عرض الطلبات
-    async function loadRequests() {
-        const container = document.getElementById('cardsContainer');
-        container.innerHTML = "جاري تحميل الطلبات...";
-        
-        let data = await loadDataFromCloud();
-        let list = data.pending || [];
-
-        if(list.length === 0) {
-            container.innerHTML = "<p>لا توجد طلبات معلقة حالياً.</p>";
-            return;
-        }
-
-        let html = "";
-        list.reverse().forEach(item => {
-            html += `
-                <div class="card">
-                    <span class="status-badge">قيد المراجعة</span>
-                    <h4>المرشد: ${item.guideName}</h4>
-                    <p><strong>التفاصيل:</strong> ${item.details}</p>
-                    <p><strong>المبلغ:</strong> ${item.amount} EGP</p>
-                    <small>التاريخ: ${item.date}</small>
+        <!-- صفحة نموذج التصفية -->
+        <div id="form-page">
+            <div class="section-card">
+                <div class="section-title">بيانات التصفية الأساسية</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>اسم المرشد / المندوب:</label>
+                        <input type="text" id="guideName" placeholder="أدخل الاسم">
+                    </div>
+                    <div class="form-group">
+                        <label>التاريخ:</label>
+                        <input type="date" id="settlementDate">
+                    </div>
                 </div>
+                <div class="form-group">
+                    <label>أتعاب المرشد / أعداد الأيام / تفاصيل الإرشاد...</label>
+                    <textarea id="guideFeesDetails" rows="2"></textarea>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">(Shops) مبيعات المحلات</div>
+                <button class="btn btn-add" onclick="addShopRow()">+ إضافة محل</button>
+                <table id="shopsTable">
+                    <thead>
+                        <tr>
+                            <th>اسم المحل</th>
+                            <th>المبلغ</th>
+                            <th>النسبة %</th>
+                            <th>الصافي</th>
+                            <th>حذف</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">(Optional Tours) الرحلات الاختيارية</div>
+                <button class="btn btn-add" onclick="addTourRow()">+ إضافة رحلة</button>
+                <table id="toursTable">
+                    <thead>
+                        <tr>
+                            <th>اسم الرحلة</th>
+                            <th>عدد الأفراد</th>
+                            <th>السعر</th>
+                            <th>الإجمالي</th>
+                            <th>حذف</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">(EGP) صافي التصفية النهائي</div>
+                <div class="form-row">
+                    <div class="form-group summary-box">
+                        <label>إجمالي ما بذمة المرشد</label>
+                        <div id="totalGuideDebt">EGP 0.00</div>
+                    </div>
+                    <div class="form-group summary-box">
+                        <label>إجمالي المصروفات والأتعاب</label>
+                        <div id="totalExpenses">EGP 0.00</div>
+                    </div>
+                    <div class="form-group summary-box">
+                        <label>الصافي النهائي</label>
+                        <div id="finalNet" class="net-positive">EGP 0.00</div>
+                    </div>
+                </div>
+                <br>
+                <button class="btn" style="width:100%; padding:15px; background-color:#15803d;" onclick="submitSettlement()">إرسال التصفية للمراجعة 📤</button>
+            </div>
+        </div>
+
+        <!-- صفحة مراجعة الطلبات -->
+        <div id="review-page" class="hidden">
+            <div class="section-card">
+                <div class="section-title">مراجعة الطلبات المعلقة</div>
+                <div id="pinContainer">
+                    <p>أدخل الرقم السري لعرض قائمة المراجعة:</p>
+                    <input type="password" id="reviewPin" placeholder="****" style="max-width:200px; display:inline-block;">
+                    <button class="btn" onclick="checkPin()">دخول</button>
+                </div>
+                <div id="reviewContent" class="hidden">
+                    <button class="btn" onclick="loadPendingRequests()" style="margin-bottom:15px;">🔄 تحديث القائمة</button>
+                    <div id="pendingList">لا توجد طلبات معلقة حالياً.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- صفحة الأرشيف -->
+        <div id="archive-page" class="hidden">
+            <div class="section-card">
+                <div class="section-title">الأرشيف والسجلات</div>
+                <p>قائمة التصفيات التي تم اعتمادها ومراجعتها سابقاً.</p>
+                <div id="archiveList">لا توجد بيانات مؤرشفة.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- الأكواد البرمجية والربط السحابي -->
+    <script>
+        const SECRET_PIN = "991997";
+        const API_URL = "https://api.jsonbin.io/v3/b/65e9f8a1dc7461202e88a001";
+        const MASTER_KEY = "$2a$10$C8.c4a2A0N.7Yn.y5o.kce0QJ/vH5.k8/6d/sX.a5d1a5d1a5d1a";
+
+        // التنقل بين الصفحات
+        function showPage(pageId) {
+            document.getElementById('form-page').classList.add('hidden');
+            document.getElementById('review-page').classList.add('hidden');
+            document.getElementById('archive-page').classList.add('hidden');
+            
+            document.getElementById(pageId).classList.remove('hidden');
+
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        // إضافة صف محل
+        function addShopRow() {
+            const tbody = document.querySelector('#shopsTable tbody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" placeholder="اسم المحل"></td>
+                <td><input type="number" value="0" oninput="calculateTotals()"></td>
+                <td><input type="number" value="0" oninput="calculateTotals()"></td>
+                <td class="shop-net">0.00</td>
+                <td><button onclick="this.closest('tr').remove(); calculateTotals();" style="color:red; cursor:pointer;">X</button></td>
             `;
-        });
-        container.innerHTML = html;
-    }
-</script>
+            tbody.appendChild(row);
+        }
+
+        // إضافة صف رحلة
+        function addTourRow() {
+            const tbody = document.querySelector('#toursTable tbody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" placeholder="اسم الرحلة"></td>
+                <td><input type="number" value="0" oninput="calculateTotals()"></td>
+                <td><input type="number" value="0" oninput="calculateTotals()"></td>
+                <td class="tour-total">0.00</td>
+                <td><button onclick="this.closest('tr').remove(); calculateTotals();" style="color:red; cursor:pointer;">X</button></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        // حساب الإجماليات
+        function calculateTotals() {
+            let totalGuideDebt = 0;
+            let totalExpenses = 0;
+
+            // حساب المحلات
+            document.querySelectorAll('#shopsTable tbody tr').forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const amount = parseFloat(inputs[1].value) || 0;
+                const percent = parseFloat(inputs[2].value) || 0;
+                const net = amount * (percent / 100);
+                row.querySelector('.shop-net').innerText = net.toFixed(2);
+                totalGuideDebt += net;
+            });
+
+            // حساب الرحلات
+            document.querySelectorAll('#toursTable tbody tr').forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const count = parseFloat(inputs[1].value) || 0;
+                const price = parseFloat(inputs[2].value) || 0;
+                const total = count * price;
+                row.querySelector('.tour-total').innerText = total.toFixed(2);
+                totalGuideDebt += total;
+            });
+
+            document.getElementById('totalGuideDebt').innerText = "EGP " + totalGuideDebt.toFixed(2);
+            document.getElementById('totalExpenses').innerText = "EGP " + totalExpenses.toFixed(2);
+
+            const finalNet = totalGuideDebt - totalExpenses;
+            const finalNetElem = document.getElementById('finalNet');
+            finalNetElem.innerText = "EGP " + finalNet.toFixed(2);
+            
+            if(finalNet < 0) {
+                finalNetElem.className = "net-negative";
+            } else {
+                finalNetElem.className = "net-positive";
+            }
+        }
+
+        // إرسال البيانات للسحابة
+        async function sendDataToCloud(data) {
+            try {
+                let res = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': MASTER_KEY
+                    },
+                    body: JSON.stringify(data)
+                });
+                return res.ok;
+            } catch(e) { return false; }
+        }
+
+        // جلب البيانات من السحابة
+        async function loadDataFromCloud() {
+            try {
+                let res = await fetch(`${API_URL}/latest`, {
+                    headers: { 'X-Master-Key': MASTER_KEY }
+                });
+                let result = await res.json();
+                return result.record || { pending: [], archive: [] };
+            } catch(e) { return { pending: [], archive: [] }; }
+        }
+
+        // تقديم التصفية
+        async function submitSettlement() {
+            const guideName = document.getElementById('guideName').value;
+            if(!guideName) {
+                alert("يرجى إدخال اسم المرشد أولاً!");
+                return;
+            }
+
+            const settlementData = {
+                id: Date.now(),
+                guideName: guideName,
+                date: document.getElementById('settlementDate').value || new Date().toLocaleDateString(),
+                details: document.getElementById('guideFeesDetails').value,
+                netAmount: document.getElementById('finalNet').innerText
+            };
+
+            let currentData = await loadDataFromCloud();
+            if(!currentData.pending) currentData.pending = [];
+            currentData.pending.push(settlementData);
+
+            let success = await sendDataToCloud(currentData);
+            if(success) {
+                alert("✅ تم إرسال التصفية بنجاح إلى قائمة المراجعة!");
+            } else {
+                alert("❌ حدث خطأ في الإرسال، حاول مرة أخرى.");
+            }
+        }
+
+        // التحقق من الرقم السري
+        function checkPin() {
+            const pin = document.getElementById('reviewPin').value;
+            if(pin === SECRET_PIN) {
+                document.getElementById('pinContainer').classList.add('hidden');
+                document.getElementById('reviewContent').classList.remove('hidden');
+                loadPendingRequests();
+            } else {
+                alert("الرقم السري غير صحيح!");
+            }
+        }
+
+        // تحميل الطلبات للمراجعة
+        async function loadPendingRequests() {
+            const container = document.getElementById('pendingList');
+            container.innerText = "جاري جلب البيانات من السيرفر...";
+            
+            let data = await loadDataFromCloud();
+            let pending = data.pending || [];
+
+            if(pending.length === 0) {
+                container.innerText = "لا توجد طلبات معلقة حالياً.";
+                return;
+            }
+
+            let html = "<table style='background:#fff;'><thead><tr><th>اسم المرشد</th><th>التاريخ</th><th>التفاصيل</th><th>الصافي</th></tr></thead><tbody>";
+            pending.forEach(item => {
+                html += `<tr>
+                    <td>${item.guideName}</td>
+                    <td>${item.date}</td>
+                    <td>${item.details || '-'}</td>
+                    <td><b>${item.netAmount}</b></td>
+                </tr>`;
+            });
+            html += "</tbody></table>";
+            container.innerHTML = html;
+        }
+    </script>
 </body>
 </html>
