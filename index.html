@@ -121,6 +121,7 @@
         table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 600px; }
         th, td { border: 1px solid var(--border-vintage); padding: 10px 12px; text-align: center; font-size: 1.05em; }
         th { background-color: #e8dbca; color: var(--primary-navy); font-weight: bold; border-bottom: 2px solid var(--vintage-gold-dark); }
+        tfoot td { background-color: #e8dbca; font-weight: bold; color: var(--primary-navy); border-top: 2px solid var(--vintage-gold-dark); }
 
         .btn { background-color: var(--primary-navy); color: #fcf8f2; border: 1px solid var(--vintage-gold-dark); padding: 10px 22px; border-radius: 3px; cursor: pointer; font-family: 'Amiri', serif; font-weight: bold; font-size: 1.1em; transition: 0.2s; }
         .btn:hover { background-color: var(--vintage-gold-dark); color: #ffffff; }
@@ -160,8 +161,6 @@
             color: white; border: none; font-size: 1.2em; width: 32px; height: 32px;
             border-radius: 50%; cursor: pointer; font-weight: bold;
         }
-        .detail-section { margin-bottom: 20px; }
-        .detail-section h4 { color: var(--primary-navy); border-bottom: 1px solid var(--vintage-gold); padding-bottom: 5px; margin-bottom: 10px; font-size: 1.2em; }
 
         /* تعديلات الموبايل */
         @media screen and (max-width: 768px) {
@@ -368,6 +367,7 @@
                                 <th>اسم المرشد</th>
                                 <th>رقم الملف</th>
                                 <th>تاريخ الحسم</th>
+                                <th>أتعاب المرشد</th>
                                 <th>ما بذمته</th>
                                 <th>المصروفات</th>
                                 <th>الصافي</th>
@@ -376,6 +376,13 @@
                             </tr>
                         </thead>
                         <tbody id="archiveTableBody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3"><b>الإجمالي العام للصفوف المعروضة:</b></td>
+                                <td id="totalGuideFeesSum">0.00 EGP</td>
+                                <td colspan="5"></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -407,7 +414,6 @@
     let cloudData = { pending: [], archive: [] };
     let currentModalFileNo = "Settlement";
 
-    // جلب البيانات فور فتح الملف أو التنقل
     async function fetchCloudData() {
         let recordId = localStorage.getItem('my_github_app_bin_id');
         if (!recordId) return;
@@ -425,7 +431,6 @@
         }
     }
 
-    // حفظ البيانات أونلاين لتسمع في كل الأجهزة
     async function saveCloudData() {
         let recordId = localStorage.getItem('my_github_app_bin_id');
         
@@ -630,7 +635,7 @@
 
         cloudData.pending.push(newRequest);
         await saveCloudData();
-        alert('تم إرسال التصفية بنجاح إلى GitHub المباشر!');
+        alert('تم إرسال التصفية بنجاح!');
         switchTab('tab-review');
     }
 
@@ -651,131 +656,111 @@
                 <td>${item.date}</td>
                 <td>${item.totalDue}</td>
                 <td>${item.totalExp}</td>
-                <td><b>${item.net}</b></td>
-                <td><button class="btn btn-info" onclick="viewDetails(${index}, 'pending')">👁️ عرض التصفية</button></td>
+                <td class="${parseFloat(item.net) >= 0 ? 'positive' : 'negative'}">${item.net}</td>
+                <td><button class="btn btn-info" onclick="viewDetails(${item.id}, 'pending')">عرض 👁️</button></td>
                 <td>
-                    <button class="btn btn-submit" style="padding:4px 10px; margin:2px;" onclick="handleAction(${index}, 'معتمد ✅')">اعتماد</button>
-                    <button class="btn btn-danger" style="padding:4px 10px; margin:2px;" onclick="handleAction(${index}, 'مرفوض ❌')">رفض</button>
+                    <button class="btn btn-submit" style="padding:3px 8px; font-size:0.85em;" onclick="processRequest(${index}, 'معتمد')">اعتماد ✅</button>
+                    <button class="btn btn-danger" style="padding:3px 8px; font-size:0.85em;" onclick="processRequest(${index}, 'مرفوض')">رفض ❌</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    async function handleAction(index, newStatus) {
+    async function processRequest(index, action) {
         let item = cloudData.pending.splice(index, 1)[0];
-        item.status = newStatus;
+        item.status = action === 'معتمد' ? 'معتمد ✅' : 'مرفوض ❌';
         item.actionDate = new Date().toLocaleString('ar-EG');
         if (!cloudData.archive) cloudData.archive = [];
         cloudData.archive.push(item);
-
         await saveCloudData();
-        alert(`تم تحديث الطلب إلى: ${newStatus}`);
         renderReviewTable();
+        renderArchiveTable();
     }
 
     function renderArchiveTable() {
         const tbody = document.getElementById('archiveTableBody');
         tbody.innerHTML = '';
 
-        const filterQuery = (document.getElementById('archiveFilterInput')?.value || '').toLowerCase().trim();
+        const textFilter = (document.getElementById('archiveFilterInput')?.value || '').toLowerCase();
         const statusFilter = document.getElementById('archiveStatusFilter')?.value || 'ALL';
 
-        const list = cloudData.archive || [];
-        const filteredList = list.filter(item => {
-            const matchesQuery = item.guideName.toLowerCase().includes(filterQuery) || item.fileNo.toLowerCase().includes(filterQuery);
-            const matchesStatus = statusFilter === 'ALL' || item.status.includes(statusFilter);
-            return matchesQuery && matchesStatus;
+        let totalFeesSum = 0;
+
+        let list = (cloudData.archive || []).filter(item => {
+            const matchText = item.guideName.toLowerCase().includes(textFilter) || item.fileNo.toLowerCase().includes(textFilter);
+            const matchStatus = statusFilter === 'ALL' || item.status.includes(statusFilter);
+            return matchText && matchStatus;
         });
 
-        if (filteredList.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8">لا توجد نتائج مطابقة للبحث.</td></tr>`;
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9">لا توجد سجلات مطابقة للبحث.</td></tr>`;
+            document.getElementById('totalGuideFeesSum').innerText = "0.00 EGP";
             return;
         }
 
-        filteredList.forEach((item, index) => {
+        list.forEach(item => {
+            const feeVal = parseFloat(item.details?.feeEgp) || 0;
+            totalFeesSum += feeVal;
+
             const tr = document.createElement('tr');
-            const statusClass = item.status.includes('معتمد') ? 'status-approved' : 'status-rejected';
             tr.innerHTML = `
                 <td><b>${item.guideName}</b></td>
                 <td>${item.fileNo}</td>
                 <td>${item.actionDate || item.date}</td>
+                <td><b>${feeVal.toFixed(2)} EGP</b></td>
                 <td>${item.totalDue}</td>
                 <td>${item.totalExp}</td>
-                <td><b>${item.net}</b></td>
-                <td class="${statusClass}">${item.status}</td>
-                <td><button class="btn btn-info" onclick="viewDetails(${index}, 'archive')">👁️ عرض التصفية</button></td>
+                <td class="${parseFloat(item.net) >= 0 ? 'positive' : 'negative'}">${item.net}</td>
+                <td class="${item.status.includes('معتمد') ? 'status-approved' : 'status-rejected'}">${item.status}</td>
+                <td><button class="btn btn-info" onclick="viewDetails(${item.id}, 'archive')">عرض 👁️</button></td>
             `;
             tbody.appendChild(tr);
         });
+
+        document.getElementById('totalGuideFeesSum').innerText = totalFeesSum.toFixed(2) + " EGP";
     }
 
-    function viewDetails(index, type) {
-        const list = type === 'pending' ? cloudData.pending : cloudData.archive;
-        const item = list[index];
+    function viewDetails(id, source) {
+        let item = (source === 'pending' ? cloudData.pending : cloudData.archive).find(x => x.id === id);
+        if (!item) return;
 
-        if (!item || !item.details) {
-            alert('لا توجد تفاصيل لهذا الطلب.');
-            return;
-        }
+        currentModalFileNo = item.fileNo;
+        let d = item.details;
 
-        currentModalFileNo = item.fileNo || "Settlement";
-        const d = item.details;
+        let shopsHTML = d.shops && d.shops.length > 0 ? d.shops.map(s => `<li>${s.name}: ${s.sales} ${s.curr}</li>`).join('') : '<li>لا يوجد</li>';
+        let optHTML = d.optionals && d.optionals.length > 0 ? d.optionals.map(o => `<li>${o.name} (${o.pax} أفراد): عمولة ${o.comm} EGP</li>`).join('') : '<li>لا يوجد</li>';
 
-        let shopsRows = d.shops && d.shops.length > 0 ? d.shops.map(s => `
-            <tr><td>${s.name || '-'}</td><td>${s.sales || '0'} ${s.curr}</td></tr>
-        `).join('') : '<tr><td colspan="2">لا توجد مبيعات محلات</td></tr>';
-
-        let optRows = d.optionals && d.optionals.length > 0 ? d.optionals.map(o => `
-            <tr>
-                <td>${o.name || '-'}</td><td>${o.pax}</td><td>${o.price} EGP</td>
-                <td>${o.cost} EGP</td><td>${o.pct}%</td><td><b>${o.comm} EGP</b></td>
-            </tr>
-        `).join('') : '<tr><td colspan="6">لا توجد رحلات اختيارية</td></tr>';
-
-        const modalHtml = `
+        document.getElementById('modalContent').innerHTML = `
             <div class="detail-section">
-                <p><b>اسم المرشد:</b> ${item.guideName} | <b>رقم الملف:</b> ${item.fileNo} | <b>التاريخ:</b> ${item.date}</p>
+                <p><b>اسم المرشد:</b> ${item.guideName} | <b>رقم الملف:</b> ${item.fileNo}</p>
+                <p><b>التاريخ:</b> ${item.date} | <b>الحالة:</b> ${item.status}</p>
             </div>
             <div class="detail-section">
-                <h4>1. العهدة والمصروفات المباشرة</h4>
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>البيان</th><th>المبلغ (EGP)</th><th>ملاحظات</th></tr></thead>
-                        <tbody>
-                            <tr><td>العهدة المستلمة</td><td><b>${d.floatEgp}</b></td><td>${d.floatNotes || '-'}</td></tr>
-                            <tr><td>مصاريف الغداء</td><td>${d.lunchEgp}</td><td>${d.lunchNotes || '-'}</td></tr>
-                            <tr><td>الإكراميات</td><td>${d.tipsEgp}</td><td>${d.tipsNotes || '-'}</td></tr>
-                            <tr><td>الباركينج والرسوم</td><td>${d.parkingEgp}</td><td>${d.parkingNotes || '-'}</td></tr>
-                            <tr><td>أتعاب المرشد (اليومية)</td><td>${d.feeEgp}</td><td>${d.feeNotes || '-'}</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+                <h4>تفاصيل المصروفات والأتعاب</h4>
+                <ul>
+                    <li><b>أتعاب المرشد (اليومية):</b> ${d.feeEgp || 0} EGP (${d.feeNotes || 'لا يوجد ملاحظات'})</li>
+                    <li><b>العهدة المستلمة:</b> ${d.floatEgp || 0} EGP (${d.floatNotes || '-'})</li>
+                    <li><b>الغداء:</b> ${d.lunchEgp || 0} EGP</li>
+                    <li><b>الإكراميات:</b> ${d.tipsEgp || 0} EGP</li>
+                    <li><b>الباركينج والرسوم:</b> ${d.parkingEgp || 0} EGP</li>
+                </ul>
             </div>
             <div class="detail-section">
-                <h4>2. مبيعات المحلات</h4>
-                <div class="table-responsive">
-                    <table><thead><tr><th>اسم المحل</th><th>إجمالي المبيعات</th></tr></thead><tbody>${shopsRows}</tbody></table>
-                </div>
+                <h4>مبيعات المحلات</h4>
+                <ul>${shopsHTML}</ul>
             </div>
             <div class="detail-section">
-                <h4>3. الرحلات الاختيارية (Optional)</h4>
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>الرحلة</th><th>عدد الأفراد</th><th>السعر</th><th>التكلفة</th><th>نسبة المرشد</th><th>عمولة المرشد</th></tr></thead>
-                        <tbody>${optRows}</tbody>
-                    </table>
-                </div>
+                <h4>الرحلات الاختيارية</h4>
+                <ul>${optHTML}</ul>
             </div>
-            <div class="detail-section" style="background:#fbf5eb; padding:15px; border:2px double var(--vintage-gold-dark);">
-                <h4 style="margin-top:0;">الملخص المالي النهائي</h4>
-                <p style="margin:5px 0;"><b>إجمالي ما بذمة المرشد:</b> ${item.totalDue}</p>
-                <p style="margin:5px 0;"><b>إجمالي المصروفات والأتعاب:</b> ${item.totalExp}</p>
-                <p style="margin:5px 0; font-size:1.2em;"><b>الصافي النهائي:</b> <span class="${parseFloat(item.net) >= 0 ? 'positive' : 'negative'}">${item.net}</span></p>
+            <div class="detail-section" style="border-top:2px solid var(--vintage-gold); padding-top:10px;">
+                <p><b>إجمالي ما بذمته:</b> ${item.totalDue}</p>
+                <p><b>إجمالي المصروفات والأتعاب:</b> ${item.totalExp}</p>
+                <p><b>الصافي النهائي:</b> <b class="${parseFloat(item.net) >= 0 ? 'positive' : 'negative'}">${item.net}</b></p>
             </div>
         `;
 
-        document.getElementById('modalContent').innerHTML = modalHtml;
         document.getElementById('detailsModal').classList.add('active');
     }
 
@@ -783,44 +768,33 @@
         document.getElementById('detailsModal').classList.remove('active');
     }
 
-    function downloadModalPDF() {
-        const element = document.getElementById('pdfExportArea');
+    function downloadFormPDF() {
+        const element = document.getElementById('printableFormArea');
+        const fileNo = document.getElementById('fileNo').value || "Settlement";
         const opt = {
             margin: 10,
-            filename: `Tafseya_${currentModalFileNo}.pdf`,
+            filename: `تصفية_${fileNo}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
+            html2canvas: { scale: 2 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         html2pdf().set(opt).from(element).save();
     }
 
-    function downloadFormPDF() {
-        const fileNo = document.getElementById('fileNo').value.trim() || "Settlement";
-        const element = document.getElementById('tab-form');
-        const noPrintElems = element.querySelectorAll('.no-print');
-        noPrintElems.forEach(el => el.style.display = 'none');
-
+    function downloadModalPDF() {
+        const element = document.getElementById('pdfExportArea');
         const opt = {
             margin: 10,
-            filename: `Settlement_Form_${fileNo}.pdf`,
+            filename: `تقرير_تصفية_${currentModalFileNo}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
+            html2canvas: { scale: 2 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
-
-        html2pdf().set(opt).from(element).save().then(() => {
-            noPrintElems.forEach(el => el.style.display = '');
-        });
+        html2pdf().set(opt).from(element).save();
     }
 
-    window.onload = function() {
-        addShopRow();
-        addOptionalRow();
-        fetchCloudData();
-        // مزامنة أوتوماتيكية كل 10 ثواني
-        setInterval(fetchCloudData, 10000);
-    };
+    // التشغيل الأولي
+    fetchCloudData();
 </script>
 
 </body>
