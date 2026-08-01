@@ -438,74 +438,85 @@
     const SECRET_PIN = "991997";
     const API_URL = "https://api.jsonbin.io/v3/b";
     
-    // ⚠️ هذا المعرف هو الخزنة الخاصة بقاعدة بياناتك الثابتة للسيرفر السحابي
     let FIXED_BIN_ID = "65ca1234abc1234567890def";
+    const STORAGE_KEY = "tafseya_app_permanent_db";
 
     let cloudData = { pending: [], archive: [] };
     let currentModalFileNo = "Settlement";
 
-    // جلب البيانات من السحابة + الذاكرة المحلية كدعم ثنائي
+    // 1. استرجاع البيانات المضمون محلياً ثم سحابياً
     async function fetchCloudData() {
-        if (!FIXED_BIN_ID) {
-            // استرجاع البيانات محلياً لو لم يتم التوصيل بعد
-            let localBackup = localStorage.getItem('local_backup_db');
-            if (localBackup) {
-                cloudData = JSON.parse(localBackup);
-                renderReviewTable();
-                renderArchiveTable();
-                updateBadge();
+        // قراءة الذاكرة المحلية أولاً لضمان عدم ضياع أي بيانات سابقة
+        let localData = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('local_backup_db');
+        if (localData) {
+            try {
+                cloudData = JSON.parse(localData);
+                if (!cloudData.pending) cloudData.pending = [];
+                if (!cloudData.archive) cloudData.archive = [];
+            } catch (err) {
+                console.error("خطأ قراءة الذاكرة المحلية:", err);
             }
-            return;
         }
 
-        try {
-            let res = await fetch(`${API_URL}/${FIXED_BIN_ID}`);
-            if (res.ok) {
-                let json = await res.json();
-                cloudData = json.data || { pending: [], archive: [] };
-                if(!cloudData.pending) cloudData.pending = [];
-                if(!cloudData.archive) cloudData.archive = [];
-                
-                // حفظ نسخة أمان داخل المتصفح دائماً
-                localStorage.setItem('local_backup_db', JSON.stringify(cloudData));
+        renderReviewTable();
+        renderArchiveTable();
+        updateBadge();
 
-                renderReviewTable();
-                renderArchiveTable();
-                updateBadge();
+        // قراءة البيانات من السحابة ومدمجها مع المحليات
+        if (FIXED_BIN_ID) {
+            try {
+                let res = await fetch(`${API_URL}/${FIXED_BIN_ID}`);
+                if (res.ok) {
+                    let json = await res.json();
+                    let fetchedRecord = json.record || json.data;
+
+                    if (fetchedRecord) {
+                        // دمَج الأرشيف السحابي والمحلي بدون تكرار
+                        if (Array.isArray(fetchedRecord.archive)) {
+                            fetchedRecord.archive.forEach(remoteItem => {
+                                if (!cloudData.archive.some(localItem => localItem.id === remoteItem.id)) {
+                                    cloudData.archive.push(remoteItem);
+                                }
+                            });
+                        }
+                        if (Array.isArray(fetchedRecord.pending)) {
+                            fetchedRecord.pending.forEach(remoteItem => {
+                                if (!cloudData.pending.some(localItem => localItem.id === remoteItem.id)) {
+                                    cloudData.pending.push(remoteItem);
+                                }
+                            });
+                        }
+                        
+                        // حفظ النتيجة المدمجة محلياً
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
+                        renderReviewTable();
+                        renderArchiveTable();
+                        updateBadge();
+                    }
+                }
+            } catch (e) {
+                console.log("يعمل النظام حالياً بالاعتماد الكامل على الذاكرة المحلية الحصينة.");
             }
-        } catch (e) {
-            console.log("تنبيه: تعذر الاتصال بالسحابة، يتم الاعتماد على البيانات المحلية.");
-            let localBackup = localStorage.getItem('local_backup_db');
-            if (localBackup) cloudData = JSON.parse(localBackup);
         }
     }
 
-    // حفظ البيانات في السحابة + الذاكرة المحلية
+    // 2. حفظ البيانات المزدوج (محلياً + سحابياً)
     async function saveCloudData() {
-        // 1. حفظ فوري محلياً لحماية البيانات من الضياع
+        // حفظ فوري في جهاز المستخدم
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
         localStorage.setItem('local_backup_db', JSON.stringify(cloudData));
 
+        // رفع البيانات للسحابة
         try {
-            if (!FIXED_BIN_ID) {
-                let res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jsonData: cloudData })
-                });
-                let json = await res.json();
-                if (json.id) {
-                    FIXED_BIN_ID = json.id;
-                    localStorage.setItem('my_github_app_bin_id', FIXED_BIN_ID);
-                }
-            } else {
+            if (FIXED_BIN_ID) {
                 await fetch(`${API_URL}/${FIXED_BIN_ID}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jsonData: cloudData })
+                    body: JSON.stringify(cloudData)
                 });
             }
         } catch (e) {
-            console.error("خطأ أثناء المزامنة السحابية:", e);
+            console.error("خطأ المزامنة السحابية:", e);
         }
     }
 
@@ -649,66 +660,60 @@
         const fileNo = document.getElementById('fileNo').value.trim();
 
         if (!guideName || !fileNo) {
-            alert('⚠️ يرجى كتابة اسم المرشد ورقم الملف أولاً.');
+            alert("⚠️ يرجى كتابة اسم المرشد ورقم الملف قبل إرسال التصفية!");
             return;
         }
 
-        const details = {
-            floatEgp: document.getElementById('floatEgp').value || 0,
-            floatNotes: document.getElementById('floatNotes').value || '',
-            lunchEgp: document.getElementById('lunchEgp').value || 0,
-            lunchNotes: document.getElementById('lunchNotes').value || '',
-            tipsEgp: document.getElementById('tipsEgp').value || 0,
-            tipsNotes: document.getElementById('tipsNotes').value || '',
-            parkingEgp: document.getElementById('parkingEgp').value || 0,
-            parkingNotes: document.getElementById('parkingNotes').value || '',
-            feeEgp: document.getElementById('feeEgp').value || 0,
-            feeNotes: document.getElementById('feeNotes').value || '',
-            shops: [], optionals: []
+        const formData = {
+            id: Date.now(),
+            guideName: guideName,
+            fileNo: fileNo,
+            date: new Date().toLocaleDateString('ar-EG'),
+            floatEgp: parseFloat(document.getElementById('floatEgp').value) || 0,
+            floatNotes: document.getElementById('floatNotes').value,
+            lunchEgp: parseFloat(document.getElementById('lunchEgp').value) || 0,
+            lunchNotes: document.getElementById('lunchNotes').value,
+            tipsEgp: parseFloat(document.getElementById('tipsEgp').value) || 0,
+            tipsNotes: document.getElementById('tipsNotes').value,
+            parkingEgp: parseFloat(document.getElementById('parkingEgp').value) || 0,
+            parkingNotes: document.getElementById('parkingNotes').value,
+            feeEgp: parseFloat(document.getElementById('feeEgp').value) || 0,
+            feeNotes: document.getElementById('feeNotes').value,
+            shops: [],
+            optionals: [],
+            totalDue: document.getElementById('totalDueEgp').innerText,
+            totalExp: document.getElementById('totalExpEgp').innerText,
+            netAmount: document.getElementById('netEgp').innerText
         };
 
         document.querySelectorAll('.shop-card-item').forEach(card => {
-            details.shops.push({
-                name: card.querySelector('.shop-name').value || '-',
-                sales: card.querySelector('.shop-sales').value || 0,
-                curr: card.querySelector('.shop-curr').value || 'EGP'
+            formData.shops.push({
+                name: card.querySelector('.shop-name').value,
+                sales: card.querySelector('.shop-sales').value,
+                curr: card.querySelector('.shop-curr').value
             });
         });
 
         document.querySelectorAll('.opt-card-item').forEach(card => {
-            details.optionals.push({
-                name: card.querySelector('.opt-name').value || '-',
-                pax: card.querySelector('.opt-pax').value || 0,
-                price: card.querySelector('.opt-price').value || 0,
-                cost: card.querySelector('.opt-cost').value || 0,
-                pct: card.querySelector('.opt-guide-pct').value || 0,
-                comm: card.querySelector('.opt-guide-comm-val').innerText || 0
+            formData.optionals.push({
+                name: card.querySelector('.opt-name').value,
+                pax: card.querySelector('.opt-pax').value,
+                price: card.querySelector('.opt-price').value,
+                cost: card.querySelector('.opt-cost').value,
+                guidePct: card.querySelector('.opt-guide-pct').value,
+                comm: card.querySelector('.opt-guide-comm-val').innerText
             });
         });
 
-        const newRequest = {
-            id: Date.now(),
-            guideName, fileNo,
-            date: new Date().toLocaleString('ar-EG'),
-            status: 'قيد المراجعة ⏳',
-            totalDue: document.getElementById('totalDueEgp').innerText,
-            totalExp: document.getElementById('totalExpEgp').innerText,
-            net: document.getElementById('netEgp').innerText,
-            details: details
-        };
+        cloudData.pending.push(formData);
+        await saveCloudData();
+        updateBadge();
 
-        if (!cloudData.pending) cloudData.pending = [];
-        cloudData.pending.push(newRequest);
-
+        alert("✅ تم إرسال التصفية بنجاح إلى قائمة المراجعة!");
         document.getElementById('settlementForm').reset();
         document.getElementById('shopsContainer').innerHTML = '';
         document.getElementById('optionalContainer').innerHTML = '';
         calculateAll();
-
-        updateBadge();
-        alert('✅ تم إرسال التصفية بنجاح إلى قائمة المراجعة!');
-
-        await saveCloudData();
     }
 
     function renderReviewTable() {
@@ -728,113 +733,107 @@
                 <td>${item.date}</td>
                 <td>${item.totalDue}</td>
                 <td>${item.totalExp}</td>
-                <td class="${parseFloat(item.net) >= 0 ? 'positive' : 'negative'}">${item.net}</td>
-                <td><button class="btn btn-info" onclick="viewDetails(${item.id}, 'pending')">عرض 👁️</button></td>
+                <td><b>${item.netAmount}</b></td>
+                <td><button class="btn btn-info" onclick="openDetailsModal(${item.id}, 'pending')">👁️ عرض</button></td>
                 <td>
-                    <button class="btn btn-submit" style="padding:3px 8px; font-size:0.85em;" onclick="processRequest(${index}, 'معتمد')">اعتماد ✅</button>
-                    <button class="btn btn-danger" style="padding:3px 8px; font-size:0.85em;" onclick="processRequest(${index}, 'مرفوض')">رفض ❌</button>
+                    <button class="btn btn-submit" style="padding:4px 8px; font-size:0.85em;" onclick="approveItem(${index})">اعتماد ✅</button>
+                    <button class="btn btn-danger" style="padding:4px 8px; font-size:0.85em;" onclick="rejectItem(${index})">رفض ❌</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    async function processRequest(index, action) {
+    async function approveItem(index) {
+        if (!confirm("هل أنت تأكد من اعتماد هذه التصفية وتحويلها للأرشيف؟")) return;
         let item = cloudData.pending.splice(index, 1)[0];
-        item.status = action === 'معتمد' ? 'معتمد ✅' : 'مرفوض ❌';
-        item.actionDate = new Date().toLocaleString('ar-EG');
-        if (!cloudData.archive) cloudData.archive = [];
+        item.status = "معتمد";
+        item.finalDate = new Date().toLocaleDateString('ar-EG');
         cloudData.archive.push(item);
-        
+        await saveCloudData();
         renderReviewTable();
         renderArchiveTable();
         updateBadge();
+    }
+
+    async function rejectItem(index) {
+        if (!confirm("هل أنت تأكد من رفض هذه التصفية؟")) return;
+        let item = cloudData.pending.splice(index, 1)[0];
+        item.status = "مرفوض";
+        item.finalDate = new Date().toLocaleDateString('ar-EG');
+        cloudData.archive.push(item);
         await saveCloudData();
+        renderReviewTable();
+        renderArchiveTable();
+        updateBadge();
     }
 
     function renderArchiveTable() {
         const tbody = document.getElementById('archiveTableBody');
         tbody.innerHTML = '';
 
-        const textFilter = (document.getElementById('archiveFilterInput')?.value || '').toLowerCase();
-        const statusFilter = document.getElementById('archiveStatusFilter')?.value || 'ALL';
+        const filterText = document.getElementById('archiveFilterInput').value.toLowerCase();
+        const statusFilter = document.getElementById('archiveStatusFilter').value;
 
-        let totalFeesSum = 0;
-
-        let list = (cloudData.archive || []).filter(item => {
-            const matchText = item.guideName.toLowerCase().includes(textFilter) || item.fileNo.toLowerCase().includes(textFilter);
-            const matchStatus = statusFilter === 'ALL' || item.status.includes(statusFilter);
-            return matchText && matchStatus;
+        let filtered = (cloudData.archive || []).filter(item => {
+            const matchesText = item.guideName.toLowerCase().includes(filterText) || item.fileNo.toLowerCase().includes(filterText);
+            const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter;
+            return matchesText && matchesStatus;
         });
 
-        if (list.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9">لا توجد سجلات مطابقة للبحث.</td></tr>`;
-            document.getElementById('totalGuideFeesSum').innerText = "0.00 EGP";
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9">لا توجد تصفيات مؤرشفة تطابق البحث.</td></tr>`;
+            document.getElementById('totalGuideFeesSum').innerText = '0.00 EGP';
             return;
         }
 
-        list.forEach(item => {
-            const feeVal = parseFloat(item.details?.feeEgp) || 0;
-            totalFeesSum += feeVal;
+        let totalFees = 0;
 
+        filtered.forEach(item => {
+            totalFees += parseFloat(item.feeEgp) || 0;
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><b>${item.guideName}</b></td>
                 <td>${item.fileNo}</td>
-                <td>${item.actionDate || item.date}</td>
-                <td><b>${feeVal.toFixed(2)} EGP</b></td>
+                <td>${item.finalDate || item.date}</td>
+                <td>${(item.feeEgp || 0).toFixed(2)} EGP</td>
                 <td>${item.totalDue}</td>
                 <td>${item.totalExp}</td>
-                <td class="${parseFloat(item.net) >= 0 ? 'positive' : 'negative'}">${item.net}</td>
-                <td class="${item.status.includes('معتمد') ? 'status-approved' : 'status-rejected'}">${item.status}</td>
-                <td><button class="btn btn-info" onclick="viewDetails(${item.id}, 'archive')">عرض 👁️</button></td>
+                <td><b>${item.netAmount}</b></td>
+                <td class="${item.status === 'معتمد' ? 'status-approved' : 'status-rejected'}">${item.status}</td>
+                <td><button class="btn btn-info" onclick="openDetailsModal(${item.id}, 'archive')">👁️ التفاصيل</button></td>
             `;
             tbody.appendChild(tr);
         });
 
-        document.getElementById('totalGuideFeesSum').innerText = totalFeesSum.toFixed(2) + " EGP";
+        document.getElementById('totalGuideFeesSum').innerText = totalFees.toFixed(2) + ' EGP';
     }
 
-    function viewDetails(id, source) {
-        let item = (source === 'pending' ? cloudData.pending : cloudData.archive).find(x => x.id === id);
+    function openDetailsModal(id, source) {
+        let list = source === 'pending' ? cloudData.pending : cloudData.archive;
+        let item = list.find(x => x.id === id);
         if (!item) return;
 
-        currentModalFileNo = item.fileNo;
-        let d = item.details;
+        currentModalFileNo = item.fileNo || "Settlement";
 
-        let shopsHTML = d.shops && d.shops.length > 0 ? d.shops.map(s => `<li>${s.name}: ${s.sales} ${s.curr}</li>`).join('') : '<li>لا يوجد</li>';
-        let optHTML = d.optionals && d.optionals.length > 0 ? d.optionals.map(o => `<li>${o.name} (${o.pax} أفراد): عمولة ${o.comm} EGP</li>`).join('') : '<li>لا يوجد</li>';
-
-        document.getElementById('modalContent').innerHTML = `
-            <div class="detail-section">
-                <p><b>اسم المرشد:</b> ${item.guideName} | <b>رقم الملف:</b> ${item.fileNo}</p>
-                <p><b>التاريخ:</b> ${item.date} | <b>الحالة:</b> ${item.status}</p>
-            </div>
-            <div class="detail-section">
-                <h4>تفاصيل المصروفات والأتعاب</h4>
-                <ul>
-                    <li><b>أتعاب المرشد (اليومية):</b> ${d.feeEgp || 0} EGP (${d.feeNotes || 'لا يوجد ملاحظات'})</li>
-                    <li><b>العهدة المستلمة:</b> ${d.floatEgp || 0} EGP (${d.floatNotes || '-'})</li>
-                    <li><b>الغداء:</b> ${d.lunchEgp || 0} EGP</li>
-                    <li><b>الإكراميات:</b> ${d.tipsEgp || 0} EGP</li>
-                    <li><b>الباركينج والرسوم:</b> ${d.parkingEgp || 0} EGP</li>
-                </ul>
-            </div>
-            <div class="detail-section">
-                <h4>مبيعات المحلات</h4>
-                <ul>${shopsHTML}</ul>
-            </div>
-            <div class="detail-section">
-                <h4>الرحلات الاختيارية</h4>
-                <ul>${optHTML}</ul>
-            </div>
-            <div class="detail-section" style="border-top:2px solid var(--vintage-gold); padding-top:10px;">
-                <p><b>إجمالي ما بذمته:</b> ${item.totalDue}</p>
-                <p><b>إجمالي المصروفات والأتعاب:</b> ${item.totalExp}</p>
-                <p><b>الصافي النهائي:</b> <b class="${parseFloat(item.net) >= 0 ? 'positive' : 'negative'}">${item.net}</b></p>
-            </div>
+        let html = `
+            <p><b>اسم المرشد:</b> ${item.guideName} | <b>رقم الملف:</b> ${item.fileNo} | <b>التاريخ:</b> ${item.date}</p>
+            <hr style="border-color: var(--border-vintage);">
+            <h4>العهدة والمصروفات:</h4>
+            <ul>
+                <li>العهدة المستلمة: ${item.floatEgp} EGP (${item.floatNotes || 'لا توجد ملاحظات'})</li>
+                <li>مصاريف الغداء: ${item.lunchEgp} EGP (${item.lunchNotes || 'لا توجد ملاحظات'})</li>
+                <li>الإكراميات: ${item.tipsEgp} EGP (${item.tipsNotes || 'لا توجد ملاحظات'})</li>
+                <li>الباركينج: ${item.parkingEgp} EGP (${item.parkingNotes || 'لا توجد ملاحظات'})</li>
+                <li>أتعاب المرشد: ${item.feeEgp} EGP (${item.feeNotes || 'لا توجد ملاحظات'})</li>
+            </ul>
+            <hr style="border-color: var(--border-vintage);">
+            <h4>الإجماليات والصافي:</h4>
+            <p><b>ما بذمة المرشد:</b> ${item.totalDue} | <b>المصروفات:</b> ${item.totalExp}</p>
+            <p style="font-size: 1.2em;"><b>الصافي النهائي:</b> <span class="positive">${item.netAmount}</span></p>
         `;
 
+        document.getElementById('modalContent').innerHTML = html;
         document.getElementById('detailsModal').classList.add('active');
     }
 
@@ -844,13 +843,12 @@
 
     function downloadFormPDF() {
         const element = document.getElementById('printableFormArea');
-        const fileNo = document.getElementById('fileNo').value || "Settlement";
         const opt = {
-            margin: 10,
-            filename: `تصفية_${fileNo}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin:       0.3,
+            filename:     `Tafseya_${document.getElementById('fileNo').value || 'Draft'}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
         html2pdf().set(opt).from(element).save();
     }
@@ -858,29 +856,28 @@
     function downloadModalPDF() {
         const element = document.getElementById('pdfExportArea');
         const opt = {
-            margin: 10,
-            filename: `تقرير_تصفية_${currentModalFileNo}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin:       0.5,
+            filename:     `Report_${currentModalFileNo}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
         html2pdf().set(opt).from(element).save();
     }
 
-    // تصدير نسخة احتياطية من البيانات
     function exportBackupData() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cloudData, null, 2));
         const downloadAnchor = document.createElement('a');
         downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `تفريغ_بيانات_النظام_${Date.now()}.json`);
+        downloadAnchor.setAttribute("download", `Backup_Settlements_${new Date().toISOString().slice(0,10)}.json`);
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
     }
 
-    // التشغيل الأولي وفحص المزامنة تلقائياً
-    fetchCloudData();
-    setInterval(fetchCloudData, 10000);
+    window.onload = function() {
+        fetchCloudData();
+    };
 </script>
 
 </body>
