@@ -6,8 +6,8 @@
     <title>نظام تصفية واستحقاق حسابات المرشدين</title>
     <!-- مكتبة html2pdf لتصدير الملفات إلى PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- مكتبة SheetJS لتصدير البيانات إلى ملفات Excel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- مكتبة xlsx-js-style لتصدير البيانات إلى ملفات Excel مع دعم الألوان والتنسيقات -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800;900&family=Montserrat:wght@400;600;700&display=swap');
@@ -863,29 +863,86 @@
         html2pdf().set(opt).from(element).save();
     }
 
-    // تصدير أرشيف التصفيات إلى ملف Excel (.xlsx)
+    // تصدير أرشيف التصفيات إلى ملف Excel مُميز كجدول مع هيدلاين باللون الأزرق السماوي
     function exportBackupData() {
         if (!cloudData.archive || cloudData.archive.length === 0) {
             alert("⚠️ لا توجد بيانات أرشيف متوفرة للتصدير حالياً!");
             return;
         }
 
-        const excelRows = cloudData.archive.map(item => ({
-            "اسم المرشد": item.guideName || "",
-            "رقم الملف": item.fileNo || "",
-            "تاريخ الحسم": item.finalDate || item.date || "",
-            "العهدة (EGP)": item.floatEgp || 0,
-            "أتعاب المرشد (EGP)": item.feeEgp || 0,
-            "مصاريف غداء": item.lunchEgp || 0,
-            "إكراميات": item.tipsEgp || 0,
-            "باركينج ورسوم": item.parkingEgp || 0,
-            "إجمالي ما بذمته": item.totalDue || "",
-            "إجمالي المصروفات": item.totalExp || "",
-            "الصافي النهائي": item.netAmount || "",
-            "حالة الطلب": item.status || ""
-        }));
+        // 1. تجهيز العناوين والبيانات
+        const headers = [
+            "اسم المرشد", "رقم الملف", "تاريخ الحسم", "العهدة (EGP)", 
+            "أتعاب المرشد (EGP)", "مصاريف غداء", "إكراميات", "باركينج ورسوم", 
+            "إجمالي ما بذمته", "إجمالي المصروفات", "الصافي النهائي", "حالة الطلب"
+        ];
 
-        const worksheet = XLSX.utils.json_to_sheet(excelRows);
+        const rows = cloudData.archive.map(item => [
+            item.guideName || "",
+            item.fileNo || "",
+            item.finalDate || item.date || "",
+            item.floatEgp || 0,
+            item.feeEgp || 0,
+            item.lunchEgp || 0,
+            item.tipsEgp || 0,
+            item.parkingEgp || 0,
+            item.totalDue || "",
+            item.totalExp || "",
+            item.netAmount || "",
+            item.status || ""
+        ]);
+
+        const data = [headers, ...rows];
+
+        // 2. إنشاء ورقة العمل (Worksheet)
+        const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+        // 3. تطبيق النمط والاستايل (Style) على عناوين الصف الأول (Headline)
+        const headerStyle = {
+            font: { bold: true, color: { rgb: "000000" }, name: "Calibri", sz: 11 },
+            fill: { fgColor: { rgb: "87CEEB" } }, // لون أزرق سماوي (Sky Blue)
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+                top: { style: "thin", color: { rgb: "A89478" } },
+                bottom: { style: "thin", color: { rgb: "A89478" } },
+                left: { style: "thin", color: { rgb: "A89478" } },
+                right: { style: "thin", color: { rgb: "A89478" } }
+            }
+        };
+
+        const cellStyle = {
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+                top: { style: "thin", color: { rgb: "E0E0E0" } },
+                bottom: { style: "thin", color: { rgb: "E0E0E0" } },
+                left: { style: "thin", color: { rgb: "E0E0E0" } },
+                right: { style: "thin", color: { rgb: "E0E0E0" } }
+            }
+        };
+
+        // نطاق ورقة العمل
+        const range = XLSX.utils.decode_range(worksheet['!ref']);
+
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+                if (!worksheet[cell_address]) continue;
+
+                if (R === 0) {
+                    // تطبيق الهيدلاين الأزرق السماوي
+                    worksheet[cell_address].s = headerStyle;
+                } else {
+                    // تطبيق التنسيق العادي على باقي الخلايا
+                    worksheet[cell_address].s = cellStyle;
+                }
+            }
+        }
+
+        // 4. تحديد عرض الأعمدة تلقائياً ليكون الجدول مريحاً
+        const colWidths = headers.map(() => ({ wch: 18 }));
+        worksheet['!cols'] = colWidths;
+
+        // 5. إنشاء كتاب العمل وتحميل الملف
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "الأرشيف");
 
