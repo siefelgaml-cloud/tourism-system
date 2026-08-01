@@ -64,12 +64,32 @@
             border: 1px solid var(--vintage-gold); cursor: pointer;
             font-family: 'Amiri', serif; font-size: 1.05em; transition: all 0.3s;
             text-align: right; display: flex; align-items: center; gap: 10px;
-            justify-content: flex-start;
+            justify-content: space-between; position: relative;
         }
 
         .nav-btn.active, .nav-btn:hover {
             background: var(--vintage-gold-dark); color: #fff;
             border-color: #fff; transform: translateX(-5px);
+        }
+
+        /* شارة الإشعار بالطلبات الجديدة */
+        .badge {
+            background-color: var(--red);
+            color: white;
+            font-size: 0.85em;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid #fff;
+            display: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
 
         .main-wrapper {
@@ -191,9 +211,16 @@
 
 <div class="sidebar no-print">
     <div class="sidebar-title">قائمة النظام</div>
-    <button class="nav-btn active" onclick="switchTab('tab-form')">📝 1. نموذج التصفية</button>
-    <button class="nav-btn" onclick="switchTab('tab-review')">🔒 2. مراجعة الطلبات</button>
-    <button class="nav-btn" onclick="switchTab('tab-archive')">🔒 3. الأرشيف والبحث</button>
+    <button class="nav-btn active" onclick="switchTab('tab-form')">
+        <span>📝 1. نموذج التصفية</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('tab-review')">
+        <span>🔒 2. مراجعة الطلبات</span>
+        <span id="reviewBadge" class="badge">0</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('tab-archive')">
+        <span>🔒 3. الأرشيف والبحث</span>
+    </button>
 </div>
 
 <div class="main-wrapper">
@@ -426,6 +453,7 @@
                 if(!cloudData.archive) cloudData.archive = [];
                 renderReviewTable();
                 renderArchiveTable();
+                updateBadge();
             }
         } catch (e) {
             console.log("تنبيه: يتم الاستجابة محلياً لحين المزامنة.");
@@ -455,6 +483,17 @@
             }
         } catch (e) {
             console.error("خطأ أثناء المزامنة السحابية:", e);
+        }
+    }
+
+    function updateBadge() {
+        const badge = document.getElementById('reviewBadge');
+        const count = cloudData.pending ? cloudData.pending.length : 0;
+        if (count > 0) {
+            badge.innerText = count;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
         }
     }
 
@@ -638,15 +677,18 @@
         if (!cloudData.pending) cloudData.pending = [];
         cloudData.pending.push(newRequest);
 
-        // تنظيف النموذج بعد الإرسال
+        // إعادة تعيين النموذج
         document.getElementById('settlementForm').reset();
         document.getElementById('shopsContainer').innerHTML = '';
         document.getElementById('optionalContainer').innerHTML = '';
         calculateAll();
 
+        // تحديث شارة الإشعارات فوراً
+        updateBadge();
+
         alert('✅ تم إرسال التصفية بنجاح إلى قائمة المراجعة!');
 
-        // حفظ البيانات سحابياً دون التنقل من الصفحة
+        // الحفظ سحابياً
         await saveCloudData();
     }
 
@@ -687,6 +729,7 @@
         
         renderReviewTable();
         renderArchiveTable();
+        updateBadge(); // تحديث شارة الإشعار بعد الاعتماد/الرفض
         await saveCloudData();
     }
 
@@ -805,8 +848,9 @@
         html2pdf().set(opt).from(element).save();
     }
 
-    // التشغيل الأولي
+    // التشغيل الأولي + فحص المزامنة كل 10 ثوانٍ للتحقق من أي طلبات جديدة
     fetchCloudData();
+    setInterval(fetchCloudData, 10000);
 </script>
 
 </body>
