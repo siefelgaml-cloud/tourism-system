@@ -72,16 +72,11 @@
             border-color: #fff; transform: translateX(-5px);
         }
 
-        /* شارة الإشعار بالطلبات الجديدة */
         .badge {
-            background-color: var(--red);
-            color: white;
-            font-size: 0.85em;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 12px;
-            border: 1px solid #fff;
-            display: none;
+            background-color: var(--red); color: white;
+            font-size: 0.85em; font-weight: bold;
+            padding: 2px 8px; border-radius: 12px;
+            border: 1px solid #fff; display: none;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
             animation: pulse 2s infinite;
         }
@@ -369,7 +364,12 @@
         <!-- الشاشة الثالثة -->
         <div id="tab-archive" class="tab-content">
             <div class="card">
-                <h3 style="margin-top:0;">سجل التصفيات المحسومة (الأرشيف)</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                    <h3 style="margin-top:0;">سجل التصفيات المحسومة (الأرشيف)</h3>
+                    <div class="no-print" style="display:flex; gap:8px; margin-bottom:10px;">
+                        <button class="btn btn-info" style="font-size:0.85em; padding:6px 12px;" onclick="exportBackupData()">تصدير نسخة احتياطية 💾</button>
+                    </div>
+                </div>
                 
                 <div class="filter-bar no-print">
                     <div class="form-group" style="flex: 2; min-width:200px;">
@@ -437,34 +437,56 @@
 <script>
     const SECRET_PIN = "991997";
     const API_URL = "https://api.myjson.online/v1/records";
+    
+    // ⚠️ هذا المعرف هو الخزنة الخاصة بقاعدة بياناتك الثابتة للسيرفر السحابي
+    let FIXED_BIN_ID = localStorage.getItem('my_github_app_bin_id') || "";
+
     let cloudData = { pending: [], archive: [] };
     let currentModalFileNo = "Settlement";
 
+    // جلب البيانات من السحابة + الذاكرة المحلية كدعم ثنائي
     async function fetchCloudData() {
-        let recordId = localStorage.getItem('my_github_app_bin_id');
-        if (!recordId) return;
+        if (!FIXED_BIN_ID) {
+            // استرجاع البيانات محلياً لو لم يتم التوصيل بعد
+            let localBackup = localStorage.getItem('local_backup_db');
+            if (localBackup) {
+                cloudData = JSON.parse(localBackup);
+                renderReviewTable();
+                renderArchiveTable();
+                updateBadge();
+            }
+            return;
+        }
 
         try {
-            let res = await fetch(`${API_URL}/${recordId}`);
+            let res = await fetch(`${API_URL}/${FIXED_BIN_ID}`);
             if (res.ok) {
                 let json = await res.json();
                 cloudData = json.data || { pending: [], archive: [] };
                 if(!cloudData.pending) cloudData.pending = [];
                 if(!cloudData.archive) cloudData.archive = [];
+                
+                // حفظ نسخة أمان داخل المتصفح دائماً
+                localStorage.setItem('local_backup_db', JSON.stringify(cloudData));
+
                 renderReviewTable();
                 renderArchiveTable();
                 updateBadge();
             }
         } catch (e) {
-            console.log("تنبيه: يتم الاستجابة محلياً لحين المزامنة.");
+            console.log("تنبيه: تعذر الاتصال بالسحابة، يتم الاعتماد على البيانات المحلية.");
+            let localBackup = localStorage.getItem('local_backup_db');
+            if (localBackup) cloudData = JSON.parse(localBackup);
         }
     }
 
+    // حفظ البيانات في السحابة + الذاكرة المحلية
     async function saveCloudData() {
-        let recordId = localStorage.getItem('my_github_app_bin_id');
-        
+        // 1. حفظ فوري محلياً لحماية البيانات من الضياع
+        localStorage.setItem('local_backup_db', JSON.stringify(cloudData));
+
         try {
-            if (!recordId) {
+            if (!FIXED_BIN_ID) {
                 let res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -472,10 +494,11 @@
                 });
                 let json = await res.json();
                 if (json.id) {
-                    localStorage.setItem('my_github_app_bin_id', json.id);
+                    FIXED_BIN_ID = json.id;
+                    localStorage.setItem('my_github_app_bin_id', FIXED_BIN_ID);
                 }
             } else {
-                await fetch(`${API_URL}/${recordId}`, {
+                await fetch(`${API_URL}/${FIXED_BIN_ID}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ jsonData: cloudData })
@@ -677,18 +700,14 @@
         if (!cloudData.pending) cloudData.pending = [];
         cloudData.pending.push(newRequest);
 
-        // إعادة تعيين النموذج
         document.getElementById('settlementForm').reset();
         document.getElementById('shopsContainer').innerHTML = '';
         document.getElementById('optionalContainer').innerHTML = '';
         calculateAll();
 
-        // تحديث شارة الإشعارات فوراً
         updateBadge();
-
         alert('✅ تم إرسال التصفية بنجاح إلى قائمة المراجعة!');
 
-        // الحفظ سحابياً
         await saveCloudData();
     }
 
@@ -729,7 +748,7 @@
         
         renderReviewTable();
         renderArchiveTable();
-        updateBadge(); // تحديث شارة الإشعار بعد الاعتماد/الرفض
+        updateBadge();
         await saveCloudData();
     }
 
@@ -848,7 +867,18 @@
         html2pdf().set(opt).from(element).save();
     }
 
-    // التشغيل الأولي + فحص المزامنة كل 10 ثوانٍ للتحقق من أي طلبات جديدة
+    // تصدير نسخة احتياطية من البيانات
+    function exportBackupData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cloudData, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `تفريغ_بيانات_النظام_${Date.now()}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    // التشغيل الأولي وفحص المزامنة تلقائياً
     fetchCloudData();
     setInterval(fetchCloudData, 10000);
 </script>
