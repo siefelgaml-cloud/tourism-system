@@ -162,7 +162,6 @@
             border-radius: 50%; cursor: pointer; font-weight: bold;
         }
 
-        /* تعديلات الموبايل */
         @media screen and (max-width: 768px) {
             body { flex-direction: column; }
             body::before { display: none; }
@@ -192,7 +191,7 @@
 
 <div class="sidebar no-print">
     <div class="sidebar-title">قائمة النظام</div>
-    <button class="nav-btn active" onclick="switchTab('tab-form')">📝 1. نموذج التصفية</button>
+    <button class="nav-btn active" onclick="switchTab('tab-form', true)">📝 1. نموذج التصفية</button>
     <button class="nav-btn" onclick="switchTab('tab-review')">🔒 2. مراجعة الطلبات</button>
     <button class="nav-btn" onclick="switchTab('tab-archive')">🔒 3. الأرشيف والبحث</button>
 </div>
@@ -423,11 +422,13 @@
             if (res.ok) {
                 let json = await res.json();
                 cloudData = json.data || { pending: [], archive: [] };
+                if(!cloudData.pending) cloudData.pending = [];
+                if(!cloudData.archive) cloudData.archive = [];
                 renderReviewTable();
                 renderArchiveTable();
             }
         } catch (e) {
-            console.log("تنبيه: يتم تحديث البيانات سحابياً.");
+            console.log("تنبيه: يتم الاستجابة محلياً لحين المزامنة.");
         }
     }
 
@@ -457,8 +458,8 @@
         }
     }
 
-    function switchTab(tabId) {
-        if (tabId === 'tab-review' || tabId === 'tab-archive') {
+    function switchTab(tabId, bypassPin = false) {
+        if (!bypassPin && (tabId === 'tab-review' || tabId === 'tab-archive')) {
             const userPin = prompt("🔒 هذا القسم محمي برقم سري، يرجى إدخال رمز الدخول:");
             if (userPin !== SECRET_PIN) {
                 if (userPin !== null) alert("❌ الرقم السري غير صحيح!");
@@ -473,7 +474,8 @@
         const btnIndex = tabId === 'tab-form' ? 0 : tabId === 'tab-review' ? 1 : 2;
         document.querySelectorAll('.nav-btn')[btnIndex].classList.add('active');
 
-        fetchCloudData();
+        if (tabId === 'tab-review') renderReviewTable();
+        if (tabId === 'tab-archive') renderArchiveTable();
     }
 
     let shopCounter = 0;
@@ -585,40 +587,40 @@
         const fileNo = document.getElementById('fileNo').value.trim();
 
         if (!guideName || !fileNo) {
-            alert('يرجى ملء اسم المرشد ورقم الملف أولاً.');
+            alert('⚠️ يرجى كتابة اسم المرشد ورقم الملف أولاً.');
             return;
         }
 
         const details = {
-            floatEgp: document.getElementById('floatEgp').value,
-            floatNotes: document.getElementById('floatNotes').value,
-            lunchEgp: document.getElementById('lunchEgp').value,
-            lunchNotes: document.getElementById('lunchNotes').value,
-            tipsEgp: document.getElementById('tipsEgp').value,
-            tipsNotes: document.getElementById('tipsNotes').value,
-            parkingEgp: document.getElementById('parkingEgp').value,
-            parkingNotes: document.getElementById('parkingNotes').value,
-            feeEgp: document.getElementById('feeEgp').value,
-            feeNotes: document.getElementById('feeNotes').value,
+            floatEgp: document.getElementById('floatEgp').value || 0,
+            floatNotes: document.getElementById('floatNotes').value || '',
+            lunchEgp: document.getElementById('lunchEgp').value || 0,
+            lunchNotes: document.getElementById('lunchNotes').value || '',
+            tipsEgp: document.getElementById('tipsEgp').value || 0,
+            tipsNotes: document.getElementById('tipsNotes').value || '',
+            parkingEgp: document.getElementById('parkingEgp').value || 0,
+            parkingNotes: document.getElementById('parkingNotes').value || '',
+            feeEgp: document.getElementById('feeEgp').value || 0,
+            feeNotes: document.getElementById('feeNotes').value || '',
             shops: [], optionals: []
         };
 
         document.querySelectorAll('.shop-card-item').forEach(card => {
             details.shops.push({
-                name: card.querySelector('.shop-name').value,
-                sales: card.querySelector('.shop-sales').value,
-                curr: card.querySelector('.shop-curr').value
+                name: card.querySelector('.shop-name').value || '-',
+                sales: card.querySelector('.shop-sales').value || 0,
+                curr: card.querySelector('.shop-curr').value || 'EGP'
             });
         });
 
         document.querySelectorAll('.opt-card-item').forEach(card => {
             details.optionals.push({
-                name: card.querySelector('.opt-name').value,
-                pax: card.querySelector('.opt-pax').value,
-                price: card.querySelector('.opt-price').value,
-                cost: card.querySelector('.opt-cost').value,
-                pct: card.querySelector('.opt-guide-pct').value,
-                comm: card.querySelector('.opt-guide-comm-val').innerText
+                name: card.querySelector('.opt-name').value || '-',
+                pax: card.querySelector('.opt-pax').value || 0,
+                price: card.querySelector('.opt-price').value || 0,
+                cost: card.querySelector('.opt-cost').value || 0,
+                pct: card.querySelector('.opt-guide-pct').value || 0,
+                comm: card.querySelector('.opt-guide-comm-val').innerText || 0
             });
         });
 
@@ -633,10 +635,22 @@
             details: details
         };
 
+        if (!cloudData.pending) cloudData.pending = [];
         cloudData.pending.push(newRequest);
+
+        // المزامنة والتحويل
+        renderReviewTable();
+        alert('✅ تم تحويل التصفية إلى شاشة المراجعة بنجاح!');
+        
+        // إعادة إعادة تعيين النموذج
+        document.getElementById('settlementForm').reset();
+        document.getElementById('shopsContainer').innerHTML = '';
+        document.getElementById('optionalContainer').innerHTML = '';
+        calculateAll();
+
+        // فتح شاشة المراجعة بدون الحاجة لإدخال الرقم السري مجدداً فور الإرسال
+        switchTab('tab-review', true);
         await saveCloudData();
-        alert('تم إرسال التصفية بنجاح!');
-        switchTab('tab-review');
     }
 
     function renderReviewTable() {
@@ -644,7 +658,7 @@
         tbody.innerHTML = '';
 
         if (!cloudData.pending || cloudData.pending.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8">لا توجد طلبات معلقة حالياً.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8">لا توجد طلبات قيد المراجعة حالياً.</td></tr>`;
             return;
         }
 
@@ -673,9 +687,10 @@
         item.actionDate = new Date().toLocaleString('ar-EG');
         if (!cloudData.archive) cloudData.archive = [];
         cloudData.archive.push(item);
-        await saveCloudData();
+        
         renderReviewTable();
         renderArchiveTable();
+        await saveCloudData();
     }
 
     function renderArchiveTable() {
