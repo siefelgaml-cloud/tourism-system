@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام تصفية واستحقاق حسابات المرشدين</title>
-    <!-- مكتبة html2pdf لتصدير الملفات إلى PDF -->
+    <!-- مكتبة html2pdf لتصدير الملفات إلى PDF (للمودال والأرشيف) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- مكتبة xlsx-js-style لتصدير البيانات إلى ملفات Excel مع دعم الألوان والتنسيقات -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
@@ -332,9 +332,8 @@
                         </table>
                     </div>
 
+                    <!-- تم الإبقاء فقط على زر إرسال التصفية للمراجعة -->
                     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px; flex-wrap:wrap;" class="no-print">
-                        <button type="button" class="btn btn-pdf" onclick="downloadFormPDF()">تحميل PDF 📄</button>
-                        <button type="button" class="btn" onclick="window.print();">طباعة مسودة</button>
                         <button type="button" class="btn btn-submit" onclick="submitSettlement()">إرسال التصفية للمراجعة 📤</button>
                     </div>
                 </div>
@@ -839,18 +838,6 @@
         document.getElementById('detailsModal').classList.remove('active');
     }
 
-    function downloadFormPDF() {
-        const element = document.getElementById('printableFormArea');
-        const opt = {
-            margin:       0.3,
-            filename:     `Tafseya_${document.getElementById('fileNo').value || 'Draft'}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
-    }
-
     function downloadModalPDF() {
         const element = document.getElementById('pdfExportArea');
         const opt = {
@@ -870,7 +857,6 @@
             return;
         }
 
-        // 1. تجهيز العناوين والبيانات
         const headers = [
             "اسم المرشد", "رقم الملف", "تاريخ الحسم", "العهدة (EGP)", 
             "أتعاب المرشد (EGP)", "مصاريف غداء", "إكراميات", "باركينج ورسوم", 
@@ -893,14 +879,11 @@
         ]);
 
         const data = [headers, ...rows];
-
-        // 2. إنشاء ورقة العمل (Worksheet)
         const worksheet = XLSX.utils.aoa_to_sheet(data);
 
-        // 3. تطبيق النمط والاستايل (Style) على عناوين الصف الأول (Headline)
         const headerStyle = {
             font: { bold: true, color: { rgb: "000000" }, name: "Calibri", sz: 11 },
-            fill: { fgColor: { rgb: "87CEEB" } }, // لون أزرق سماوي (Sky Blue)
+            fill: { fgColor: { rgb: "87CEEB" } }, // لون أزرق سماوي
             alignment: { horizontal: "center", vertical: "center" },
             border: {
                 top: { style: "thin", color: { rgb: "A89478" } },
@@ -920,7 +903,6 @@
             }
         };
 
-        // نطاق ورقة العمل
         const range = XLSX.utils.decode_range(worksheet['!ref']);
 
         for (let R = range.s.r; R <= range.e.r; ++R) {
@@ -929,20 +911,16 @@
                 if (!worksheet[cell_address]) continue;
 
                 if (R === 0) {
-                    // تطبيق الهيدلاين الأزرق السماوي
                     worksheet[cell_address].s = headerStyle;
                 } else {
-                    // تطبيق التنسيق العادي على باقي الخلايا
                     worksheet[cell_address].s = cellStyle;
                 }
             }
         }
 
-        // 4. تحديد عرض الأعمدة تلقائياً ليكون الجدول مريحاً
         const colWidths = headers.map(() => ({ wch: 18 }));
         worksheet['!cols'] = colWidths;
 
-        // 5. إنشاء كتاب العمل وتحميل الملف
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "الأرشيف");
 
