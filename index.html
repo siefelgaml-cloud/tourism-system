@@ -201,11 +201,11 @@
           <div class="form-row">
             <div class="form-group">
               <label>تاريخ الوصول (Check-in):</label>
-              <input type="text" id="creditArrivalDate" placeholder="DD/MM/YYYY" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'">
+              <input type="text" id="creditArrivalDate" placeholder="DD/MM/YYYY" onfocus="(this.type='date')" onchange="formatInputDate(this)" onblur="handleDateBlur(this)">
             </div>
             <div class="form-group">
               <label>تاريخ المغادرة (Check-out):</label>
-              <input type="text" id="creditDepartureDate" placeholder="DD/MM/YYYY" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'">
+              <input type="text" id="creditDepartureDate" placeholder="DD/MM/YYYY" onfocus="(this.type='date')" onchange="formatInputDate(this)" onblur="handleDateBlur(this)">
             </div>
           </div>
 
@@ -349,6 +349,38 @@
     </div>
   </div>
 
+  <!-- الدوال العامة للتحكم في معالجة التواريخ -->
+  <script>
+    function formatInputDate(input) {
+      if (input.value) {
+        const parts = input.value.split('-');
+        if (parts.length === 3) {
+          const formatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          input.dataset.isoValue = input.value; // احتفاظ بالـ ISO للاستخدام الداخلي
+          input.type = 'text';
+          input.value = formatted;
+        }
+      }
+    }
+
+    function handleDateBlur(input) {
+      if (!input.value) {
+        input.type = 'text';
+      } else if (input.value.includes('-')) {
+        formatInputDate(input);
+      }
+    }
+
+    function parseDMYToISO(dmyString) {
+      if (!dmyString) return '';
+      const parts = dmyString.split('/');
+      if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return dmyString;
+    }
+  </script>
+
   <!-- Firebase Script & Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -368,7 +400,7 @@
 
     let currentCreditList = [];
 
-    // دالة تحويل صيغة YYYY-MM-DD إلى DD/MM/YYYY
+    // دالة تحويل صيغة YYYY-MM-DD إلى DD/MM/YYYY للعرض في الجدول
     function formatDateToDMY(dateString) {
       if (!dateString) return '-';
       const parts = dateString.split('-');
@@ -532,8 +564,14 @@
     window.saveCreditTransaction = async function() {
       const entity = document.getElementById('creditEntity').value;
       const fileCode = document.getElementById('creditFileCode').value;
-      const arrivalDate = document.getElementById('creditArrivalDate').value;
-      const departureDate = document.getElementById('creditDepartureDate').value;
+      
+      const rawArrival = document.getElementById('creditArrivalDate').value;
+      const rawDeparture = document.getElementById('creditDepartureDate').value;
+      
+      // تحويل التاريخ لصيغة YYYY-MM-DD القياسية عند التخزين
+      const arrivalDate = rawArrival.includes('/') ? parseDMYToISO(rawArrival) : rawArrival;
+      const departureDate = rawDeparture.includes('/') ? parseDMYToISO(rawDeparture) : rawDeparture;
+
       const type = document.getElementById('creditType').value;
       const amount = parseFloat(document.getElementById('creditAmount').value) || 0;
       const currency = document.getElementById('creditCurrency').value;
@@ -729,20 +767,17 @@
 
       const parentTab = targetSubContent.closest('.tab-content');
       
-      // إخفاء كافة الـ sub-tab-content داخل القسم الرئيسي
       const subContents = parentTab.getElementsByClassName("sub-tab-content");
       for (let i = 0; i < subContents.length; i++) {
         subContents[i].classList.remove("active");
       }
       
-      // إزالة الحالة النشطة من أزرار القائمة الفرعية
       const subMenuContainer = parentTab.id === 'creditTab' ? document.getElementById('creditSubMenu') : document.getElementById('taxDiscountSubMenu');
       const subButtons = subMenuContainer.getElementsByClassName("sub-tab-btn");
       for (let i = 0; i < subButtons.length; i++) {
         subButtons[i].classList.remove("active");
       }
       
-      // إظهار المحتوى الفرعي وتفعيل الزر المضغوط
       targetSubContent.classList.add("active");
       if(evt && evt.currentTarget) {
         evt.currentTarget.classList.add("active");
