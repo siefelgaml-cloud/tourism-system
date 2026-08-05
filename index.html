@@ -93,8 +93,8 @@
         <span id="creditArrowIcon" style="font-size: 12px;">▼</span>
       </button>
       <div id="creditSubMenu" class="sub-tabs-container" style="display: none;">
-        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addCreditSubTab')">1- تسجيل حركة كريديت</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditRecordsSubTab')">2- سجل كشف الحساب والعمليات</button>
+        <button class="sub-tab-btn active" id="subTabBtnCredit1" onclick="openSubTab(event, 'addCreditSubTab')">1- تسجيل حركة كريديت</button>
+        <button class="sub-tab-btn" id="subTabBtnCredit2" onclick="openSubTab(event, 'creditRecordsSubTab')">2- سجل كشف الحساب والعمليات</button>
       </div>
 
       <button class="tab-btn" onclick="openTab(event, 'aviationTab')"><span>✈️ حجوزات الطيران</span></button>
@@ -366,7 +366,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // متغير لتخزين بيانات الكريديت للتصدير
     let currentCreditList = [];
 
     window.saveHotelBooking = async function() {
@@ -396,7 +395,6 @@
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // جلب سجلات الموردين (الخصم والإضافة)
     const qSuppliers = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
     onSnapshot(qSuppliers, (snapshot) => {
       const tbody = document.getElementById('suppliersTableBody');
@@ -429,7 +427,6 @@
       });
     });
 
-    // جلب سجل حركة الكريديت لحظياً
     const qCredit = query(collection(db, "credit_balances"), orderBy("createdAt", "desc"));
     onSnapshot(qCredit, (snapshot) => {
       const tbody = document.getElementById('creditTableBody');
@@ -473,7 +470,6 @@
       });
     });
 
-    // حذف حركة كريديت
     window.deleteCreditRecord = async function(docId) {
       if (confirm("هل أنت تأكد من رغبتك في حذف هذه الحركة المالية؟")) {
         try {
@@ -523,7 +519,6 @@
       reader.readAsArrayBuffer(file);
     };
 
-    // حفظ أرصدة الكريديت
     window.saveCreditTransaction = async function() {
       const entity = document.getElementById('creditEntity').value;
       const fileCode = document.getElementById('creditFileCode').value;
@@ -558,7 +553,6 @@
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // استيراد بيانات الكريديت من Excel
     window.importCreditFromExcel = function(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -602,7 +596,6 @@
       reader.readAsArrayBuffer(file);
     };
 
-    // تصدير جدول الكريديت لـ Excel
     window.exportCreditToExcel = function() {
       if(currentCreditList.length === 0) return alert('لا توجد بيانات لتصديرها');
 
@@ -701,11 +694,10 @@
       
       document.getElementById(tabName).classList.add("active");
       
-      if(evt.currentTarget.classList.contains('tab-btn')) {
+      if(evt.currentTarget && evt.currentTarget.classList.contains('tab-btn')) {
         evt.currentTarget.classList.add("active");
       }
 
-      // إغلاق القوائم الفرعية التي ليست نشطة
       if (tabName !== 'taxDiscountTab') {
         document.getElementById('taxDiscountSubMenu').style.display = 'none';
         document.getElementById('taxArrowIcon').textContent = '▼';
@@ -722,15 +714,29 @@
     }
 
     function openSubTab(evt, subTabName) {
-      const parentTab = evt.currentTarget.closest('.tab-content');
+      const targetSubContent = document.getElementById(subTabName);
+      if (!targetSubContent) return;
+
+      const parentTab = targetSubContent.closest('.tab-content');
+      
+      // إخفاء كافة الـ sub-tab-content داخل القسم الرئيسي
       const subContents = parentTab.getElementsByClassName("sub-tab-content");
-      for (let i = 0; i < subContents.length; i++) subContents[i].classList.remove("active");
+      for (let i = 0; i < subContents.length; i++) {
+        subContents[i].classList.remove("active");
+      }
       
-      const subButtons = evt.currentTarget.parentElement.getElementsByClassName("sub-tab-btn");
-      for (let i = 0; i < subButtons.length; i++) subButtons[i].classList.remove("active");
+      // إزالة الحالة النشطة من أزرار القائمة الفرعية
+      const subMenuContainer = parentTab.id === 'creditTab' ? document.getElementById('creditSubMenu') : document.getElementById('taxDiscountSubMenu');
+      const subButtons = subMenuContainer.getElementsByClassName("sub-tab-btn");
+      for (let i = 0; i < subButtons.length; i++) {
+        subButtons[i].classList.remove("active");
+      }
       
-      document.getElementById(subTabName).classList.add("active");
-      evt.currentTarget.classList.add("active");
+      // إظهار المحتوى الفرعي وتفعيل الزر المضغوط
+      targetSubContent.classList.add("active");
+      if(evt && evt.currentTarget) {
+        evt.currentTarget.classList.add("active");
+      }
     }
 
     function filterSuppliersTable() {
