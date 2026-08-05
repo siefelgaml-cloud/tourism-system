@@ -201,11 +201,11 @@
           <div class="form-row">
             <div class="form-group">
               <label>تاريخ الوصول (Check-in):</label>
-              <input type="date" id="creditArrivalDate">
+              <input type="text" id="creditArrivalDate" placeholder="DD/MM/YYYY" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'">
             </div>
             <div class="form-group">
               <label>تاريخ المغادرة (Check-out):</label>
-              <input type="date" id="creditDepartureDate">
+              <input type="text" id="creditDepartureDate" placeholder="DD/MM/YYYY" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'">
             </div>
           </div>
 
@@ -368,6 +368,16 @@
 
     let currentCreditList = [];
 
+    // دالة تحويل صيغة YYYY-MM-DD إلى DD/MM/YYYY
+    function formatDateToDMY(dateString) {
+      if (!dateString) return '-';
+      const parts = dateString.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return dateString;
+    }
+
     window.saveHotelBooking = async function() {
       const supplierType = document.getElementById('supplierType').value;
       const propertyName = document.getElementById('propertyName').value;
@@ -408,7 +418,7 @@
       let index = 1;
       snapshot.forEach((doc) => {
         const data = doc.data();
-        const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('ar-EG') : '-';
+        const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
         const typeBadge = data.supplierType === 'فندق' ? '<span class="badge badge-hotel">فندق</span>' : '<span class="badge badge-cruise">كروز</span>';
         const taxBadge = data.taxRate === 0.03 ? '<span class="badge badge-taxable">خاضع لضريبة 3%</span>' : '<span class="badge badge-exempt">معفى من الضريبة</span>';
 
@@ -444,7 +454,7 @@
         data.id = docSnap.id;
         currentCreditList.push(data);
 
-        const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('ar-EG') : '-';
+        const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
         const typeBadge = data.type === 'deposit' 
           ? '<span class="badge badge-deposit">إيداع (لنا)</span>' 
           : '<span class="badge badge-deduction">خصم (علينا)</span>';
@@ -454,8 +464,8 @@
             <td>${index++}</td>
             <td><strong>${data.entity || '-'}</strong></td>
             <td>${data.fileCode || '-'}</td>
-            <td>${data.arrivalDate || '-'}</td>
-            <td>${data.departureDate || '-'}</td>
+            <td>${formatDateToDMY(data.arrivalDate)}</td>
+            <td>${formatDateToDMY(data.departureDate)}</td>
             <td>${typeBadge}</td>
             <td><strong>${Number(data.amount || 0).toLocaleString()}</strong></td>
             <td>${data.currency || 'EGP'}</td>
@@ -603,8 +613,8 @@
         "م": idx + 1,
         "الجهة": item.entity || '',
         "رقم الملف": item.fileCode || '',
-        "تاريخ الوصول": item.arrivalDate || '',
-        "تاريخ المغادرة": item.departureDate || '',
+        "تاريخ الوصول": formatDateToDMY(item.arrivalDate),
+        "تاريخ المغادرة": formatDateToDMY(item.departureDate),
         "نوع الحركة": item.type === 'deposit' ? 'إيداع (لنا)' : 'خصم (علينا)',
         "المبلغ": item.amount || 0,
         "العملة": item.currency || 'EGP',
