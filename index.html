@@ -33,14 +33,17 @@
     .sub-tab-content.active { display: block; }
 
     .form-group { margin-bottom: 15px; }
+    .form-row { display: flex; gap: 15px; flex-wrap: wrap; }
+    .form-row .form-group { flex: 1; min-width: 200px; }
     label { display: block; margin-bottom: 5px; font-weight: 600; color: #334155; }
-    input, select { width: 100%; max-width: 400px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+    input, select, textarea { width: 100%; max-width: 400px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+    textarea { resize: vertical; height: 65px; }
     .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
     
     button.submit-btn { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    button.excel-btn { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button.excel-btn, label.excel-btn { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; font-size: 14px; line-height: 1.2; }
     button.submit-btn:hover { background: #15803d; }
-    button.excel-btn:hover { background: #0369a1; }
+    button.excel-btn:hover, label.excel-btn:hover { background: #0369a1; }
 
     /* تنسيق جدول العرض */
     table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
@@ -71,7 +74,7 @@
         <span id="arrowIcon" style="font-size: 12px;">▲</span>
       </button>
       
-      <!-- القائمة الفرعية (بدون أسهم داخلية) -->
+      <!-- القائمة الفرعية -->
       <div id="taxDiscountSubMenu" class="sub-tabs-container">
         <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSupplierSubTab')">1- إضافة مورد</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab')">2- قائمة الفنادق والكروزات</button>
@@ -127,7 +130,7 @@
           <div class="btn-group">
             <button class="submit-btn" onclick="saveHotelBooking()">حفظ البيانات</button>
             <button class="excel-btn" onclick="exportToExcel()">📊 تصدير الحقل لـ Excel</button>
-            <label class="excel-btn" style="cursor: pointer; display: inline-block;">
+            <label class="excel-btn" style="display: inline-block;">
               📥 استيراد من Excel
               <input type="file" id="excelImport" accept=".xlsx, .xls" style="display: none;" onchange="importFromExcel(event)">
             </label>
@@ -166,22 +169,55 @@
       <!-- 2. قسم الكريديت -->
       <div id="creditTab" class="tab-content">
         <h3>إدارة أرصدة الكريديت</h3>
-        <div class="form-group">
-          <label>الجهة (فندق / شركة طيران / وكيل):</label>
-          <input type="text" id="creditEntity" placeholder="اسم الجهة">
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>الجهة (فندق / شركة طيران / وكيل):</label>
+            <input type="text" id="creditEntity" placeholder="اسم الجهة">
+          </div>
+          <div class="form-group">
+            <label>رقم الملف (File Code):</label>
+            <input type="text" id="creditFileCode" placeholder="مثال: EG-2026-99">
+          </div>
         </div>
-        <div class="form-group">
-          <label>نوع الحركة:</label>
-          <select id="creditType">
-            <option value="deposit">إيداع رصيد (لنا)</option>
-            <option value="deduction">خصم مستحقات (علينا)</option>
-          </select>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>تاريخ الوصول (Check-in):</label>
+            <input type="date" id="creditArrivalDate">
+          </div>
+          <div class="form-group">
+            <label>تاريخ المغادرة (Check-out):</label>
+            <input type="date" id="creditDepartureDate">
+          </div>
         </div>
-        <div class="form-group">
-          <label>المبلغ ($):</label>
-          <input type="number" id="creditAmount" placeholder="0">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>نوع الحركة:</label>
+            <select id="creditType">
+              <option value="deposit">إيداع رصيد (لنا)</option>
+              <option value="deduction">خصم مستحقات (علينا)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>المبلغ ($):</label>
+            <input type="number" id="creditAmount" placeholder="0">
+          </div>
         </div>
-        <button class="submit-btn" onclick="saveCreditTransaction()">تسجيل الحركة المالية</button>
+
+        <div class="form-group">
+          <label>البيان / تفاصيل الحركة:</label>
+          <textarea id="creditDescription" placeholder="أدخل تفاصيل وملاحظات الحركة المالية هنا..."></textarea>
+        </div>
+
+        <div class="btn-group">
+          <button class="submit-btn" onclick="saveCreditTransaction()">تسجيل الحركة المالية</button>
+          <label class="excel-btn" style="display: inline-block;">
+            📥 استيراد ملف الكريديت من Excel
+            <input type="file" id="creditExcelImport" accept=".xlsx, .xls" style="display: none;" onchange="importCreditFromExcel(event)">
+          </label>
+        </div>
       </div>
 
       <!-- 3. قسم الطيران -->
@@ -369,15 +405,71 @@
       reader.readAsArrayBuffer(file);
     };
 
+    // حفظ أرصدة الكريديت بحقولها الجديدة
     window.saveCreditTransaction = async function() {
       const entity = document.getElementById('creditEntity').value;
+      const fileCode = document.getElementById('creditFileCode').value;
+      const arrivalDate = document.getElementById('creditArrivalDate').value;
+      const departureDate = document.getElementById('creditDepartureDate').value;
       const type = document.getElementById('creditType').value;
       const amount = parseFloat(document.getElementById('creditAmount').value) || 0;
+      const description = document.getElementById('creditDescription').value;
+
       if(!entity || amount <= 0) return alert('يرجى كتابة اسم الجهة والمبلغ');
+
       try {
-        await addDoc(collection(db, "credit_balances"), { entity, type, amount, createdAt: new Date() });
+        await addDoc(collection(db, "credit_balances"), { 
+          entity, 
+          fileCode,
+          arrivalDate,
+          departureDate,
+          type, 
+          amount, 
+          description,
+          createdAt: new Date() 
+        });
         alert('تم تسجيل الحركة المالية بنجاح!');
+        document.getElementById('creditEntity').value = '';
+        document.getElementById('creditFileCode').value = '';
+        document.getElementById('creditArrivalDate').value = '';
+        document.getElementById('creditDepartureDate').value = '';
+        document.getElementById('creditAmount').value = '';
+        document.getElementById('creditDescription').value = '';
       } catch (e) { alert("خطأ: " + e.message); }
+    };
+
+    // استيراد بيانات الكريديت وتعبئة جميع الحقول من Excel
+    window.importCreditFromExcel = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+        if (jsonData.length > 0) {
+          const row = jsonData[0];
+          
+          document.getElementById('creditEntity').value = row["الجهة"] || row["Entity"] || '';
+          document.getElementById('creditFileCode').value = row["رقم الملف"] || row["File Code"] || row["File No"] || '';
+          document.getElementById('creditArrivalDate').value = row["تاريخ الوصول"] || row["Arrival Date"] || row["Check In"] || '';
+          document.getElementById('creditDepartureDate').value = row["تاريخ المغادرة"] || row["Departure Date"] || row["Check Out"] || '';
+          
+          const typeVal = String(row["نوع الحركة"] || row["Type"] || '');
+          document.getElementById('creditType').value = (typeVal.includes("خصم") || typeVal.toLowerCase() === "deduction") ? "deduction" : "deposit";
+          
+          document.getElementById('creditAmount').value = row["المبلغ"] || row["Amount"] || 0;
+          document.getElementById('creditDescription').value = row["البيان"] || row["الوصف"] || row["Description"] || row["Notes"] || '';
+          
+          alert('تم قراءة كامل بيانات الكريديت من ملف Excel بنجاح!');
+        } else {
+          alert('الملف فارغ أو التنسيق غير صحيح');
+        }
+      };
+      reader.readAsArrayBuffer(file);
     };
 
     window.saveAviationBooking = async function() {
@@ -418,12 +510,10 @@
   </script>
 
   <script>
-    // التحكم في فتح وإغلاق قائمة الخصم والإضافة عند الضغط على الزر الرئيسي
     function toggleTaxDiscountMenu(evt) {
       const subMenu = document.getElementById('taxDiscountSubMenu');
       const arrowIcon = document.getElementById('arrowIcon');
 
-      // تفعيل زر الخصم والإضافة وفتح القسم الخاص به
       openTab(evt, 'taxDiscountTab');
 
       if (subMenu.style.display === 'none') {
@@ -435,7 +525,6 @@
       }
     }
 
-    // التنقل بين الأقسام الرئيسية الأخرى
     function openTab(evt, tabName) {
       const contents = document.getElementsByClassName("tab-content");
       for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
@@ -445,14 +534,12 @@
       
       document.getElementById(tabName).classList.add("active");
       
-      // التفعيل البصري للزر اضغطه المستخدم
       if(evt.currentTarget.classList.contains('tab-btn')) {
         evt.currentTarget.classList.add("active");
       } else {
         document.getElementById('taxDiscountBtn').classList.add("active");
       }
 
-      // إذا تم الانتقال لتبويب آخر، نغلق القائمة الفرعية للخصم والإضافة
       const subMenu = document.getElementById('taxDiscountSubMenu');
       const arrowIcon = document.getElementById('arrowIcon');
       if (tabName !== 'taxDiscountTab') {
@@ -461,7 +548,6 @@
       }
     }
 
-    // التنقل بين العناصر الفرعية
     function openSubTab(evt, subTabName) {
       const subContents = document.getElementsByClassName("sub-tab-content");
       for (let i = 0; i < subContents.length; i++) subContents[i].classList.remove("active");
@@ -473,7 +559,6 @@
       evt.currentTarget.classList.add("active");
     }
 
-    // فلترة البحث في جدول الموردين
     function filterSuppliersTable() {
       const input = document.getElementById("searchSupplier");
       const filter = input.value.toLowerCase();
