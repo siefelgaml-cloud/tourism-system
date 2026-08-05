@@ -45,6 +45,11 @@
     button.submit-btn:hover { background: #15803d; }
     button.excel-btn:hover, label.excel-btn:hover { background: #0369a1; }
 
+    /* تنسيق حقل المبلغ مع العملة */
+    .amount-input-group { display: flex; gap: 8px; align-items: center; max-width: 400px; }
+    .amount-input-group input { flex: 2; }
+    .amount-input-group select { flex: 1; min-width: 90px; }
+
     /* تنسيق جدول العرض */
     table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
     th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: right; }
@@ -201,8 +206,15 @@
             </select>
           </div>
           <div class="form-group">
-            <label>المبلغ ($):</label>
-            <input type="number" id="creditAmount" placeholder="0">
+            <label>المبلغ والعملة:</label>
+            <div class="amount-input-group">
+              <input type="number" id="creditAmount" placeholder="0">
+              <select id="creditCurrency">
+                <option value="EGP">EGP (ج.م)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -405,7 +417,7 @@
       reader.readAsArrayBuffer(file);
     };
 
-    // حفظ أرصدة الكريديت بحقولها الجديدة
+    // حفظ أرصدة الكريديت بما فيها العملة
     window.saveCreditTransaction = async function() {
       const entity = document.getElementById('creditEntity').value;
       const fileCode = document.getElementById('creditFileCode').value;
@@ -413,6 +425,7 @@
       const departureDate = document.getElementById('creditDepartureDate').value;
       const type = document.getElementById('creditType').value;
       const amount = parseFloat(document.getElementById('creditAmount').value) || 0;
+      const currency = document.getElementById('creditCurrency').value;
       const description = document.getElementById('creditDescription').value;
 
       if(!entity || amount <= 0) return alert('يرجى كتابة اسم الجهة والمبلغ');
@@ -425,6 +438,7 @@
           departureDate,
           type, 
           amount, 
+          currency,
           description,
           createdAt: new Date() 
         });
@@ -438,7 +452,7 @@
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // استيراد بيانات الكريديت وتعبئة جميع الحقول من Excel
+    // استيراد بيانات الكريديت والعملة من Excel
     window.importCreditFromExcel = function(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -462,9 +476,20 @@
           document.getElementById('creditType').value = (typeVal.includes("خصم") || typeVal.toLowerCase() === "deduction") ? "deduction" : "deposit";
           
           document.getElementById('creditAmount').value = row["المبلغ"] || row["Amount"] || 0;
+          
+          // تحديد العملة من الملف إن وجدت
+          const rawCurr = String(row["العملة"] || row["Currency"] || '').toUpperCase();
+          if (rawCurr.includes("EUR") || rawCurr.includes("يورو")) {
+            document.getElementById('creditCurrency').value = "EUR";
+          } else if (rawCurr.includes("USD") || rawCurr.includes("دولار") || rawCurr.includes("$")) {
+            document.getElementById('creditCurrency').value = "USD";
+          } else if (rawCurr.includes("EGP") || rawCurr.includes("جنيه") || rawCurr.includes("ج.م")) {
+            document.getElementById('creditCurrency').value = "EGP";
+          }
+
           document.getElementById('creditDescription').value = row["البيان"] || row["الوصف"] || row["Description"] || row["Notes"] || '';
           
-          alert('تم قراءة كامل بيانات الكريديت من ملف Excel بنجاح!');
+          alert('تم قراءة كامل بيانات الكريديت والعملة من ملف Excel بنجاح!');
         } else {
           alert('الملف فارغ أو التنسيق غير صحيح');
         }
