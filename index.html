@@ -177,7 +177,7 @@
         
         <div class="form-row">
           <div class="form-group">
-            <label>الجهة (فندق / شركة طيران / وكيل):</label>
+            <label>الجهة (فندق / كروز / شركة طيران):</label>
             <input type="text" id="creditEntity" placeholder="اسم الجهة">
           </div>
           <div class="form-group">
@@ -417,7 +417,7 @@
       reader.readAsArrayBuffer(file);
     };
 
-    // حفظ أرصدة الكريديت بما فيها العملة
+    // حفظ أرصدة الكريديت
     window.saveCreditTransaction = async function() {
       const entity = document.getElementById('creditEntity').value;
       const fileCode = document.getElementById('creditFileCode').value;
@@ -452,7 +452,7 @@
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // استيراد بيانات الكريديت والعملة من Excel
+    // استيراد بيانات الكريديت من Excel
     window.importCreditFromExcel = function(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -477,7 +477,6 @@
           
           document.getElementById('creditAmount').value = row["المبلغ"] || row["Amount"] || 0;
           
-          // تحديد العملة من الملف إن وجدت
           const rawCurr = String(row["العملة"] || row["Currency"] || '').toUpperCase();
           if (rawCurr.includes("EUR") || rawCurr.includes("يورو")) {
             document.getElementById('creditCurrency').value = "EUR";
@@ -489,7 +488,7 @@
 
           document.getElementById('creditDescription').value = row["البيان"] || row["الوصف"] || row["Description"] || row["Notes"] || '';
           
-          alert('تم قراءة كامل بيانات الكريديت والعملة من ملف Excel بنجاح!');
+          alert('تم قراءة كامل بيانات الكريديت من ملف Excel بنجاح!');
         } else {
           alert('الملف فارغ أو التنسيق غير صحيح');
         }
