@@ -1,897 +1,252 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام تصفية واستحقاق حسابات المرشدين</title>
-    <!-- مكتبة html2pdf لتصدير الملفات إلى PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- مكتبة xlsx-js-style لتصدير البيانات إلى ملفات Excel -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-
-    <!-- مكتبات Firebase للمزامنة اللحظية بين الهاتف والكمبيوتر -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@600;700;800;900&family=Montserrat:wght@400;600;700&display=swap');
-
-        :root {
-            --vintage-paper: #eee0cf;
-            --vintage-card: #fdfbf7;
-            --primary-navy: #0f2c4a;
-            --vintage-gold: #b8860b;
-            --vintage-gold-dark: #8b6508;
-            --border-vintage: #a89478;
-            --text-vintage: #2b2319;
-            --green: #276738;
-            --red: #a82323;
-            --sidebar-width: 260px;
-        }
-
-        body {
-            font-family: 'Amiri', serif;
-            color: var(--text-vintage);
-            margin: 0; padding: 0;
-            min-height: 100vh;
-            background-color: var(--vintage-paper);
-            background-image: 
-                radial-gradient(circle at center, rgba(253, 251, 247, 0.7) 10%, rgba(184, 148, 105, 0.35) 100%),
-                repeating-linear-gradient(45deg, rgba(168, 148, 120, 0.04) 0px, rgba(168, 148, 120, 0.04) 2px, transparent 2px, transparent 5px);
-            background-attachment: fixed;
-            display: flex;
-        }
-
-        body::before {
-            content: ""; position: fixed; top: 12px; left: 12px; right: 12px; bottom: 12px;
-            border: 1px solid var(--border-vintage); outline: 2px double var(--vintage-gold);
-            pointer-events: none; z-index: 999; opacity: 0.4;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width); background: var(--primary-navy);
-            border-left: 3px double var(--vintage-gold); min-height: 100vh;
-            padding: 30px 15px; box-sizing: border-box; position: fixed;
-            right: 0; top: 0; bottom: 0; z-index: 100;
-            display: flex; flex-direction: column; gap: 15px;
-            box-shadow: -4px 0 15px rgba(0, 0, 0, 0.15);
-        }
-
-        .sidebar-title {
-            color: var(--vintage-paper); text-align: center;
-            font-size: 1.2em; font-weight: bold;
-            border-bottom: 2px double var(--vintage-gold);
-            padding-bottom: 15px; margin-bottom: 10px;
-        }
-
-        .nav-btn {
-            background: rgba(253, 251, 247, 0.05); color: #fff;
-            padding: 14px 15px; border-radius: 4px; font-weight: bold;
-            border: 1px solid var(--vintage-gold); cursor: pointer;
-            font-family: 'Amiri', serif; font-size: 1.05em; transition: all 0.3s;
-            text-align: right; display: flex; align-items: center; gap: 10px;
-            justify-content: space-between; position: relative;
-        }
-
-        .nav-btn.active, .nav-btn:hover {
-            background: var(--vintage-gold-dark); color: #fff;
-            border-color: #fff; transform: translateX(-5px);
-        }
-
-        .badge {
-            background-color: var(--red); color: white;
-            font-size: 0.85em; font-weight: bold;
-            padding: 2px 8px; border-radius: 12px;
-            border: 1px solid #fff; display: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .main-wrapper {
-            margin-right: var(--sidebar-width); flex: 1;
-            padding: 30px 20px; box-sizing: border-box; width: 100%;
-        }
-
-        .container { max-width: 1050px; margin: 0 auto; position: relative; z-index: 1; }
-
-        .header-vintage {
-            border: 3px double var(--vintage-gold-dark); padding: 25px 35px; background: var(--vintage-card);
-            border-radius: 4px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 8px 20px rgba(43, 35, 25, 0.1); flex-wrap: wrap; gap: 15px;
-        }
-
-        .subtitle-styled {
-            font-family: 'Amiri', serif; font-size: 1.85em; font-weight: 700; color: var(--primary-navy);
-            margin: 0; line-height: 1.3; border-bottom: 2px solid var(--vintage-gold); padding-bottom: 6px;
-        }
-
-        .logo-box-left { text-align: center; font-family: 'Cinzel', serif; direction: ltr; padding-left: 25px; border-left: 2px dashed var(--border-vintage); }
-        .logo-title-main { font-size: 1.4em; font-weight: 800; color: var(--primary-navy); margin: 0; }
-        .logo-title-sub { font-size: 1.55em; font-weight: 900; color: var(--vintage-gold-dark); margin: 4px 0; }
-        .logo-tagline { font-family: 'Montserrat', sans-serif; font-size: 0.65em; font-weight: 600; color: #554838; text-transform: uppercase; margin-top: 6px; padding-top: 4px; border-top: 1px solid var(--vintage-gold); }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        .card { background: var(--vintage-card); border: 2px solid var(--border-vintage); border-radius: 4px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(43, 35, 25, 0.08); }
-        .card h3 { color: var(--primary-navy); border-bottom: 2px double var(--vintage-gold); padding-bottom: 10px; margin-top: 0; font-size: 1.35em; }
-
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        label { font-weight: bold; font-size: 1.05em; color: var(--primary-navy); }
-
-        input, select {
-            padding: 9px 12px; border: 1px solid var(--border-vintage); background-color: #fdfbf7;
-            border-radius: 3px; font-family: 'Amiri', serif; font-size: 1.05em; color: var(--text-vintage);
-            outline: none; width: 100%; box-sizing: border-box;
-        }
-
-        .vertical-item-card { border: 1px solid var(--border-vintage); background-color: #fcf9f2; border-radius: 4px; padding: 18px; margin-top: 15px; }
-        .vertical-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-vintage); padding-bottom: 10px; margin-bottom: 15px; }
-        .vertical-grid-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: end; }
-
-        .comm-result-box { background-color: #e8dbca; border: 1px solid var(--vintage-gold-dark); padding: 8px 12px; border-radius: 3px; text-align: center; font-weight: bold; color: var(--primary-navy); height: 40px; display: flex; align-items: center; justify-content: center; }
-
-        .table-responsive { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 600px; }
-        th, td { border: 1px solid var(--border-vintage); padding: 10px 12px; text-align: center; font-size: 1.05em; }
-        th { background-color: #e8dbca; color: var(--primary-navy); font-weight: bold; border-bottom: 2px solid var(--vintage-gold-dark); }
-        tfoot td { background-color: #e8dbca; font-weight: bold; color: var(--primary-navy); border-top: 2px solid var(--vintage-gold-dark); }
-
-        .btn { background-color: var(--primary-navy); color: #fcf8f2; border: 1px solid var(--vintage-gold-dark); padding: 10px 22px; border-radius: 3px; cursor: pointer; font-family: 'Amiri', serif; font-weight: bold; font-size: 1.1em; transition: 0.2s; }
-        .btn:hover { background-color: var(--vintage-gold-dark); color: #ffffff; }
-        .btn-submit { background-color: var(--green); border-color: #1a4726; }
-        .btn-pdf { background-color: #c53030; border-color: #742a2a; color: white; }
-        .btn-pdf:hover { background-color: #9b2c2c; }
-        .btn-excel { background-color: #1d6f42; border-color: #144e2e; color: white; }
-        .btn-excel:hover { background-color: #155231; }
-        .btn-danger { background-color: var(--red); border-color: #701010; color: white; padding: 4px 12px; font-size: 0.9em; }
-        .btn-info { background-color: #2b6cb0; border-color: #1a4971; color: white; padding: 5px 12px; font-size: 0.95em; }
-
-        .summary-card { border: 3px double var(--vintage-gold-dark); background-color: #fbf5eb; }
-        .positive { color: var(--green); font-weight: bold; font-size: 1.25em; }
-        .negative { color: var(--red); font-weight: bold; font-size: 1.25em; }
-
-        .status-approved { color: var(--green); font-weight: bold; }
-        .status-rejected { color: var(--red); font-weight: bold; }
-
-        .filter-bar {
-            display: flex; gap: 15px; margin-bottom: 15px; background: #fbf5eb;
-            padding: 15px; border: 1px solid var(--border-vintage); border-radius: 4px;
-            align-items: center; flex-wrap: wrap;
-        }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.65); display: none; justify-content: center;
-            align-items: center; z-index: 1000; padding: 10px; box-sizing: border-box;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-card {
-            background: var(--vintage-card); border: 3px double var(--vintage-gold-dark);
-            border-radius: 6px; width: 100%; max-width: 800px; max-height: 90vh;
-            overflow-y: auto; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            position: relative; box-sizing: border-box;
-        }
-        .modal-close {
-            position: absolute; top: 15px; left: 15px; background: var(--red);
-            color: white; border: none; font-size: 1.2em; width: 32px; height: 32px;
-            border-radius: 50%; cursor: pointer; font-weight: bold;
-        }
-
-        @media screen and (max-width: 768px) {
-            body { flex-direction: column; }
-            body::before { display: none; }
-            .sidebar {
-                position: relative; width: 100%; min-height: auto; height: auto;
-                padding: 15px 10px; flex-direction: row; flex-wrap: wrap;
-                justify-content: center; gap: 8px; border-left: none;
-                border-bottom: 3px double var(--vintage-gold);
-            }
-            .sidebar-title { width: 100%; margin-bottom: 5px; padding-bottom: 5px; font-size: 1em; }
-            .nav-btn { flex: 1; min-width: 100px; padding: 8px 10px; font-size: 0.85em; justify-content: center; text-align: center; }
-            .nav-btn.active, .nav-btn:hover { transform: none; }
-            .main-wrapper { margin-right: 0; padding: 15px 10px; }
-            .header-vintage { flex-direction: column; text-align: center; padding: 15px; }
-            .logo-box-left { border-left: none; border-top: 2px dashed var(--border-vintage); padding-left: 0; padding-top: 15px; width: 100%; }
-            .subtitle-styled { font-size: 1.3em; }
-            .card { padding: 15px; }
-        }
-
-        @media print { 
-            .no-print, body::before, .sidebar, .modal-close { display: none !important; }
-            .main-wrapper { margin-right: 0 !important; padding: 0 !important; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>نظام إدارة الحسابات والعمليات السياحية</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f6f9; margin: 0; }
+    .header { background: #1e293b; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab-btn { background: #e2e8f0; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; font-weight: bold; }
+    .tab-btn.active { background: #2563eb; color: white; }
+    .tab-content { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .tab-content.active { display: block; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: 600; color: #334155; }
+    input, select { width: 100%; max-width: 400px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+    button.submit-btn { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    button.submit-btn:hover { background: #15803d; }
+    .row { display: flex; gap: 15px; flex-wrap: wrap; }
+  </style>
 </head>
 <body>
 
-<div class="sidebar no-print">
-    <div class="sidebar-title">قائمة النظام</div>
-    <button class="nav-btn active" onclick="switchTab('tab-form')">
-        <span>📝 1. نموذج التصفية</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('tab-review')">
-        <span>🔒 2. مراجعة الطلبات</span>
-        <span id="reviewBadge" class="badge">0</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('tab-archive')">
-        <span>🔒 3. الأرشيف والبحث</span>
-    </button>
-</div>
+  <div class="header">
+    <h2>منظومة الحسابات والتصفية الشاملة</h2>
+  </div>
 
-<div class="main-wrapper">
-    <div class="container" id="printableFormArea">
+  <!-- أزرار التنقل بين الأقسام -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="openTab(event, 'hotelsTab')">🏨 الفنادق والكروزات</button>
+    <button class="tab-btn" onclick="openTab(event, 'creditTab')">💳 أرصدة الكريديت</button>
+    <button class="tab-btn" onclick="openTab(event, 'aviationTab')">✈️ حجوزات الطيران</button>
+    <button class="tab-btn" onclick="openTab(event, 'ticketsTab')">🎟️ مخزون التذاكر</button>
+    <button class="tab-btn" onclick="openTab(event, 'settlementTab')">📄 تصفية ملفات الأوبريتور</button>
+  </div>
 
-        <div class="header-vintage">
-            <div class="header-title-right">
-                <h1 class="subtitle-styled">نظام تصفية واستحقاق حسابات المرشدين السياحيين</h1>
-            </div>
-            <div class="logo-box-left">
-                <div class="logo-title-main">LOOK AT</div>
-                <div class="logo-title-sub">EGYPT TOURS</div>
-                <div class="logo-tagline">The Luxury DMC of Egypt</div>
-            </div>
-        </div>
-
-        <!-- الشاشة الأولى -->
-        <div id="tab-form" class="tab-content active">
-            <form id="settlementForm" onsubmit="event.preventDefault();">
-                <div class="card">
-                    <h3>بيانات الرحلة والمرشد</h3>
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label>اسم المرشد: <span style="color:var(--red)">*</span></label>
-                            <input type="text" id="guideInput" placeholder="اكتب اسم المرشد هنا..." required>
-                        </div>
-                        <div class="form-group">
-                            <label>رقم الملف: <span style="color:var(--red)">*</span></label>
-                            <input type="text" id="fileNo" placeholder="مثال: FL-2026-102" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>العهدة والمصروفات المباشرة (EGP)</h3>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 25%;">البيان</th>
-                                    <th style="width: 30%;">المبلغ (بالجنيه المصري)</th>
-                                    <th style="width: 45%;">ملاحظات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><b>العهدة المستلمة</b></td>
-                                    <td><input type="number" id="floatEgp" value="0" step="any" oninput="calculateAll()"></td>
-                                    <td><input type="text" id="floatNotes" placeholder="مثال: نقداً من الخزينة / تحويل"></td>
-                                </tr>
-                                <tr>
-                                    <td>مصاريف الغداء</td>
-                                    <td><input type="number" id="lunchEgp" value="0" step="any" oninput="calculateAll()"></td>
-                                    <td><input type="text" id="lunchNotes" placeholder="تفاصيل مطعم الغداء..."></td>
-                                </tr>
-                                <tr>
-                                    <td>الإكراميات (Tips)</td>
-                                    <td><input type="number" id="tipsEgp" value="0" step="any" oninput="calculateAll()"></td>
-                                    <td><input type="text" id="tipsNotes" placeholder="إكراميات سائق / مطار / معابد..."></td>
-                                </tr>
-                                <tr>
-                                    <td>الباركينج والرسوم</td>
-                                    <td><input type="number" id="parkingEgp" value="0" step="any" oninput="calculateAll()"></td>
-                                    <td><input type="text" id="parkingNotes" placeholder="رسوم انتظار / بوابات..."></td>
-                                </tr>
-                                <tr>
-                                    <td>أتعاب المرشد (اليومية)</td>
-                                    <td><input type="number" id="feeEgp" value="0" step="any" oninput="calculateAll()"></td>
-                                    <td><input type="text" id="feeNotes" placeholder="عدد الأيام / تفاصيل يومية الإرشاد..."></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
-                        <h3 style="margin:0;">مبيعات المحلات (Shops)</h3>
-                        <button type="button" class="btn no-print" onclick="addShopRow()">+ إضافة محل</button>
-                    </div>
-                    <div id="shopsContainer"></div>
-                </div>
-
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
-                        <h3 style="margin:0;">الرحلات الاختيارية (Optional Tours)</h3>
-                        <button type="button" class="btn no-print" onclick="addOptionalRow()">+ إضافة رحلة</button>
-                    </div>
-                    <div id="optionalContainer"></div>
-                </div>
-
-                <div class="card summary-card">
-                    <h3>صافي التصفية النهائي (EGP)</h3>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>إجمالي ما بذمة المرشد</th>
-                                    <th>إجمالي المصروفات والأتعاب</th>
-                                    <th>الصافي النهائي</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td id="totalDueEgp">0.00 EGP</td>
-                                    <td id="totalExpEgp">0.00 EGP</td>
-                                    <td id="netEgp" class="positive">0.00 EGP</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px; flex-wrap:wrap;" class="no-print">
-                        <button type="button" class="btn btn-submit" onclick="submitSettlement()">إرسال التصفية للمراجعة 📤</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- الشاشة الثانية -->
-        <div id="tab-review" class="tab-content">
-            <div class="card">
-                <h3>الطلبات الواردة (قيد المراجعة)</h3>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>اسم المرشد</th>
-                                <th>رقم الملف</th>
-                                <th>التاريخ</th>
-                                <th>ما بذمته</th>
-                                <th>المصروفات</th>
-                                <th>الصافي</th>
-                                <th>عرض التفاصيل</th>
-                                <th>الإجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reviewTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- الشاشة الثالثة -->
-        <div id="tab-archive" class="tab-content">
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-                    <h3 style="margin-top:0;">سجل التصفيات المحسومة (الأرشيف)</h3>
-                    <div class="no-print" style="display:flex; gap:8px; margin-bottom:10px;">
-                        <button class="btn btn-excel" style="font-size:0.85em; padding:6px 12px;" onclick="exportBackupData()">تصدير أكسيل Excel 📊</button>
-                    </div>
-                </div>
-                
-                <div class="filter-bar no-print">
-                    <div class="form-group" style="flex: 2; min-width:200px;">
-                        <label>🔍 فلترة باسم المرشد أو رقم الملف:</label>
-                        <input type="text" id="archiveFilterInput" placeholder="اكتب اسم المرشد أو رقم الملف..." oninput="renderArchiveTable()">
-                    </div>
-                    <div class="form-group" style="flex: 1; min-width:130px;">
-                        <label>الحالة:</label>
-                        <select id="archiveStatusFilter" onchange="renderArchiveTable()">
-                            <option value="ALL">الكل</option>
-                            <option value="معتمد">معتمد ✅</option>
-                            <option value="مرفوض">مرفوض ❌</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>اسم المرشد</th>
-                                <th>رقم الملف</th>
-                                <th>تاريخ الحسم</th>
-                                <th>أتعاب المرشد</th>
-                                <th>ما بذمته</th>
-                                <th>المصروفات</th>
-                                <th>الصافي</th>
-                                <th>الحالة النهائيّة</th>
-                                <th>عرض التفاصيل</th>
-                            </tr>
-                        </thead>
-                        <tbody id="archiveTableBody"></tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="3"><b>الإجمالي العام للصفوف المعروضة:</b></td>
-                                <td id="totalGuideFeesSum">0.00 EGP</td>
-                                <td colspan="5"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-
+  <!-- 1. قسم الفنادق والكروزات -->
+  <div id="hotelsTab" class="tab-content active">
+    <h3>حجز فندق / كروز</h3>
+    <div class="form-group">
+      <label>اسم الفندق/الكروز:</label>
+      <input type="text" id="hotelName" placeholder="أدخل الاسم">
     </div>
-</div>
-
-<div id="detailsModal" class="modal-overlay">
-    <div class="modal-card">
-        <button class="modal-close no-print" onclick="closeModal()">×</button>
-        <div id="pdfExportArea">
-            <h2 style="color: var(--primary-navy); border-bottom: 2px solid var(--vintage-gold); padding-bottom: 8px; margin-top:0;">
-                تفاصيل تصفية حساب مرشد
-            </h2>
-            <div id="modalContent"></div>
-        </div>
-        <div style="text-align: left; margin-top: 20px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;" class="no-print">
-            <button class="btn btn-pdf" onclick="downloadModalPDF()">تحميل PDF 📄</button>
-            <button class="btn" onclick="window.print()">طباعة التقرير 🖨️</button>
-            <button class="btn btn-danger" onclick="closeModal()">إغلاق</button>
-        </div>
+    <div class="form-group">
+      <label>حالة الضريبة:</label>
+      <select id="taxType">
+        <option value="0.03">خاضع لضريبة 3%</option>
+        <option value="0">معفى من الضريبة</option>
+      </select>
     </div>
-</div>
+    <div class="form-group">
+      <label>المبلغ الأساسي ($):</label>
+      <input type="number" id="hotelBaseAmount" placeholder="0">
+    </div>
+    <button class="submit-btn" onclick="saveHotelBooking()">حفظ الحجز</button>
+  </div>
 
-<script>
-    const SECRET_PIN = "991997";
-    const STORAGE_KEY = "tafseya_app_permanent_db";
+  <!-- 2. قسم الكريديت -->
+  <div id="creditTab" class="tab-content">
+    <h3>إدارة أرصدة الكريديت</h3>
+    <div class="form-group">
+      <label>الجهة (فندق / شركة طيران / وكيل):</label>
+      <input type="text" id="creditEntity" placeholder="اسم الجهة">
+    </div>
+    <div class="form-group">
+      <label>نوع الحركة:</label>
+      <select id="creditType">
+        <option value="deposit">إيداع رصيد (لنا)</option>
+        <option value="deduction">خصم مستحقات (علينا)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>المبلغ ($):</label>
+      <input type="number" id="creditAmount" placeholder="0">
+    </div>
+    <button class="submit-btn" onclick="saveCreditTransaction()">تسجيل الحركة المالية</button>
+  </div>
 
-    // إعدادات Firebase المفتوحة للمزامنة المباشرة
+  <!-- 3. قسم الطيران -->
+  <div id="aviationTab" class="tab-content">
+    <h3>حجوزات تذاكر الطيران</h3>
+    <div class="form-group">
+      <label>خط الطيران / الوكيل:</label>
+      <input type="text" id="airlineName" placeholder="مثال: مصر للطيران">
+    </div>
+    <div class="form-group">
+      <label>رقم التذكرة / PNR:</label>
+      <input type="text" id="pnrNumber" placeholder="أدخل الرقم المرجعي">
+    </div>
+    <div class="form-group">
+      <label>قيمة التذكرة ($):</label>
+      <input type="number" id="ticketCost" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label>عمولة الشركة ($):</label>
+      <input type="number" id="commission" placeholder="0">
+    </div>
+    <button class="submit-btn" onclick="saveAviationBooking()">حفظ حجز الطيران</button>
+  </div>
+
+  <!-- 4. قسم التذاكر -->
+  <div id="ticketsTab" class="tab-content">
+    <h3>مخزون تذاكر المزارات</h3>
+    <div class="form-group">
+      <label>اسم المزار:</label>
+      <input type="text" id="ticketName" placeholder="مثال: معبد الكرنك">
+    </div>
+    <div class="form-group">
+      <label>الكمية المضافة:</label>
+      <input type="number" id="ticketQty" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label>سعر التذكرة الواحدة ($):</label>
+      <input type="number" id="ticketUnitPrice" placeholder="0">
+    </div>
+    <button class="submit-btn" onclick="saveTicketInventory()">إضافة للمخزون</button>
+  </div>
+
+  <!-- 5. قسم تصفية ملفات الأوبريتور -->
+  <div id="settlementTab" class="tab-content">
+    <h3>تصفية ملف أوبريتور (Operator File Settlement)</h3>
+    <div class="form-group">
+      <label>رقم / اسم الملف (File Code):</label>
+      <input type="text" id="fileCode" placeholder="مثال: EG-2026-99">
+    </div>
+    <div class="form-group">
+      <label>اسم المرشد:</label>
+      <input type="text" id="guideName" placeholder="اسم المرشد المسئول">
+    </div>
+    <div class="form-group">
+      <label>مصاريف الرحلات الاختيارية (Optional Trips) ($):</label>
+      <input type="number" id="optionalExpenses" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label>عمولة المرشد ($):</label>
+      <input type="number" id="guideCommission" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label>عدد التذاكر المستخدمة من المخزون:</label>
+      <input type="number" id="ticketsUsedQty" placeholder="0">
+    </div>
+    <button class="submit-btn" onclick="saveFileSettlement()">إغلاق وتصفية الملف</button>
+  </div>
+
+  <!-- ربط Firebase وتفعيل الوظائف -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
     const firebaseConfig = {
-        databaseURL: "https://tafseya-system-default-rtdb.europe-west1.firebasedatabase.app/"
+      apiKey: "AiZaSyBnVZaF4cbNqTM03tA3dWEfk2k3aWj0djs",
+      authDomain: "tourism-management-syste-b0c23.firebaseapp.com",
+      projectId: "tourism-management-syste-b0c23",
+      storageBucket: "tourism-management-syste-b0c23.firebasestorage.app",
+      messagingSenderId: "220547259810",
+      appId: "1:220547259810:web:0857978bcab6ea93ff26fb"
     };
-    
-    // تهيئة السيرفر المباشر
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
 
-    let cloudData = { pending: [], archive: [] };
-    let currentModalFileNo = "Settlement";
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    // الاستماع اللحظي للبيانات من أي هاتف أو كمبيوتر في نفس الوقت
-    function initRealtimeSync() {
-        db.ref('tafseya_data').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                cloudData.pending = data.pending || [];
-                cloudData.archive = data.archive || [];
-            } else {
-                cloudData = { pending: [], archive: [] };
-            }
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
-            renderReviewTable();
-            renderArchiveTable();
-            updateBadge();
-        });
-    }
+    // 1. حفظ الفنادق
+    window.saveHotelBooking = async function() {
+      const name = document.getElementById('hotelName').value;
+      const taxRate = parseFloat(document.getElementById('taxType').value);
+      const base = parseFloat(document.getElementById('hotelBaseAmount').value) || 0;
+      const total = base + (base * taxRate);
 
-    // حفظ البيانات في القاعدة اللحظية الموحدة
-    async function saveCloudData() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
-        try {
-            await db.ref('tafseya_data').set(cloudData);
-        } catch (e) {
-            console.error("خطأ التحديث اللحظي:", e);
-        }
-    }
+      if(!name || base <= 0) return alert('يرجى إدخال البيانات كاملة');
 
-    function updateBadge() {
-        const badge = document.getElementById('reviewBadge');
-        const count = cloudData.pending ? cloudData.pending.length : 0;
-        if (count > 0) {
-            badge.innerText = count;
-            badge.style.display = 'inline-block';
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-
-    function switchTab(tabId) {
-        if (tabId === 'tab-review' || tabId === 'tab-archive') {
-            const userPin = prompt("🔒 هذا القسم محمي برقم سري، يرجى إدخال رمز الدخول:");
-            if (userPin !== SECRET_PIN) {
-                if (userPin !== null) alert("❌ الرقم السري غير صحيح!");
-                return;
-            }
-        }
-
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-
-        document.getElementById(tabId).classList.add('active');
-        const btnIndex = tabId === 'tab-form' ? 0 : tabId === 'tab-review' ? 1 : 2;
-        document.querySelectorAll('.nav-btn')[btnIndex].classList.add('active');
-
-        if (tabId === 'tab-review') renderReviewTable();
-        if (tabId === 'tab-archive') renderArchiveTable();
-    }
-
-    let shopCounter = 0;
-    function addShopRow() {
-        shopCounter++;
-        const container = document.getElementById('shopsContainer');
-        const shopCard = document.createElement('div');
-        shopCard.className = 'vertical-item-card shop-card-item';
-        shopCard.innerHTML = `
-            <div class="vertical-card-header">
-                <span><b>بيانات المحل #${shopCounter}</b></span>
-                <button type="button" class="btn btn-danger no-print" onclick="this.parentElement.parentElement.remove(); calculateAll();">حذف</button>
-            </div>
-            <div class="vertical-grid-fields">
-                <div class="form-group" style="grid-column: span 2;">
-                    <label>اسم المحل:</label>
-                    <input type="text" placeholder="مثال: محل برديات / عطور" class="shop-name">
-                </div>
-                <div class="form-group">
-                    <label>إجمالي المبيعات:</label>
-                    <input type="number" value="0" class="shop-sales" oninput="calculateAll()">
-                </div>
-                <div class="form-group">
-                    <label>العملة:</label>
-                    <select class="shop-curr"><option value="EGP">EGP</option></select>
-                </div>
-            </div>
-        `;
-        container.appendChild(shopCard);
-        calculateAll();
-    }
-
-    let optionalCounter = 0;
-    function addOptionalRow() {
-        optionalCounter++;
-        const container = document.getElementById('optionalContainer');
-        const optCard = document.createElement('div');
-        optCard.className = 'vertical-item-card opt-card-item';
-        optCard.innerHTML = `
-            <div class="vertical-card-header">
-                <span><b>الرحلة الاختيارية #${optionalCounter}</b></span>
-                <button type="button" class="btn btn-danger no-print" onclick="this.parentElement.parentElement.remove(); calculateAll();">حذف</button>
-            </div>
-            <div class="vertical-grid-fields">
-                <div class="form-group">
-                    <label>اسم الرحلة:</label>
-                    <input type="text" class="opt-name">
-                </div>
-                <div class="form-group">
-                    <label>عدد الأفراد:</label>
-                    <input type="number" value="1" class="opt-pax" oninput="calculateAll()">
-                </div>
-                <div class="form-group">
-                    <label>السعر للفرد:</label>
-                    <input type="number" value="0" class="opt-price" oninput="calculateAll()">
-                </div>
-                <div class="form-group">
-                    <label>التكلفة المباشرة:</label>
-                    <input type="number" value="0" class="opt-cost" oninput="calculateAll()">
-                </div>
-                <div class="form-group">
-                    <label>نسبة المرشد %:</label>
-                    <input type="number" value="20" class="opt-guide-pct" oninput="calculateAll()">
-                </div>
-                <div class="form-group">
-                    <label>عمولة المرشد:</label>
-                    <div class="comm-result-box opt-guide-comm-val">0.00</div>
-                </div>
-            </div>
-        `;
-        container.appendChild(optCard);
-        calculateAll();
-    }
-
-    function calculateAll() {
-        let totalOptComm = 0;
-        document.querySelectorAll('.opt-card-item').forEach(card => {
-            const pax = parseFloat(card.querySelector('.opt-pax').value) || 0;
-            const price = parseFloat(card.querySelector('.opt-price').value) || 0;
-            const cost = parseFloat(card.querySelector('.opt-cost').value) || 0;
-            const guidePct = (parseFloat(card.querySelector('.opt-guide-pct').value) || 0) / 100;
-
-            const netProfit = (pax * price) - cost;
-            const guideComm = netProfit > 0 ? netProfit * guidePct : 0;
-            card.querySelector('.opt-guide-comm-val').innerText = guideComm.toFixed(2);
-            totalOptComm += guideComm;
-        });
-
-        const floatVal = parseFloat(document.getElementById('floatEgp').value) || 0;
-        const lunch = parseFloat(document.getElementById('lunchEgp').value) || 0;
-        const tips = parseFloat(document.getElementById('tipsEgp').value) || 0;
-        const parking = parseFloat(document.getElementById('parkingEgp').value) || 0;
-        const fee = parseFloat(document.getElementById('feeEgp').value) || 0;
-
-        const totalDue = floatVal + totalOptComm;
-        const totalExp = lunch + tips + parking + fee;
-        const net = totalDue - totalExp;
-
-        document.getElementById('totalDueEgp').innerText = totalDue.toFixed(2) + ' EGP';
-        document.getElementById('totalExpEgp').innerText = totalExp.toFixed(2) + ' EGP';
-
-        const netElem = document.getElementById('netEgp');
-        netElem.innerText = net.toFixed(2) + ' EGP';
-        netElem.className = net >= 0 ? 'positive' : 'negative';
-    }
-
-    async function submitSettlement() {
-        const guideName = document.getElementById('guideInput').value.trim();
-        const fileNo = document.getElementById('fileNo').value.trim();
-
-        if (!guideName || !fileNo) {
-            alert("⚠️ يرجى كتابة اسم المرشد ورقم الملف قبل إرسال التصفية!");
-            return;
-        }
-
-        const formData = {
-            id: Date.now(),
-            guideName: guideName,
-            fileNo: fileNo,
-            date: new Date().toLocaleDateString('ar-EG'),
-            floatEgp: parseFloat(document.getElementById('floatEgp').value) || 0,
-            floatNotes: document.getElementById('floatNotes').value,
-            lunchEgp: parseFloat(document.getElementById('lunchEgp').value) || 0,
-            lunchNotes: document.getElementById('lunchNotes').value,
-            tipsEgp: parseFloat(document.getElementById('tipsEgp').value) || 0,
-            tipsNotes: document.getElementById('tipsNotes').value,
-            parkingEgp: parseFloat(document.getElementById('parkingEgp').value) || 0,
-            parkingNotes: document.getElementById('parkingNotes').value,
-            feeEgp: parseFloat(document.getElementById('feeEgp').value) || 0,
-            feeNotes: document.getElementById('feeNotes').value,
-            shops: [],
-            optionals: [],
-            totalDue: document.getElementById('totalDueEgp').innerText,
-            totalExp: document.getElementById('totalExpEgp').innerText,
-            netAmount: document.getElementById('netEgp').innerText
-        };
-
-        document.querySelectorAll('.shop-card-item').forEach(card => {
-            formData.shops.push({
-                name: card.querySelector('.shop-name').value,
-                sales: card.querySelector('.shop-sales').value,
-                curr: card.querySelector('.shop-curr').value
-            });
-        });
-
-        document.querySelectorAll('.opt-card-item').forEach(card => {
-            formData.optionals.push({
-                name: card.querySelector('.opt-name').value,
-                pax: card.querySelector('.opt-pax').value,
-                price: card.querySelector('.opt-price').value,
-                cost: card.querySelector('.opt-cost').value,
-                guidePct: card.querySelector('.opt-guide-pct').value,
-                comm: card.querySelector('.opt-guide-comm-val').innerText
-            });
-        });
-
-        cloudData.pending.push(formData);
-        await saveCloudData();
-
-        alert("✅ تم إرسال التصفية بنجاح إلى المراجعة وستظهر في الكمبيوتر فوراً!");
-        document.getElementById('settlementForm').reset();
-        document.getElementById('shopsContainer').innerHTML = '';
-        document.getElementById('optionalContainer').innerHTML = '';
-        calculateAll();
-    }
-
-    function renderReviewTable() {
-        const tbody = document.getElementById('reviewTableBody');
-        tbody.innerHTML = '';
-
-        if (!cloudData.pending || cloudData.pending.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8">لا توجد طلبات قيد المراجعة حالياً.</td></tr>`;
-            return;
-        }
-
-        cloudData.pending.forEach((item, index) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><b>${item.guideName}</b></td>
-                <td>${item.fileNo}</td>
-                <td>${item.date}</td>
-                <td>${item.totalDue}</td>
-                <td>${item.totalExp}</td>
-                <td><b>${item.netAmount}</b></td>
-                <td><button class="btn btn-info" onclick="openDetailsModal(${item.id}, 'pending')">👁️ عرض</button></td>
-                <td>
-                    <button class="btn btn-submit" style="padding:4px 8px; font-size:0.85em;" onclick="approveItem(${index})">اعتماد ✅</button>
-                    <button class="btn btn-danger" style="padding:4px 8px; font-size:0.85em;" onclick="rejectItem(${index})">رفض ❌</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    async function approveItem(index) {
-        if (!confirm("هل أنت تأكد من اعتماد هذه التصفية وتحويلها للأرشيف؟")) return;
-        let item = cloudData.pending.splice(index, 1)[0];
-        item.status = "معتمد";
-        item.finalDate = new Date().toLocaleDateString('ar-EG');
-        cloudData.archive.push(item);
-        await saveCloudData();
-    }
-
-    async function rejectItem(index) {
-        if (!confirm("هل أنت تأكد من رفض هذه التصفية؟")) return;
-        let item = cloudData.pending.splice(index, 1)[0];
-        item.status = "مرفوض";
-        item.finalDate = new Date().toLocaleDateString('ar-EG');
-        cloudData.archive.push(item);
-        await saveCloudData();
-    }
-
-    function renderArchiveTable() {
-        const tbody = document.getElementById('archiveTableBody');
-        tbody.innerHTML = '';
-
-        const filterText = document.getElementById('archiveFilterInput').value.toLowerCase();
-        const statusFilter = document.getElementById('archiveStatusFilter').value;
-
-        let filtered = (cloudData.archive || []).filter(item => {
-            const matchesText = item.guideName.toLowerCase().includes(filterText) || item.fileNo.toLowerCase().includes(filterText);
-            const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter;
-            return matchesText && matchesStatus;
-        });
-
-        if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9">لا توجد تصفيات مؤرشفة تطابق البحث.</td></tr>`;
-            document.getElementById('totalGuideFeesSum').innerText = '0.00 EGP';
-            return;
-        }
-
-        let totalFees = 0;
-
-        filtered.forEach(item => {
-            totalFees += parseFloat(item.feeEgp) || 0;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><b>${item.guideName}</b></td>
-                <td>${item.fileNo}</td>
-                <td>${item.finalDate || item.date}</td>
-                <td>${(item.feeEgp || 0).toFixed(2)} EGP</td>
-                <td>${item.totalDue}</td>
-                <td>${item.totalExp}</td>
-                <td><b>${item.netAmount}</b></td>
-                <td class="${item.status === 'معتمد' ? 'status-approved' : 'status-rejected'}">${item.status}</td>
-                <td><button class="btn btn-info" onclick="openDetailsModal(${item.id}, 'archive')">👁️ التفاصيل</button></td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        document.getElementById('totalGuideFeesSum').innerText = totalFees.toFixed(2) + ' EGP';
-    }
-
-    function openDetailsModal(id, source) {
-        let list = source === 'pending' ? cloudData.pending : cloudData.archive;
-        let item = list.find(x => x.id === id);
-        if (!item) return;
-
-        currentModalFileNo = item.fileNo || "Settlement";
-
-        let html = `
-            <p><b>اسم المرشد:</b> ${item.guideName} | <b>رقم الملف:</b> ${item.fileNo} | <b>التاريخ:</b> ${item.date}</p>
-            <hr style="border-color: var(--border-vintage);">
-            <h4>العهدة والمصروفات:</h4>
-            <ul>
-                <li>العهدة المستلمة: ${item.floatEgp} EGP (${item.floatNotes || 'لا توجد ملاحظات'})</li>
-                <li>مصاريف الغداء: ${item.lunchEgp} EGP (${item.lunchNotes || 'لا توجد ملاحظات'})</li>
-                <li>الإكراميات: ${item.tipsEgp} EGP (${item.tipsNotes || 'لا توجد ملاحظات'})</li>
-                <li>الباركينج: ${item.parkingEgp} EGP (${item.parkingNotes || 'لا توجد ملاحظات'})</li>
-                <li>أتعاب المرشد: ${item.feeEgp} EGP (${item.feeNotes || 'لا توجد ملاحظات'})</li>
-            </ul>
-            <hr style="border-color: var(--border-vintage);">
-            <h4>الإجماليات والصافي:</h4>
-            <p><b>ما بذمة المرشد:</b> ${item.totalDue} | <b>المصروفات:</b> ${item.totalExp}</p>
-            <p style="font-size: 1.2em;"><b>الصافي النهائي:</b> <span class="positive">${item.netAmount}</span></p>
-        `;
-
-        document.getElementById('modalContent').innerHTML = html;
-        document.getElementById('detailsModal').classList.add('active');
-    }
-
-    function closeModal() {
-        document.getElementById('detailsModal').classList.remove('active');
-    }
-
-    function downloadModalPDF() {
-        const element = document.getElementById('pdfExportArea');
-        const opt = {
-            margin:       0.5,
-            filename:     `Report_${currentModalFileNo}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
-    }
-
-    function exportBackupData() {
-        if (!cloudData.archive || cloudData.archive.length === 0) {
-            alert("⚠️ لا توجد بيانات أرشيف متوفرة للتصدير حالياً!");
-            return;
-        }
-
-        const headers = [
-            "اسم المرشد", "رقم الملف", "تاريخ الحسم", "العهدة (EGP)", 
-            "أتعاب المرشد (EGP)", "مصاريف غداء", "إكراميات", "باركينج ورسوم", 
-            "إجمالي ما بذمته", "إجمالي المصروفات", "الصافي النهائي", "حالة الطلب"
-        ];
-
-        const rows = cloudData.archive.map(item => [
-            item.guideName || "",
-            item.fileNo || "",
-            item.finalDate || item.date || "",
-            item.floatEgp || 0,
-            item.feeEgp || 0,
-            item.lunchEgp || 0,
-            item.tipsEgp || 0,
-            item.parkingEgp || 0,
-            item.totalDue || "",
-            item.totalExp || "",
-            item.netAmount || "",
-            item.status || ""
-        ]);
-
-        const data = [headers, ...rows];
-        const worksheet = XLSX.utils.aoa_to_sheet(data);
-
-        const headerStyle = {
-            font: { bold: true, color: { rgb: "000000" }, name: "Calibri", sz: 11 },
-            fill: { fgColor: { rgb: "87CEEB" } },
-            alignment: { horizontal: "center", vertical: "center" },
-            border: {
-                top: { style: "thin", color: { rgb: "A89478" } },
-                bottom: { style: "thin", color: { rgb: "A89478" } },
-                left: { style: "thin", color: { rgb: "A89478" } },
-                right: { style: "thin", color: { rgb: "A89478" } }
-            }
-        };
-
-        const cellStyle = {
-            alignment: { horizontal: "center", vertical: "center" },
-            border: {
-                top: { style: "thin", color: { rgb: "E0E0E0" } },
-                bottom: { style: "thin", color: { rgb: "E0E0E0" } },
-                left: { style: "thin", color: { rgb: "E0E0E0" } },
-                right: { style: "thin", color: { rgb: "E0E0E0" } }
-            }
-        };
-
-        const range = XLSX.utils.decode_range(worksheet['!ref']);
-
-        for (let R = range.s.r; R <= range.e.r; ++R) {
-            for (let C = range.s.c; C <= range.e.c; ++C) {
-                const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
-                if (!worksheet[cell_address]) continue;
-
-                if (R === 0) {
-                    worksheet[cell_address].s = headerStyle;
-                } else {
-                    worksheet[cell_address].s = cellStyle;
-                }
-            }
-        }
-
-        const colWidths = headers.map(() => ({ wch: 18 }));
-        worksheet['!cols'] = colWidths;
-
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "الأرشيف");
-
-        const dateStr = new Date().toISOString().slice(0, 10);
-        XLSX.writeFile(workbook, `Archive_Settlements_${dateStr}.xlsx`);
-    }
-
-    window.onload = function() {
-        initRealtimeSync();
+      try {
+        await addDoc(collection(db, "hotel_bookings"), { hotelName: name, taxRate, baseAmount: base, totalAmount: total, createdAt: new Date() });
+        alert(`تم حفظ الحجز! الإجمالي بعد الضريبة: $${total}`);
+      } catch (e) { alert("خطأ: " + e.message); }
     };
-</script>
+
+    // 2. حفظ الكريديت
+    window.saveCreditTransaction = async function() {
+      const entity = document.getElementById('creditEntity').value;
+      const type = document.getElementById('creditType').value;
+      const amount = parseFloat(document.getElementById('creditAmount').value) || 0;
+
+      if(!entity || amount <= 0) return alert('يرجى كتابة اسم الجهة والمبلغ');
+
+      try {
+        await addDoc(collection(db, "credit_balances"), { entity, type, amount, createdAt: new Date() });
+        alert('تم تسجيل الحركة المالية بنجاح!');
+      } catch (e) { alert("خطأ: " + e.message); }
+    };
+
+    // 3. حفظ الطيران
+    window.saveAviationBooking = async function() {
+      const airline = document.getElementById('airlineName').value;
+      const pnr = document.getElementById('pnrNumber').value;
+      const cost = parseFloat(document.getElementById('ticketCost').value) || 0;
+      const comm = parseFloat(document.getElementById('commission').value) || 0;
+
+      if(!airline || !pnr) return alert('يرجى إدخال البيانات الرئيسية للطيران');
+
+      try {
+        await addDoc(collection(db, "aviation_bookings"), { airline, pnr, cost, commission: comm, createdAt: new Date() });
+        alert('تم حفظ حجز الطيران بنجاح!');
+      } catch (e) { alert("خطأ: " + e.message); }
+    };
+
+    // 4. حفظ التذاكر
+    window.saveTicketInventory = async function() {
+      const name = document.getElementById('ticketName').value;
+      const qty = parseInt(document.getElementById('ticketQty').value) || 0;
+      const unitPrice = parseFloat(document.getElementById('ticketUnitPrice').value) || 0;
+
+      if(!name || qty <= 0) return alert('يرجى إدخال بيانات التذاكر');
+
+      try {
+        await addDoc(collection(db, "attractions_tickets"), { ticketName: name, quantity: qty, unitPrice, createdAt: new Date() });
+        alert('تم تحديث مخزون التذاكر!');
+      } catch (e) { alert("خطأ: " + e.message); }
+    };
+
+    // 5. تصفية الملفات
+    window.saveFileSettlement = async function() {
+      const fileCode = document.getElementById('fileCode').value;
+      const guideName = document.getElementById('guideName').value;
+      const optionalExp = parseFloat(document.getElementById('optionalExpenses').value) || 0;
+      const guideComm = parseFloat(document.getElementById('guideCommission').value) || 0;
+      const ticketsUsed = parseInt(document.getElementById('ticketsUsedQty').value) || 0;
+
+      if(!fileCode) return alert('يرجى كتابة كود الملف');
+
+      try {
+        await addDoc(collection(db, "file_settlements"), {
+          fileCode, guideName, optionalExpenses: optionalExp, guideCommission: guideComm, ticketsUsed, createdAt: new Date()
+        });
+        alert('تم حفظ تصفية الملف بنجاح!');
+      } catch (e) { alert("خطأ: " + e.message); }
+    };
+  </script>
+
+  <script>
+    // التنقل بين التبويبات
+    function openTab(evt, tabName) {
+      const contents = document.getElementsByClassName("tab-content");
+      for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
+      const buttons = document.getElementsByClassName("tab-btn");
+      for (let i = 0; i < buttons.length; i++) buttons[i].classList.remove("active");
+      document.getElementById(tabName).classList.add("active");
+      evt.currentTarget.classList.add("active");
+    }
+  </script>
 
 </body>
 </html>
