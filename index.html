@@ -42,8 +42,10 @@
     
     button.submit-btn { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
     button.excel-btn, label.excel-btn { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; font-size: 14px; line-height: 1.2; }
+    button.delete-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
     button.submit-btn:hover { background: #15803d; }
     button.excel-btn:hover, label.excel-btn:hover { background: #0369a1; }
+    button.delete-btn:hover { background: #dc2626; }
 
     /* تنسيق حقل المبلغ مع العملة */
     .amount-input-group { display: flex; gap: 8px; align-items: center; max-width: 400px; }
@@ -51,7 +53,7 @@
     .amount-input-group select { flex: 1; min-width: 90px; }
 
     /* تنسيق جدول العرض */
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; font-size: 14px; }
     th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: right; }
     th { background-color: #f8fafc; color: #1e293b; font-weight: 700; }
     tr:nth-child(even) { background-color: #f8fafc; }
@@ -60,6 +62,8 @@
     .badge-cruise { background-color: #fef3c7; color: #92400e; }
     .badge-taxable { background-color: #dcfce7; color: #166534; }
     .badge-exempt { background-color: #f3f4f6; color: #374151; }
+    .badge-deposit { background-color: #dcfce7; color: #15803d; }
+    .badge-deduction { background-color: #fee2e2; color: #b91c1c; }
   </style>
 </head>
 <body>
@@ -73,19 +77,26 @@
     <!-- القائمة الرئيسية الرأسية (الجانبية) -->
     <div class="tabs-vertical">
       
-      <!-- زر الخصم والإضافة مع سهم التبديل -->
+      <!-- 1. زر الخصم والإضافة -->
       <button class="tab-btn active" id="taxDiscountBtn" onclick="toggleTaxDiscountMenu(event)">
         <span>📋 الخصم والإضافة</span>
-        <span id="arrowIcon" style="font-size: 12px;">▲</span>
+        <span id="taxArrowIcon" style="font-size: 12px;">▲</span>
       </button>
-      
-      <!-- القائمة الفرعية -->
       <div id="taxDiscountSubMenu" class="sub-tabs-container">
         <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSupplierSubTab')">1- إضافة مورد</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab')">2- قائمة الفنادق والكروزات</button>
       </div>
 
-      <button class="tab-btn" onclick="openTab(event, 'creditTab')"><span>💳 أرصدة الكريديت</span></button>
+      <!-- 2. زر أرصدة الكريديت -->
+      <button class="tab-btn" id="creditBtn" onclick="toggleCreditMenu(event)">
+        <span>💳 أرصدة الكريديت</span>
+        <span id="creditArrowIcon" style="font-size: 12px;">▼</span>
+      </button>
+      <div id="creditSubMenu" class="sub-tabs-container" style="display: none;">
+        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addCreditSubTab')">1- تسجيل حركة كريديت</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditRecordsSubTab')">2- سجل كشف الحساب والعمليات</button>
+      </div>
+
       <button class="tab-btn" onclick="openTab(event, 'aviationTab')"><span>✈️ حجوزات الطيران</span></button>
       <button class="tab-btn" onclick="openTab(event, 'ticketsTab')"><span>🎟️ مخزون التذاكر</span></button>
       <button class="tab-btn" onclick="openTab(event, 'settlementTab')"><span>📄 تصفية ملفات الأوبريتور</span></button>
@@ -97,7 +108,6 @@
       <!-- 1. قسم الخصم والإضافة -->
       <div id="taxDiscountTab" class="tab-content active">
 
-        <!-- الخيار 1: إضافة مورد -->
         <div id="addSupplierSubTab" class="sub-tab-content active">
           <h3>تسجيل بيانات مورد جديد (خصم وإضافة)</h3>
           
@@ -142,7 +152,6 @@
           </div>
         </div>
 
-        <!-- الخيار 2: قائمة الفنادق والكروزات المسجلة -->
         <div id="suppliersListSubTab" class="sub-tab-content">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <h3>سجل الموردين (الفنادق والكروزات)</h3>
@@ -173,63 +182,102 @@
 
       <!-- 2. قسم الكريديت -->
       <div id="creditTab" class="tab-content">
-        <h3>إدارة أرصدة الكريديت</h3>
         
-        <div class="form-row">
-          <div class="form-group">
-            <label>الجهة (فندق / كروز / عميل طيران):</label>
-            <input type="text" id="creditEntity" placeholder="اسم الجهة">
-          </div>
-          <div class="form-group">
-            <label>رقم الملف (File Code):</label>
-            <input type="text" id="creditFileCode" placeholder="مثال: EG-2026-99">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>تاريخ الوصول (Check-in):</label>
-            <input type="date" id="creditArrivalDate">
-          </div>
-          <div class="form-group">
-            <label>تاريخ المغادرة (Check-out):</label>
-            <input type="date" id="creditDepartureDate">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>نوع الحركة:</label>
-            <select id="creditType">
-              <option value="deposit">إيداع رصيد (لنا)</option>
-              <option value="deduction">خصم مستحقات (علينا)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>المبلغ والعملة:</label>
-            <div class="amount-input-group">
-              <input type="number" id="creditAmount" placeholder="0">
-              <select id="creditCurrency">
-                <option value="EGP">EGP (ج.م)</option>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-              </select>
+        <!-- فرعي 1: تسجيل حركة كريديت -->
+        <div id="addCreditSubTab" class="sub-tab-content active">
+          <h3>تسجيل حركة كريديت جديدة</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>الجهة (فندق / كروز / عميل طيران):</label>
+              <input type="text" id="creditEntity" placeholder="اسم الجهة">
+            </div>
+            <div class="form-group">
+              <label>رقم الملف (File Code):</label>
+              <input type="text" id="creditFileCode" placeholder="مثال: EG-2026-99">
             </div>
           </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>تاريخ الوصول (Check-in):</label>
+              <input type="date" id="creditArrivalDate">
+            </div>
+            <div class="form-group">
+              <label>تاريخ المغادرة (Check-out):</label>
+              <input type="date" id="creditDepartureDate">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>نوع الحركة:</label>
+              <select id="creditType">
+                <option value="deposit">إيداع رصيد (لنا)</option>
+                <option value="deduction">خصم مستحقات (علينا)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>المبلغ والعملة:</label>
+              <div class="amount-input-group">
+                <input type="number" id="creditAmount" placeholder="0">
+                <select id="creditCurrency">
+                  <option value="EGP">EGP (ج.م)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>البيان / تفاصيل الحركة:</label>
+            <textarea id="creditDescription" placeholder="أدخل تفاصيل وملاحظات الحركة المالية هنا..."></textarea>
+          </div>
+
+          <div class="btn-group">
+            <button class="submit-btn" onclick="saveCreditTransaction()">تسجيل الحركة المالية</button>
+            <label class="excel-btn" style="display: inline-block;">
+              📥 استيراد ملف الكريديت من Excel
+              <input type="file" id="creditExcelImport" accept=".xlsx, .xls" style="display: none;" onchange="importCreditFromExcel(event)">
+            </label>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>البيان / تفاصيل الحركة:</label>
-          <textarea id="creditDescription" placeholder="أدخل تفاصيل وملاحظات الحركة المالية هنا..."></textarea>
+        <!-- فرعي 2: عرض كشف الحساب التفصيلي -->
+        <div id="creditRecordsSubTab" class="sub-tab-content">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h3>سجل حركة أرصدة الكريديت بالتفصيل</h3>
+            <div style="display: flex; gap: 10px;">
+              <input type="text" id="searchCredit" placeholder="🔍 بحث باسم الجهة أو رقم الملف..." onkeyup="filterCreditTable()" style="max-width: 250px;">
+              <button class="excel-btn" onclick="exportCreditToExcel()">📊 تصدير السجل لـ Excel</button>
+            </div>
+          </div>
+
+          <table id="creditTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>الجهة</th>
+                <th>رقم الملف</th>
+                <th>تاريخ الوصول</th>
+                <th>تاريخ المغادرة</th>
+                <th>نوع الحركة</th>
+                <th>المبلغ</th>
+                <th>العملة</th>
+                <th>البيان / التفاصيل</th>
+                <th>تاريخ التسجيل</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="creditTableBody">
+              <tr>
+                <td colspan="11" style="text-align: center; color: #64748b;">جاري تحميل سجل الكريديت من Firebase...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div class="btn-group">
-          <button class="submit-btn" onclick="saveCreditTransaction()">تسجيل الحركة المالية</button>
-          <label class="excel-btn" style="display: inline-block;">
-            📥 استيراد ملف الكريديت من Excel
-            <input type="file" id="creditExcelImport" accept=".xlsx, .xls" style="display: none;" onchange="importCreditFromExcel(event)">
-          </label>
-        </div>
       </div>
 
       <!-- 3. قسم الطيران -->
@@ -304,7 +352,7 @@
   <!-- Firebase Script & Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AiZaSyBnVZaF4cbNqTM03tA3dWEfk2k3aWj0djs",
@@ -317,6 +365,9 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    // متغير لتخزين بيانات الكريديت للتصدير
+    let currentCreditList = [];
 
     window.saveHotelBooking = async function() {
       const supplierType = document.getElementById('supplierType').value;
@@ -345,8 +396,9 @@
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
-    onSnapshot(q, (snapshot) => {
+    // جلب سجلات الموردين (الخصم والإضافة)
+    const qSuppliers = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
+    onSnapshot(qSuppliers, (snapshot) => {
       const tbody = document.getElementById('suppliersTableBody');
       tbody.innerHTML = '';
 
@@ -376,6 +428,60 @@
         tbody.innerHTML += row;
       });
     });
+
+    // جلب سجل حركة الكريديت لحظياً
+    const qCredit = query(collection(db, "credit_balances"), orderBy("createdAt", "desc"));
+    onSnapshot(qCredit, (snapshot) => {
+      const tbody = document.getElementById('creditTableBody');
+      tbody.innerHTML = '';
+      currentCreditList = [];
+
+      if (snapshot.empty) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">لا توجد حركة أرصدة كريديت مسجلة حتى الآن</td></tr>';
+        return;
+      }
+
+      let index = 1;
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        data.id = docSnap.id;
+        currentCreditList.push(data);
+
+        const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('ar-EG') : '-';
+        const typeBadge = data.type === 'deposit' 
+          ? '<span class="badge badge-deposit">إيداع (لنا)</span>' 
+          : '<span class="badge badge-deduction">خصم (علينا)</span>';
+
+        const row = `
+          <tr>
+            <td>${index++}</td>
+            <td><strong>${data.entity || '-'}</strong></td>
+            <td>${data.fileCode || '-'}</td>
+            <td>${data.arrivalDate || '-'}</td>
+            <td>${data.departureDate || '-'}</td>
+            <td>${typeBadge}</td>
+            <td><strong>${Number(data.amount || 0).toLocaleString()}</strong></td>
+            <td>${data.currency || 'EGP'}</td>
+            <td>${data.description || '-'}</td>
+            <td>${dateStr}</td>
+            <td>
+              <button class="delete-btn" onclick="deleteCreditRecord('${docSnap.id}')">حذف</button>
+            </td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    });
+
+    // حذف حركة كريديت
+    window.deleteCreditRecord = async function(docId) {
+      if (confirm("هل أنت تأكد من رغبتك في حذف هذه الحركة المالية؟")) {
+        try {
+          await deleteDoc(doc(db, "credit_balances", docId));
+          alert("تم الحذف بنجاح");
+        } catch (e) { alert("خطأ عند الحذف: " + e.message); }
+      }
+    };
 
     window.exportToExcel = function() {
       const data = [{
@@ -496,6 +602,28 @@
       reader.readAsArrayBuffer(file);
     };
 
+    // تصدير جدول الكريديت لـ Excel
+    window.exportCreditToExcel = function() {
+      if(currentCreditList.length === 0) return alert('لا توجد بيانات لتصديرها');
+
+      const exportData = currentCreditList.map((item, idx) => ({
+        "م": idx + 1,
+        "الجهة": item.entity || '',
+        "رقم الملف": item.fileCode || '',
+        "تاريخ الوصول": item.arrivalDate || '',
+        "تاريخ المغادرة": item.departureDate || '',
+        "نوع الحركة": item.type === 'deposit' ? 'إيداع (لنا)' : 'خصم (علينا)',
+        "المبلغ": item.amount || 0,
+        "العملة": item.currency || 'EGP',
+        "البيان والتفاصيل": item.description || ''
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "كشف حساب الكريديت");
+      XLSX.writeFile(workbook, "Credit_Statement.xlsx");
+    };
+
     window.saveAviationBooking = async function() {
       const airline = document.getElementById('airlineName').value;
       const pnr = document.getElementById('pnrNumber').value;
@@ -536,9 +664,24 @@
   <script>
     function toggleTaxDiscountMenu(evt) {
       const subMenu = document.getElementById('taxDiscountSubMenu');
-      const arrowIcon = document.getElementById('arrowIcon');
+      const arrowIcon = document.getElementById('taxArrowIcon');
 
       openTab(evt, 'taxDiscountTab');
+
+      if (subMenu.style.display === 'none') {
+        subMenu.style.display = 'flex';
+        arrowIcon.textContent = '▲';
+      } else {
+        subMenu.style.display = 'none';
+        arrowIcon.textContent = '▼';
+      }
+    }
+
+    function toggleCreditMenu(evt) {
+      const subMenu = document.getElementById('creditSubMenu');
+      const arrowIcon = document.getElementById('creditArrowIcon');
+
+      openTab(evt, 'creditTab');
 
       if (subMenu.style.display === 'none') {
         subMenu.style.display = 'flex';
@@ -560,23 +703,30 @@
       
       if(evt.currentTarget.classList.contains('tab-btn')) {
         evt.currentTarget.classList.add("active");
+      }
+
+      // إغلاق القوائم الفرعية التي ليست نشطة
+      if (tabName !== 'taxDiscountTab') {
+        document.getElementById('taxDiscountSubMenu').style.display = 'none';
+        document.getElementById('taxArrowIcon').textContent = '▼';
       } else {
         document.getElementById('taxDiscountBtn').classList.add("active");
       }
 
-      const subMenu = document.getElementById('taxDiscountSubMenu');
-      const arrowIcon = document.getElementById('arrowIcon');
-      if (tabName !== 'taxDiscountTab') {
-        subMenu.style.display = 'none';
-        arrowIcon.textContent = '▼';
+      if (tabName !== 'creditTab') {
+        document.getElementById('creditSubMenu').style.display = 'none';
+        document.getElementById('creditArrowIcon').textContent = '▼';
+      } else {
+        document.getElementById('creditBtn').classList.add("active");
       }
     }
 
     function openSubTab(evt, subTabName) {
-      const subContents = document.getElementsByClassName("sub-tab-content");
+      const parentTab = evt.currentTarget.closest('.tab-content');
+      const subContents = parentTab.getElementsByClassName("sub-tab-content");
       for (let i = 0; i < subContents.length; i++) subContents[i].classList.remove("active");
       
-      const subButtons = document.getElementsByClassName("sub-tab-btn");
+      const subButtons = evt.currentTarget.parentElement.getElementsByClassName("sub-tab-btn");
       for (let i = 0; i < subButtons.length; i++) subButtons[i].classList.remove("active");
       
       document.getElementById(subTabName).classList.add("active");
@@ -596,6 +746,27 @@
           let nameTxt = tdName.textContent || tdName.innerText;
           let supplierTxt = tdSupplier.textContent || tdSupplier.innerText;
           if (nameTxt.toLowerCase().indexOf(filter) > -1 || supplierTxt.toLowerCase().indexOf(filter) > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
+        }
+      }
+    }
+
+    function filterCreditTable() {
+      const input = document.getElementById("searchCredit");
+      const filter = input.value.toLowerCase();
+      const table = document.getElementById("creditTable");
+      const tr = table.getElementsByTagName("tr");
+
+      for (let i = 1; i < tr.length; i++) {
+        let tdEntity = tr[i].getElementsByTagName("td")[1];
+        let tdFile = tr[i].getElementsByTagName("td")[2];
+        if (tdEntity || tdFile) {
+          let entityTxt = tdEntity.textContent || tdEntity.innerText;
+          let fileTxt = tdFile.textContent || tdFile.innerText;
+          if (entityTxt.toLowerCase().indexOf(filter) > -1 || fileTxt.toLowerCase().indexOf(filter) > -1) {
             tr[i].style.display = "";
           } else {
             tr[i].style.display = "none";
