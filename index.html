@@ -9,19 +9,39 @@
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f6f9; margin: 0; }
     .header { background: #1e293b; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
     .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    .tab-btn { background: #e2e8f0; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; font-weight: bold; }
+    .tab-btn { background: #e2e8f0; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; font-weight: bold; color: #334155; }
     .tab-btn.active { background: #2563eb; color: white; }
+    
+    /* أزرار التنقل الفرعية داخل الخصم والإضافة */
+    .sub-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+    .sub-tab-btn { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 8px 16px; cursor: pointer; border-radius: 6px; font-weight: 600; color: #475569; }
+    .sub-tab-btn.active { background: #0d9488; color: white; border-color: #0d9488; }
+
     .tab-content { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .tab-content.active { display: block; }
+    .sub-tab-content { display: none; }
+    .sub-tab-content.active { display: block; }
+
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; font-weight: 600; color: #334155; }
     input, select { width: 100%; max-width: 400px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
     .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+    
     button.submit-btn { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
     button.excel-btn { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
     button.submit-btn:hover { background: #15803d; }
     button.excel-btn:hover { background: #0369a1; }
-    .file-input-wrapper { display: inline-block; }
+
+    /* تنسيق جدول العرض */
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: right; }
+    th { background-color: #f8fafc; color: #1e293b; font-weight: 700; }
+    tr:nth-child(even) { background-color: #f8fafc; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; }
+    .badge-hotel { background-color: #dbeafe; color: #1e40af; }
+    .badge-cruise { background-color: #fef3c7; color: #92400e; }
+    .badge-taxable { background-color: #dcfce7; color: #166534; }
+    .badge-exempt { background-color: #f3f4f6; color: #374151; }
   </style>
 </head>
 <body>
@@ -30,7 +50,7 @@
     <h2>منظومة الحسابات والتصفية الشاملة</h2>
   </div>
 
-  <!-- أزرار التنقل بين الأقسام -->
+  <!-- الأقسام الرئيسية -->
   <div class="tabs">
     <button class="tab-btn active" onclick="openTab(event, 'taxDiscountTab')">📋 الخصم والإضافة</button>
     <button class="tab-btn" onclick="openTab(event, 'creditTab')">💳 أرصدة الكريديت</button>
@@ -39,49 +59,92 @@
     <button class="tab-btn" onclick="openTab(event, 'settlementTab')">📄 تصفية ملفات الأوبريتور</button>
   </div>
 
-  <!-- 1. قسم الخصم والإضافة (تحديث شامل) -->
+  <!-- 1. قسم الخصم والإضافة -->
   <div id="taxDiscountTab" class="tab-content active">
-    <h3>بيانات الخصم والإضافة</h3>
     
-    <div class="form-group">
-      <label>اسم المورد:</label>
-      <input type="text" id="supplierName" placeholder="أدخل اسم المورد">
+    <!-- القائمة الفرعية داخل الخصم والإضافة -->
+    <div class="sub-tabs">
+      <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSupplierSubTab')">➕ إضافة مورد</button>
+      <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab')">🏨 قائمة الفنادق والكروزات المسجلة</button>
     </div>
 
-    <div class="form-group">
-      <label>رقم البطاقة الضريبية:</label>
-      <input type="text" id="taxCardNumber" placeholder="أدخل رقم البطاقة الضريبية">
+    <!-- الخيار 1: إضافة مورد -->
+    <div id="addSupplierSubTab" class="sub-tab-content active">
+      <h3>تسجيل بيانات مورد جديد (خصم وإضافة)</h3>
+      
+      <!-- 1. النوع -->
+      <div class="form-group">
+        <label>1. النوع:</label>
+        <select id="supplierType">
+          <option value="فندق">فندق</option>
+          <option value="كروز">كروز</option>
+        </select>
+      </div>
+
+      <!-- 2. الاسم (اسم الفندق أو الكروز) -->
+      <div class="form-group">
+        <label>2. الاسم (اسم الفندق أو الكروز):</label>
+        <input type="text" id="propertyName" placeholder="أدخل اسم الفندق أو الكروز">
+      </div>
+
+      <!-- 3. اسم المورد -->
+      <div class="form-group">
+        <label>3. اسم المورد:</label>
+        <input type="text" id="supplierName" placeholder="أدخل اسم المورد">
+      </div>
+
+      <!-- 4. رقم البطاقة الضريبية -->
+      <div class="form-group">
+        <label>4. رقم البطاقة الضريبية:</label>
+        <input type="text" id="taxCardNumber" placeholder="أدخل رقم البطاقة الضريبية">
+      </div>
+
+      <!-- 5. حالة الضريبة -->
+      <div class="form-group">
+        <label>5. حالة الضريبة:</label>
+        <select id="taxType">
+          <option value="0.03">خاضع لضريبة 3%</option>
+          <option value="0">معفى من الضريبة</option>
+        </select>
+      </div>
+
+      <div class="btn-group">
+        <button class="submit-btn" onclick="saveHotelBooking()">حفظ البيانات</button>
+        <button class="excel-btn" onclick="exportToExcel()">📊 تصدير الحقل لـ Excel</button>
+        <label class="excel-btn" style="cursor: pointer; display: inline-block;">
+          📥 استيراد من Excel
+          <input type="file" id="excelImport" accept=".xlsx, .xls" style="display: none;" onchange="importFromExcel(event)">
+        </label>
+      </div>
     </div>
 
-    <div class="form-group">
-      <label>النوع:</label>
-      <select id="supplierType">
-        <option value="فندق">فندق</option>
-        <option value="كروز">كروز</option>
-      </select>
+    <!-- الخيار 2: قائمة الفنادق والكروزات المسجلة -->
+    <div id="suppliersListSubTab" class="sub-tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+        <h3>سجل الموردين (الفنادق والكروزات)</h3>
+        <input type="text" id="searchSupplier" placeholder="🔍 بحث باسم الفندق أو المورد..." onkeyup="filterSuppliersTable()" style="max-width: 250px;">
+      </div>
+
+      <table id="suppliersTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>النوع</th>
+            <th>الاسم (فندق/كروز)</th>
+            <th>اسم المورد</th>
+            <th>رقم البطاقة الضريبية</th>
+            <th>حالة الضريبة</th>
+            <th>تاريخ التسجيل</th>
+          </tr>
+        </thead>
+        <tbody id="suppliersTableBody">
+          <tr>
+            <td colspan="7" style="text-align: center; color: #64748b;">جاري تحميل البيانات من Firebase...</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="form-group">
-      <label>اسم الفندق أو الكروز:</label>
-      <input type="text" id="propertyName" placeholder="أدخل اسم الفندق أو الكروز بالتفصيل">
-    </div>
-
-    <div class="form-group">
-      <label>حالة الضريبة:</label>
-      <select id="taxType">
-        <option value="0.03">خاضع لضريبة 3%</option>
-        <option value="0">معفى من الضريبة</option>
-      </select>
-    </div>
-
-    <div class="btn-group">
-      <button class="submit-btn" onclick="saveHotelBooking()">حفظ البيانات</button>
-      <button class="excel-btn" onclick="exportToExcel()">📊 تصدير إلى Excel</button>
-      <label class="excel-btn" style="cursor: pointer; display: inline-block;">
-        📥 استيراد من Excel
-        <input type="file" id="excelImport" accept=".xlsx, .xls" style="display: none;" onchange="importFromExcel(event)">
-      </label>
-    </div>
   </div>
 
   <!-- 2. قسم الكريديت -->
@@ -171,10 +234,10 @@
     <button class="submit-btn" onclick="saveFileSettlement()">إغلاق وتصفية الملف</button>
   </div>
 
-  <!-- ربط Firebase وتفعيل الوظائف -->
+  <!-- Firebase Script & Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AiZaSyBnVZaF4cbNqTM03tA3dWEfk2k3aWj0djs",
@@ -190,37 +253,75 @@
 
     // 1. حفظ بيانات الخصم والإضافة
     window.saveHotelBooking = async function() {
-      const supplierName = document.getElementById('supplierName').value;
-      const taxCardNumber = document.getElementById('taxCardNumber').value;
       const supplierType = document.getElementById('supplierType').value;
       const propertyName = document.getElementById('propertyName').value;
+      const supplierName = document.getElementById('supplierName').value;
+      const taxCardNumber = document.getElementById('taxCardNumber').value;
       const taxRate = parseFloat(document.getElementById('taxType').value);
 
-      if(!supplierName || !taxCardNumber || !propertyName) {
-        return alert('يرجى إدخال اسم المورد، رقم البطاقة الضريبية، واسم الفندق/الكروز');
+      if(!propertyName || !supplierName || !taxCardNumber) {
+        return alert('يرجى إدخال اسم الفندق/الكروز، اسم المورد، ورقم البطاقة الضريبية');
       }
 
       try {
         await addDoc(collection(db, "tax_discount_records"), { 
-          supplierName, 
-          taxCardNumber, 
           supplierType,
           propertyName,
+          supplierName, 
+          taxCardNumber, 
           taxRate, 
           createdAt: new Date() 
         });
-        alert(`تم حفظ بيانات الخصم والإضافة بنجاح!`);
+        alert(`تم حفظ البيانات بنجاح!`);
+        
+        // إعادة ضبط المدخلات
+        document.getElementById('propertyName').value = '';
+        document.getElementById('supplierName').value = '';
+        document.getElementById('taxCardNumber').value = '';
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // 2. تصدير البيانات الحاليّة لـ Excel
+    // 2. الاستماع التلقائي وعرض قائمة الموردين من Firebase
+    const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
+      const tbody = document.getElementById('suppliersTableBody');
+      tbody.innerHTML = '';
+
+      if (snapshot.empty) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد فنادق أو كروزات مسجلة حتى الآن</td></tr>';
+        return;
+      }
+
+      let index = 1;
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('ar-EG') : '-';
+        const typeBadge = data.supplierType === 'فندق' ? '<span class="badge badge-hotel">فندق</span>' : '<span class="badge badge-cruise">كروز</span>';
+        const taxBadge = data.taxRate === 0.03 ? '<span class="badge badge-taxable">خاضع لضريبة 3%</span>' : '<span class="badge badge-exempt">معفى من الضريبة</span>';
+
+        const row = `
+          <tr>
+            <td>${index++}</td>
+            <td>${typeBadge}</td>
+            <td><strong>${data.propertyName || '-'}</strong></td>
+            <td>${data.supplierName || '-'}</td>
+            <td>${data.taxCardNumber || '-'}</td>
+            <td>${taxBadge}</td>
+            <td>${dateStr}</td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    });
+
+    // 3. تصدير البيانات إلى Excel
     window.exportToExcel = function() {
       const data = [{
+        "النوع": document.getElementById('supplierType').value,
+        "الاسم": document.getElementById('propertyName').value,
         "اسم المورد": document.getElementById('supplierName').value,
         "رقم البطاقة الضريبية": document.getElementById('taxCardNumber').value,
-        "النوع": document.getElementById('supplierType').value,
-        "اسم الفندق أو الكروز": document.getElementById('propertyName').value,
-        "نسبة الضريبة": document.getElementById('taxType').value === "0.03" ? "3%" : "معفى"
+        "حالة الضريبة": document.getElementById('taxType').value === "0.03" ? "3%" : "معفى"
       }];
 
       const worksheet = XLSX.utils.json_to_sheet(data);
@@ -229,7 +330,7 @@
       XLSX.writeFile(workbook, "Tax_Discount_Report.xlsx");
     };
 
-    // 3. استيراد ملف Excel وتعبئة البيانات تلقائياً
+    // 4. استيراد ملف Excel
     window.importFromExcel = function(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -243,81 +344,69 @@
 
         if (jsonData.length > 0) {
           const row = jsonData[0];
+          document.getElementById('supplierType').value = row["النوع"] || row["Type"] || 'فندق';
+          document.getElementById('propertyName').value = row["الاسم"] || row["Name"] || '';
           document.getElementById('supplierName').value = row["اسم المورد"] || row["Supplier Name"] || '';
           document.getElementById('taxCardNumber').value = row["رقم البطاقة الضريبية"] || row["Tax Card"] || '';
-          document.getElementById('propertyName').value = row["اسم الفندق أو الكروز"] || row["Property Name"] || '';
-          alert('تم قراءة بيانات ملف Excel وتعبئة الحقول بنجاح!');
+          alert('تم قراءة البيانات من الملف بنجاح!');
         } else {
-          alert('الملف المرفق فارغ أو لا يحتوي على تنسيق صحسح');
+          alert('الملف فارغ أو غير مطابق للتنسيق');
         }
       };
       reader.readAsArrayBuffer(file);
     };
 
-    // 4. حفظ الكريديت
+    // 5. باقي الأقسام
     window.saveCreditTransaction = async function() {
       const entity = document.getElementById('creditEntity').value;
       const type = document.getElementById('creditType').value;
       const amount = parseFloat(document.getElementById('creditAmount').value) || 0;
-
       if(!entity || amount <= 0) return alert('يرجى كتابة اسم الجهة والمبلغ');
-
       try {
         await addDoc(collection(db, "credit_balances"), { entity, type, amount, createdAt: new Date() });
         alert('تم تسجيل الحركة المالية بنجاح!');
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // 5. حفظ الطيران
     window.saveAviationBooking = async function() {
       const airline = document.getElementById('airlineName').value;
       const pnr = document.getElementById('pnrNumber').value;
       const cost = parseFloat(document.getElementById('ticketCost').value) || 0;
       const comm = parseFloat(document.getElementById('commission').value) || 0;
-
       if(!airline || !pnr) return alert('يرجى إدخال البيانات الرئيسية للطيران');
-
       try {
         await addDoc(collection(db, "aviation_bookings"), { airline, pnr, cost, commission: comm, createdAt: new Date() });
         alert('تم حفظ حجز الطيران بنجاح!');
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // 6. حفظ التذاكر
     window.saveTicketInventory = async function() {
       const name = document.getElementById('ticketName').value;
       const qty = parseInt(document.getElementById('ticketQty').value) || 0;
       const unitPrice = parseFloat(document.getElementById('ticketUnitPrice').value) || 0;
-
       if(!name || qty <= 0) return alert('يرجى إدخال بيانات التذاكر');
-
       try {
         await addDoc(collection(db, "attractions_tickets"), { ticketName: name, quantity: qty, unitPrice, createdAt: new Date() });
         alert('تم تحديث مخزون التذاكر!');
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // 7. تصفية الملفات
     window.saveFileSettlement = async function() {
       const fileCode = document.getElementById('fileCode').value;
       const guideName = document.getElementById('guideName').value;
       const optionalExp = parseFloat(document.getElementById('optionalExpenses').value) || 0;
       const guideComm = parseFloat(document.getElementById('guideCommission').value) || 0;
       const ticketsUsed = parseInt(document.getElementById('ticketsUsedQty').value) || 0;
-
       if(!fileCode) return alert('يرجى كتابة كود الملف');
-
       try {
-        await addDoc(collection(db, "file_settlements"), {
-          fileCode, guideName, optionalExpenses: optionalExp, guideCommission: guideComm, ticketsUsed, createdAt: new Date()
-        });
+        await addDoc(collection(db, "file_settlements"), { fileCode, guideName, optionalExpenses: optionalExp, guideCommission: guideComm, ticketsUsed, createdAt: new Date() });
         alert('تم حفظ تصفية الملف بنجاح!');
       } catch (e) { alert("خطأ: " + e.message); }
     };
   </script>
 
   <script>
-    // التنقل بين التبويبات
+    // التنقل بين الأقسام الرئيسية
     function openTab(evt, tabName) {
       const contents = document.getElementsByClassName("tab-content");
       for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
@@ -325,6 +414,38 @@
       for (let i = 0; i < buttons.length; i++) buttons[i].classList.remove("active");
       document.getElementById(tabName).classList.add("active");
       evt.currentTarget.classList.add("active");
+    }
+
+    // التنقل بين الفرعيات داخل قسم الخصم والإضافة
+    function openSubTab(evt, subTabName) {
+      const subContents = document.getElementsByClassName("sub-tab-content");
+      for (let i = 0; i < subContents.length; i++) subContents[i].classList.remove("active");
+      const subButtons = document.getElementsByClassName("sub-tab-btn");
+      for (let i = 0; i < subButtons.length; i++) subButtons[i].classList.remove("active");
+      document.getElementById(subTabName).classList.add("active");
+      evt.currentTarget.classList.add("active");
+    }
+
+    // فلترة البحث في جدول الموردين
+    function filterSuppliersTable() {
+      const input = document.getElementById("searchSupplier");
+      const filter = input.value.toLowerCase();
+      const table = document.getElementById("suppliersTable");
+      const tr = table.getElementsByTagName("tr");
+
+      for (let i = 1; i < tr.length; i++) {
+        let tdName = tr[i].getElementsByTagName("td")[2];
+        let tdSupplier = tr[i].getElementsByTagName("td")[3];
+        if (tdName || tdSupplier) {
+          let nameTxt = tdName.textContent || tdName.innerText;
+          let supplierTxt = tdSupplier.textContent || tdSupplier.innerText;
+          if (nameTxt.toLowerCase().indexOf(filter) > -1 || supplierTxt.toLowerCase().indexOf(filter) > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
+        }
+      }
     }
   </script>
 
