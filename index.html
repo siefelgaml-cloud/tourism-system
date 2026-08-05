@@ -16,7 +16,6 @@
     input, select { width: 100%; max-width: 400px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
     button.submit-btn { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
     button.submit-btn:hover { background: #15803d; }
-    .row { display: flex; gap: 15px; flex-wrap: wrap; }
   </style>
 </head>
 <body>
@@ -34,12 +33,23 @@
     <button class="tab-btn" onclick="openTab(event, 'settlementTab')">📄 تصفية ملفات الأوبريتور</button>
   </div>
 
-  <!-- 1. قسم الفنادق والكروزات -->
+  <!-- 1. قسم الفنادق والكروزات (تحديث المعدل) -->
   <div id="hotelsTab" class="tab-content active">
-    <h3>حجز فندق / كروز</h3>
+    <h3>تسجيل فندق / كروز</h3>
     <div class="form-group">
-      <label>اسم الفندق/الكروز:</label>
-      <input type="text" id="hotelName" placeholder="أدخل الاسم">
+      <label>اسم المورد:</label>
+      <input type="text" id="supplierName" placeholder="أدخل اسم المورد">
+    </div>
+    <div class="form-group">
+      <label>رقم البطاقة الضريبية:</label>
+      <input type="text" id="taxCardNumber" placeholder="أدخل رقم البطاقة الضريبية">
+    </div>
+    <div class="form-group">
+      <label>النوع:</label>
+      <select id="supplierType">
+        <option value="فندق">فندق</option>
+        <option value="كروز">كروز</option>
+      </select>
     </div>
     <div class="form-group">
       <label>حالة الضريبة:</label>
@@ -48,11 +58,7 @@
         <option value="0">معفى من الضريبة</option>
       </select>
     </div>
-    <div class="form-group">
-      <label>المبلغ الأساسي ($):</label>
-      <input type="number" id="hotelBaseAmount" placeholder="0">
-    </div>
-    <button class="submit-btn" onclick="saveHotelBooking()">حفظ الحجز</button>
+    <button class="submit-btn" onclick="saveHotelBooking()">حفظ البيانات</button>
   </div>
 
   <!-- 2. قسم الكريديت -->
@@ -159,18 +165,24 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 1. حفظ الفنادق
+    // 1. حفظ بيانات الفندق / الكروز المحدثة
     window.saveHotelBooking = async function() {
-      const name = document.getElementById('hotelName').value;
+      const supplierName = document.getElementById('supplierName').value;
+      const taxCardNumber = document.getElementById('taxCardNumber').value;
+      const supplierType = document.getElementById('supplierType').value;
       const taxRate = parseFloat(document.getElementById('taxType').value);
-      const base = parseFloat(document.getElementById('hotelBaseAmount').value) || 0;
-      const total = base + (base * taxRate);
 
-      if(!name || base <= 0) return alert('يرجى إدخال البيانات كاملة');
+      if(!supplierName || !taxCardNumber) return alert('يرجى إدخال اسم المورد ورقم البطاقة الضريبية');
 
       try {
-        await addDoc(collection(db, "hotel_bookings"), { hotelName: name, taxRate, baseAmount: base, totalAmount: total, createdAt: new Date() });
-        alert(`تم حفظ الحجز! الإجمالي بعد الضريبة: $${total}`);
+        await addDoc(collection(db, "hotel_bookings"), { 
+          supplierName, 
+          taxCardNumber, 
+          supplierType, 
+          taxRate, 
+          createdAt: new Date() 
+        });
+        alert(`تم حفظ بيانات ${supplierType} بنجاح!`);
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
