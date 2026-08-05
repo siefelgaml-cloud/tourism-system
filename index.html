@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>نظام إدارة الحسابات والعمليات السياحية</title>
+  <!-- مكتبة التعامل مع ملفات Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f6f9; margin: 0; }
     .header { background: #1e293b; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
@@ -14,8 +16,12 @@
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; font-weight: 600; color: #334155; }
     input, select { width: 100%; max-width: 400px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-    button.submit-btn { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+    button.submit-btn { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button.excel-btn { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
     button.submit-btn:hover { background: #15803d; }
+    button.excel-btn:hover { background: #0369a1; }
+    .file-input-wrapper { display: inline-block; }
   </style>
 </head>
 <body>
@@ -26,24 +32,27 @@
 
   <!-- أزرار التنقل بين الأقسام -->
   <div class="tabs">
-    <button class="tab-btn active" onclick="openTab(event, 'hotelsTab')">🏨 الفنادق والكروزات</button>
+    <button class="tab-btn active" onclick="openTab(event, 'taxDiscountTab')">📋 الخصم والإضافة</button>
     <button class="tab-btn" onclick="openTab(event, 'creditTab')">💳 أرصدة الكريديت</button>
     <button class="tab-btn" onclick="openTab(event, 'aviationTab')">✈️ حجوزات الطيران</button>
     <button class="tab-btn" onclick="openTab(event, 'ticketsTab')">🎟️ مخزون التذاكر</button>
     <button class="tab-btn" onclick="openTab(event, 'settlementTab')">📄 تصفية ملفات الأوبريتور</button>
   </div>
 
-  <!-- 1. قسم الفنادق والكروزات (تحديث المعدل) -->
-  <div id="hotelsTab" class="tab-content active">
-    <h3>تسجيل فندق / كروز</h3>
+  <!-- 1. قسم الخصم والإضافة (تحديث شامل) -->
+  <div id="taxDiscountTab" class="tab-content active">
+    <h3>بيانات الخصم والإضافة</h3>
+    
     <div class="form-group">
       <label>اسم المورد:</label>
       <input type="text" id="supplierName" placeholder="أدخل اسم المورد">
     </div>
+
     <div class="form-group">
       <label>رقم البطاقة الضريبية:</label>
       <input type="text" id="taxCardNumber" placeholder="أدخل رقم البطاقة الضريبية">
     </div>
+
     <div class="form-group">
       <label>النوع:</label>
       <select id="supplierType">
@@ -51,6 +60,12 @@
         <option value="كروز">كروز</option>
       </select>
     </div>
+
+    <div class="form-group">
+      <label>اسم الفندق أو الكروز:</label>
+      <input type="text" id="propertyName" placeholder="أدخل اسم الفندق أو الكروز بالتفصيل">
+    </div>
+
     <div class="form-group">
       <label>حالة الضريبة:</label>
       <select id="taxType">
@@ -58,7 +73,15 @@
         <option value="0">معفى من الضريبة</option>
       </select>
     </div>
-    <button class="submit-btn" onclick="saveHotelBooking()">حفظ البيانات</button>
+
+    <div class="btn-group">
+      <button class="submit-btn" onclick="saveHotelBooking()">حفظ البيانات</button>
+      <button class="excel-btn" onclick="exportToExcel()">📊 تصدير إلى Excel</button>
+      <label class="excel-btn" style="cursor: pointer; display: inline-block;">
+        📥 استيراد من Excel
+        <input type="file" id="excelImport" accept=".xlsx, .xls" style="display: none;" onchange="importFromExcel(event)">
+      </label>
+    </div>
   </div>
 
   <!-- 2. قسم الكريديت -->
@@ -165,28 +188,73 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 1. حفظ بيانات الفندق / الكروز المحدثة
+    // 1. حفظ بيانات الخصم والإضافة
     window.saveHotelBooking = async function() {
       const supplierName = document.getElementById('supplierName').value;
       const taxCardNumber = document.getElementById('taxCardNumber').value;
       const supplierType = document.getElementById('supplierType').value;
+      const propertyName = document.getElementById('propertyName').value;
       const taxRate = parseFloat(document.getElementById('taxType').value);
 
-      if(!supplierName || !taxCardNumber) return alert('يرجى إدخال اسم المورد ورقم البطاقة الضريبية');
+      if(!supplierName || !taxCardNumber || !propertyName) {
+        return alert('يرجى إدخال اسم المورد، رقم البطاقة الضريبية، واسم الفندق/الكروز');
+      }
 
       try {
-        await addDoc(collection(db, "hotel_bookings"), { 
+        await addDoc(collection(db, "tax_discount_records"), { 
           supplierName, 
           taxCardNumber, 
-          supplierType, 
+          supplierType,
+          propertyName,
           taxRate, 
           createdAt: new Date() 
         });
-        alert(`تم حفظ بيانات ${supplierType} بنجاح!`);
+        alert(`تم حفظ بيانات الخصم والإضافة بنجاح!`);
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // 2. حفظ الكريديت
+    // 2. تصدير البيانات الحاليّة لـ Excel
+    window.exportToExcel = function() {
+      const data = [{
+        "اسم المورد": document.getElementById('supplierName').value,
+        "رقم البطاقة الضريبية": document.getElementById('taxCardNumber').value,
+        "النوع": document.getElementById('supplierType').value,
+        "اسم الفندق أو الكروز": document.getElementById('propertyName').value,
+        "نسبة الضريبة": document.getElementById('taxType').value === "0.03" ? "3%" : "معفى"
+      }];
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "الخصم والإضافة");
+      XLSX.writeFile(workbook, "Tax_Discount_Report.xlsx");
+    };
+
+    // 3. استيراد ملف Excel وتعبئة البيانات تلقائياً
+    window.importFromExcel = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+        if (jsonData.length > 0) {
+          const row = jsonData[0];
+          document.getElementById('supplierName').value = row["اسم المورد"] || row["Supplier Name"] || '';
+          document.getElementById('taxCardNumber').value = row["رقم البطاقة الضريبية"] || row["Tax Card"] || '';
+          document.getElementById('propertyName').value = row["اسم الفندق أو الكروز"] || row["Property Name"] || '';
+          alert('تم قراءة بيانات ملف Excel وتعبئة الحقول بنجاح!');
+        } else {
+          alert('الملف المرفق فارغ أو لا يحتوي على تنسيق صحسح');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    };
+
+    // 4. حفظ الكريديت
     window.saveCreditTransaction = async function() {
       const entity = document.getElementById('creditEntity').value;
       const type = document.getElementById('creditType').value;
@@ -200,7 +268,7 @@
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // 3. حفظ الطيران
+    // 5. حفظ الطيران
     window.saveAviationBooking = async function() {
       const airline = document.getElementById('airlineName').value;
       const pnr = document.getElementById('pnrNumber').value;
@@ -215,7 +283,7 @@
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // 4. حفظ التذاكر
+    // 6. حفظ التذاكر
     window.saveTicketInventory = async function() {
       const name = document.getElementById('ticketName').value;
       const qty = parseInt(document.getElementById('ticketQty').value) || 0;
@@ -229,7 +297,7 @@
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // 5. تصفية الملفات
+    // 7. تصفية الملفات
     window.saveFileSettlement = async function() {
       const fileCode = document.getElementById('fileCode').value;
       const guideName = document.getElementById('guideName').value;
