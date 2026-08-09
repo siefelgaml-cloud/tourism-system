@@ -69,6 +69,7 @@
     .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; }
     .badge-hotel { background-color: #dbeafe; color: #1e40af; }
     .badge-cruise { background-color: #fef3c7; color: #92400e; }
+    .badge-restaurant { background-color: #fce7f3; color: #9d174d; }
     .badge-taxable { background-color: #dcfce7; color: #166534; }
     .badge-exempt { background-color: #f3f4f6; color: #374151; }
     .badge-advance { background-color: #e0e7ff; color: #3730a3; }
@@ -113,7 +114,7 @@
       </button>
       <div id="taxDiscountSubMenu" class="sub-tabs-container">
         <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSupplierSubTab')">1- إضافة مورد</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab')">2- قائمة الفنادق والكروزات</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab')">2- قائمة الفنادق والكروزات والمطاعم</button>
       </div>
 
       <!-- 2. زر أرصدة الكريديت -->
@@ -146,12 +147,13 @@
             <select id="supplierType">
               <option value="فندق">فندق</option>
               <option value="كروز">كروز</option>
+              <option value="مطعم">مطعم</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label>2. الاسم (اسم الفندق أو الكروز):</label>
-            <input type="text" id="propertyName" placeholder="أدخل اسم الفندق أو الكروز">
+            <label>2. الاسم (اسم الفندق / الكروز / المطعم):</label>
+            <input type="text" id="propertyName" placeholder="أدخل اسم الفندق أو الكروز أو المطعم">
           </div>
 
           <div class="form-group">
@@ -184,10 +186,10 @@
 
         <div id="suppliersListSubTab" class="sub-tab-content">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <h3>سجل الموردين (الفنادق والكروزات)</h3>
+            <h3>سجل الموردين (الفنادق، الكروزات، والمطاعم)</h3>
             <div style="display: flex; gap: 10px; align-items: center;">
               <button class="excel-btn" onclick="exportSuppliersToExcel()">📊 تصدير القائمة لـ Excel</button>
-              <input type="text" id="searchSupplier" placeholder="🔍 بحث باسم الفندق أو المورد..." onkeyup="filterSuppliersTable()" style="max-width: 250px;">
+              <input type="text" id="searchSupplier" placeholder="🔍 بحث باسم المكان أو المورد..." onkeyup="filterSuppliersTable()" style="max-width: 250px;">
             </div>
           </div>
 
@@ -196,7 +198,7 @@
               <tr>
                 <th>#</th>
                 <th>النوع</th>
-                <th>الاسم (فندق/كروز)</th>
+                <th>الاسم (فندق/كروز/مطعم)</th>
                 <th>اسم المورد</th>
                 <th>رقم البطاقة الضريبية</th>
                 <th>حالة الضريبة</th>
@@ -223,7 +225,7 @@
           
           <div class="form-row">
             <div class="form-group">
-              <label>الجهة (فندق / كروز / عميل طيران):</label>
+              <label>الجهة (فندق / كروز / مطعم / عميل طيران):</label>
               <input type="text" id="creditEntity" placeholder="اسم الجهة">
             </div>
             <div class="form-group">
@@ -447,12 +449,13 @@
         <select id="editSupplierType">
           <option value="فندق">فندق</option>
           <option value="كروز">كروز</option>
+          <option value="مطعم">مطعم</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label>الاسم (اسم الفندق أو الكروز):</label>
-        <input type="text" id="editPropertyName" placeholder="اسم الفندق أو الكروز">
+        <label>الاسم (اسم الفندق / الكروز / المطعم):</label>
+        <input type="text" id="editPropertyName" placeholder="اسم الفندق أو الكروز أو المطعم">
       </div>
 
       <div class="form-group">
@@ -572,7 +575,7 @@
       const taxRate = taxTypeVal === "0.03" ? 0.03 : taxTypeVal;
 
       if(!propertyName || !supplierName || !taxCardNumber) {
-        return alert('يرجى إدخال اسم الفندق/الكروز، اسم المورد، ورقم البطاقة الضريبية');
+        return alert('يرجى إدخال اسم المكان، اسم المورد، ورقم البطاقة الضريبية');
       }
 
       try {
@@ -598,7 +601,7 @@
       currentSuppliersList = [];
 
       if (snapshot.empty) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد فنادق أو كروزات مسجلة حتى الآن</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد فنادق أو كروزات أو مطاعم مسجلة حتى الآن</td></tr>';
         return;
       }
 
@@ -609,7 +612,13 @@
         currentSuppliersList.push(data);
 
         const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
-        const typeBadge = data.supplierType === 'فندق' ? '<span class="badge badge-hotel">فندق</span>' : '<span class="badge badge-cruise">كروز</span>';
+        
+        let typeBadge = '<span class="badge badge-hotel">فندق</span>';
+        if (data.supplierType === 'كروز') {
+          typeBadge = '<span class="badge badge-cruise">كروز</span>';
+        } else if (data.supplierType === 'مطعم') {
+          typeBadge = '<span class="badge badge-restaurant">مطعم</span>';
+        }
         
         let taxBadge = '<span class="badge badge-exempt">غير محدد</span>';
         if (data.taxRate === 0.03 || data.taxRate === "0.03") {
@@ -710,7 +719,7 @@
         return {
           "م": idx + 1,
           "النوع": item.supplierType || 'فندق',
-          "اسم (الفندق/الكروز)": item.propertyName || '',
+          "اسم (الفندق/الكروز/المطعم)": item.propertyName || '',
           "اسم المورد": item.supplierName || '',
           "رقم البطاقة الضريبية": item.taxCardNumber || '',
           "حالة الضريبة": statusStr,
@@ -724,7 +733,6 @@
       XLSX.writeFile(workbook, "Suppliers_List.xlsx");
     };
 
-    // التحديث: دالة استيراد ملفات الموردين تلقائياً وحفظها مباشرة في Firebase
     window.importFromExcel = async function(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -746,8 +754,16 @@
           const batch = writeBatch(db);
 
           jsonData.forEach(row => {
-            const supplierType = row["النوع"] || row["Type"] || 'فندق';
-            const propertyName = String(row["الاسم"] || row["اسم (الفندق/الكروز)"] || row["Name"] || "").trim();
+            let supplierType = String(row["النوع"] || row["Type"] || 'فندق').trim();
+            if (supplierType.includes("مطعم") || supplierType.toLowerCase().includes("restaurant")) {
+              supplierType = "مطعم";
+            } else if (supplierType.includes("كروز") || supplierType.toLowerCase().includes("cruise")) {
+              supplierType = "كروز";
+            } else {
+              supplierType = "فندق";
+            }
+
+            const propertyName = String(row["الاسم"] || row["اسم (الفندق/الكروز/المطعم)"] || row["اسم (الفندق/الكروز)"] || row["Name"] || "").trim();
             const supplierName = String(row["اسم المورد"] || row["Supplier Name"] || "").trim();
             const taxCardNumber = String(row["رقم البطاقة الضريبية"] || row["Tax Card"] || "").trim();
             const rawTax = String(row["حالة الضريبة"] || row["Tax Status"] || "").trim();
@@ -774,7 +790,7 @@
           if (addedCount > 0) {
             await batch.commit();
             alert(`تم استيراد وحفظ ${addedCount} مورد بنجاح وتسميعهم في الجدول تلقائياً!`);
-            event.target.value = ''; // إعادة تعيين حقل الملف
+            event.target.value = '';
           } else {
             alert('لم يتم العثور على أعمدة متطابقة في الملف.');
           }
