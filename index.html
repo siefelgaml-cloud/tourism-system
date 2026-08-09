@@ -245,7 +245,7 @@
           <div class="btn-group">
             <button class="submit-btn" onclick="saveCreditTransaction()">تسجيل الحركة المالية</button>
             <label class="excel-btn" style="display: inline-block;">
-              📥 استيراد ملف الكريديت من Excel
+              📥 استيراد ملف الكريديت كامل من Excel
               <input type="file" id="creditExcelImport" accept=".xlsx, .xls" style="display: none;" onchange="importCreditFromExcel(event)">
             </label>
           </div>
@@ -426,9 +426,9 @@
 
     function parseDMYToISO(dmyString) {
       if (!dmyString) return '';
-      const parts = dmyString.split('/');
+      const parts = String(dmyString).trim().split('/');
       if (parts.length === 3) {
-        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
       }
       return dmyString;
     }
@@ -437,7 +437,7 @@
   <!-- Firebase Script & Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AiZaSyBnVZaF4cbNqTM03tA3dWEfk2k3aWj0djs",
@@ -455,7 +455,7 @@
 
     function formatDateToDMY(dateString) {
       if (!dateString) return '-';
-      const parts = dateString.split('-');
+      const parts = String(dateString).split('-');
       if (parts.length === 3) {
         return `${parts[2]}/${parts[1]}/${parts[0]}`;
       }
@@ -731,44 +731,82 @@
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    window.importCreditFromExcel = function(event) {
+    // استيراد كافة حركات الكريديت من Excel ورفعها فوراً لقاعدة البيانات Firebase
+    window.importCreditFromExcel = async function(event) {
       const file = event.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+      reader.onload = async function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
-        if (jsonData.length > 0) {
-          const row = jsonData[0];
-          
-          document.getElementById('creditEntity').value = row["الجهة"] || row["Entity"] || '';
-          document.getElementById('creditFileCode').value = row["رقم الملف"] || row["File Code"] || row["File No"] || '';
-          document.getElementById('creditArrivalDate').value = row["تاريخ الوصول"] || row["Arrival Date"] || row["Check In"] || '';
-          document.getElementById('creditDepartureDate').value = row["تاريخ المغادرة"] || row["Departure Date"] || row["Check Out"] || '';
-          
-          const typeVal = String(row["نوع الحركة"] || row["Type"] || '');
-          document.getElementById('creditType').value = (typeVal.includes("خصم") || typeVal.toLowerCase() === "deduction") ? "deduction" : "deposit";
-          
-          document.getElementById('creditAmount').value = row["المبلغ"] || row["Amount"] || 0;
-          
-          const rawCurr = String(row["العملة"] || row["Currency"] || '').toUpperCase();
-          if (rawCurr.includes("EUR") || rawCurr.includes("يورو")) {
-            document.getElementById('creditCurrency').value = "EUR";
-          } else if (rawCurr.includes("USD") || rawCurr.includes("دولار") || rawCurr.includes("$")) {
-            document.getElementById('creditCurrency').value = "USD";
-          } else if (rawCurr.includes("EGP") || rawCurr.includes("جنيه") || rawCurr.includes("ج.م")) {
-            document.getElementById('creditCurrency').value = "EGP";
+          if (jsonData.length === 0) {
+            alert('الملف فارغ أو لا يحتوي على بيانات مقبولة');
+            return;
           }
 
-          document.getElementById('creditDescription').value = row["البيان"] || row["الوصف"] || row["Description"] || row["Notes"] || '';
-          
-          alert('تم قراءة كامل بيانات الكريديت من ملف Excel بنجاح!');
-        } else {
-          alert('الملف فارغ أو التنسيق غير صحيح');
+          let addedCount = 0;
+          const batch = writeBatch(db);
+
+          for (let row of jsonData) {
+            // الاستعلام المرن عن اسم الجهة
+            const entity = row["الجهة"] || row["المورد"] || row["اسم الجهة"] || row["Entity"] || row["Supplier"] || "";
+            if (!entity) continue;
+
+            const fileCode = row["رقم الملف"] || row["كود الملف"] || row["File Code"] || row["File No"] || "";
+            
+            let arrivalDate = row["تاريخ الوصول"] || row["Check In"] || row["Arrival Date"] || "";
+            let departureDate = row["تاريخ المغادرة"] || row["Check Out"] || row["Departure Date"] || "";
+
+            if (String(arrivalDate).includes('/')) arrivalDate = parseDMYToISO(arrivalDate);
+            if (String(departureDate).includes('/')) departureDate = parseDMYToISO(departureDate);
+
+            // تحديد نوع الحركة (إيداع أم خصم)
+            const typeStr = String(row["نوع الحركة"] || row["الحركة"] || row["Type"] || "").toLowerCase();
+            let type = "deposit";
+            if (typeStr.includes("خصم") || typeStr.includes("علينا") || typeStr.includes("deduction") || typeStr.includes("debit")) {
+              type = "deduction";
+            }
+
+            const amount = parseFloat(row["المبلغ"] || row["القيمة"] || row["Amount"] || 0);
+
+            // تحديد العملة
+            const rawCurr = String(row["العملة"] || row["Currency"] || "EGP").toUpperCase();
+            let currency = "EGP";
+            if (rawCurr.includes("USD") || rawCurr.includes("دولار") || rawCurr.includes("$")) currency = "USD";
+            else if (rawCurr.includes("EUR") || rawCurr.includes("يورو") || rawCurr.includes("€")) currency = "EUR";
+
+            const description = row["البيان"] || row["التفاصيل"] || row["الوصف"] || row["Description"] || row["Notes"] || "";
+
+            const docRef = doc(collection(db, "credit_balances"));
+            batch.set(docRef, {
+              entity,
+              fileCode,
+              arrivalDate,
+              departureDate,
+              type,
+              amount,
+              currency,
+              description,
+              createdAt: new Date()
+            });
+
+            addedCount++;
+          }
+
+          if (addedCount > 0) {
+            await batch.commit();
+            alert(`تم رفع وتسميع ${addedCount} حركة كريديت بنجاح إلى السيستم والقوائم التجميعية!`);
+          } else {
+            alert('لم يتم العثور على حركات صالحة. تأكد من أن ملف Excel يحتوي على عمود باسم "الجهة" أو "المورد".');
+          }
+
+        } catch (err) {
+          alert("حدث خطأ أثناء معالجة ملف Excel: " + err.message);
         }
       };
       reader.readAsArrayBuffer(file);
