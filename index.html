@@ -5,6 +5,8 @@
   <title>نظام إدارة الحسابات والعمليات السياحية</title>
   <!-- مكتبة التعامل مع ملفات Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- مكتبة تحويل HTML إلى PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f6f9; margin: 0; }
     .header { background: #1e293b; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
@@ -42,9 +44,14 @@
     
     button.submit-btn { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
     button.excel-btn, label.excel-btn { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; font-size: 14px; line-height: 1.2; }
+    button.print-btn { background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+    button.pdf-btn { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
     button.delete-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    
     button.submit-btn:hover { background: #15803d; }
     button.excel-btn:hover, label.excel-btn:hover { background: #0369a1; }
+    button.print-btn:hover { background: #334155; }
+    button.pdf-btn:hover { background: #b91c1c; }
     button.delete-btn:hover { background: #dc2626; }
 
     /* تنسيق حقل المبلغ مع العملة */
@@ -70,6 +77,14 @@
     .dash-card { flex: 1; min-width: 200px; padding: 15px 20px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .dash-card-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; display: block; }
     .dash-card-value { font-size: 20px; font-weight: bold; }
+
+    /* قواعد طباعة الصفحة الخاصة بالـ Dashboard */
+    @media print {
+      body * { visibility: hidden; }
+      #printableArea, #printableArea * { visibility: visible; }
+      #printableArea { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
+      .no-print { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -220,8 +235,8 @@
             <div class="form-group">
               <label>نوع الحركة:</label>
               <select id="creditType">
-                <option value="deposit">إيداع رصيد (لنا)</option>
-                <option value="deduction">خصم مستحقات (علينا)</option>
+                <option value="deposit">مدين (لنا)</option>
+                <option value="deduction">دائن (علينا)</option>
               </select>
             </div>
             <div class="form-group">
@@ -288,47 +303,56 @@
 
         <!-- فرعي 3: ملخص الأرصدة والـ Dashboard -->
         <div id="creditSummarySubTab" class="sub-tab-content">
-          <h3>لوحة التحكم والملخص الإجمالي للأرصدة</h3>
-
-          <!-- Dashboard Cards -->
-          <div class="dashboard-grid">
-            <div class="dash-card" style="border-right: 4px solid #16a34a; background: #f0fdf4;">
-              <span class="dash-card-title" style="color: #166534;">إجمالي الإيداعات (لنا)</span>
-              <div class="dash-card-value" id="dashTotalDeposits" style="color: #15803d;">0</div>
-            </div>
-            <div class="dash-card" style="border-right: 4px solid #dc2626; background: #fef2f2;">
-              <span class="dash-card-title" style="color: #991b1b;">إجمالي الخصومات (علينا)</span>
-              <div class="dash-card-value" id="dashTotalDeductions" style="color: #b91c1c;">0</div>
-            </div>
-            <div class="dash-card" style="border-right: 4px solid #0284c7; background: #f0f9ff;">
-              <span class="dash-card-title" style="color: #075985;">صافي الرصيد الإجمالي</span>
-              <div class="dash-card-value" id="dashNetBalance" style="color: #0369a1;">0</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">لوحة التحكم والملخص الإجمالي للأرصدة</h3>
+            <div class="btn-group" style="margin-top: 0;">
+              <button class="print-btn" onclick="printDashboard()">𖥕 طباعة التقرير</button>
+              <button class="pdf-btn" onclick="downloadDashboardPDF()">📄 تحميل PDF</button>
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; margin-bottom: 10px;">
-            <h4 style="margin: 0; color: #334155;">ملخص رصيد كل مورد / جهة</h4>
-            <input type="text" id="searchEntitySummary" placeholder="🔍 بحث باسم الجهة..." onkeyup="filterEntitySummaryTable()" style="max-width: 250px;">
-          </div>
+          <!-- الحاوية المخصصة للطباعة وتصدير PDF -->
+          <div id="printableArea">
+            <!-- Dashboard Cards -->
+            <div class="dashboard-grid">
+              <div class="dash-card" style="border-right: 4px solid #16a34a; background: #f0fdf4;">
+                <span class="dash-card-title" style="color: #166534;">إجمالي المدين (لنا)</span>
+                <div class="dash-card-value" id="dashTotalDeposits" style="color: #15803d;">0</div>
+              </div>
+              <div class="dash-card" style="border-right: 4px solid #dc2626; background: #fef2f2;">
+                <span class="dash-card-title" style="color: #991b1b;">إجمالي الدائن (علينا)</span>
+                <div class="dash-card-value" id="dashTotalDeductions" style="color: #b91c1c;">0</div>
+              </div>
+              <div class="dash-card" style="border-right: 4px solid #0284c7; background: #f0f9ff;">
+                <span class="dash-card-title" style="color: #075985;">صافي الرصيد الإجمالي</span>
+                <div class="dash-card-value" id="dashNetBalance" style="color: #0369a1;">0</div>
+              </div>
+            </div>
 
-          <table id="entitySummaryTable">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>اسم الجهة (المورد/العميل)</th>
-                <th>العملة</th>
-                <th>إجمالي الإيداعات (لنا)</th>
-                <th>إجمالي الخصومات (علينا)</th>
-                <th>صافي الرصيد الحالي</th>
-                <th>حالة الحساب</th>
-              </tr>
-            </thead>
-            <tbody id="entitySummaryTableBody">
-              <tr>
-                <td colspan="7" style="text-align: center; color: #64748b;">جاري حساب الأرصدة...</td>
-              </tr>
-            </tbody>
-          </table>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; margin-bottom: 10px;">
+              <h4 style="margin: 0; color: #334155;">ملخص رصيد كل مورد / جهة</h4>
+              <input type="text" id="searchEntitySummary" class="no-print" placeholder="🔍 بحث باسم الجهة..." onkeyup="filterEntitySummaryTable()" style="max-width: 250px;">
+            </div>
+
+            <table id="entitySummaryTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>اسم الجهة (المورد/العميل)</th>
+                  <th>العملة</th>
+                  <th>إجمالي المدين (لنا)</th>
+                  <th>إجمالي الدائن (علينا)</th>
+                  <th>صافي الرصيد الحالي</th>
+                  <th>حالة الحساب</th>
+                </tr>
+              </thead>
+              <tbody id="entitySummaryTableBody">
+                <tr>
+                  <td colspan="7" style="text-align: center; color: #64748b;">جاري حساب الأرصدة...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
       </div>
@@ -402,7 +426,7 @@
     </div>
   </div>
 
-  <!-- الدوال العامة للتحكم في معالجة التواريخ -->
+  <!-- الدوال العامة للتحكم في معالجة التواريخ والطباعة والتصدير -->
   <script>
     function formatInputDate(input) {
       if (input.value) {
@@ -431,6 +455,32 @@
         return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
       }
       return dmyString;
+    }
+
+    // دالة طباعة الـ Dashboard والملخص
+    function printDashboard() {
+      window.print();
+    }
+
+    // دالة تحميل ملف PDF للـ Dashboard والملخص
+    function downloadDashboardPDF() {
+      const element = document.getElementById('printableArea');
+      const searchBox = document.getElementById('searchEntitySummary');
+      
+      // إخفاء حقل البحث أثناء إنشاء الملف
+      if (searchBox) searchBox.style.display = 'none';
+
+      const opt = {
+        margin:       10,
+        filename:     `Credit_Summary_Report_${new Date().toISOString().slice(0,10)}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        if (searchBox) searchBox.style.display = '';
+      });
     }
   </script>
 
@@ -521,7 +571,7 @@
       });
     });
 
-    // دالة محدثة لحساب وتنسيق كروت الـ Dashboard بترتيب ثابت ومحمي من تداخل النصوص
+    // دالة لحساب وتنسيق كروت الـ Dashboard وترتيب الأرصدة
     function updateCreditDashboardAndSummary(records) {
       let totalsByCurrency = {
         'EGP': { deposit: 0, deduction: 0 },
@@ -532,7 +582,7 @@
 
       records.forEach(item => {
         let curr = (item.currency || 'EGP').toUpperCase();
-        if (curr === 'EIUR') curr = 'EUR'; // توحيد الرمز
+        if (curr === 'EIUR') curr = 'EUR';
         
         const entity = (item.entity || 'غير محدد').trim();
         const amt = parseFloat(item.amount) || 0;
@@ -552,7 +602,6 @@
         else if (item.type === 'deduction') entityBalances[key].deduction += amt;
       });
 
-      // ترتيب العملات المعتمد دائماً
       const orderedCurrencies = ['EGP', 'USD', 'EUR'];
 
       function formatCurrencyDisplay(type) {
@@ -563,7 +612,6 @@
           else if (type === 'deduction') val = totalsByCurrency[curr].deduction;
           else if (type === 'net') val = totalsByCurrency[curr].deposit - totalsByCurrency[curr].deduction;
 
-          // تنسيق الرقم والرمز باتجاه يسار-إلى-يمين لمنع التداخل
           parts.push(`<span style="display:inline-block; dir:ltr; unicode-bidi: embed;"><strong>${val.toLocaleString()}</strong> ${curr}</span>`);
         });
         return parts.join(' &nbsp;<span style="color:#cbd5e1;">|</span>&nbsp; ');
@@ -589,8 +637,8 @@
         const net = e.deposit - e.deduction;
 
         let statusBadge = '<span class="badge badge-exempt">متزن (0)</span>';
-        if (net > 0) statusBadge = '<span class="badge badge-deposit">رصيد لنا</span>';
-        else if (net < 0) statusBadge = '<span class="badge badge-deduction">مستحق علينا</span>';
+        if (net > 0) statusBadge = '<span class="badge badge-deposit">رصيد مدين (لنا)</span>';
+        else if (net < 0) statusBadge = '<span class="badge badge-deduction">رصيد دائن (علينا)</span>';
 
         const row = `
           <tr>
@@ -627,8 +675,8 @@
 
         const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
         const typeBadge = data.type === 'deposit' 
-          ? '<span class="badge badge-deposit">إيداع (لنا)</span>' 
-          : '<span class="badge badge-deduction">خصم (علينا)</span>';
+          ? '<span class="badge badge-deposit">مدين (لنا)</span>' 
+          : '<span class="badge badge-deduction">دائن (علينا)</span>';
 
         const row = `
           <tr>
@@ -741,7 +789,6 @@
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // الدالة المحدثة الذكية لاستيراد ملف الكريديت بجميع هيئاته
     window.importCreditFromExcel = async function(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -753,7 +800,6 @@
           const workbook = XLSX.read(data, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
 
-          // قراءة البيانات كمصفوفة صفوف (2D array) للتعامل مع الصفوف الفارغة في البداية
           const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "" });
 
           if (rows.length === 0) {
@@ -761,7 +807,6 @@
             return;
           }
 
-          // 1. البحث عن صف العناوين الرئيسية ديناميكيًا
           let headerIndex = -1;
           let entityColIdx = -1;
 
@@ -785,14 +830,12 @@
 
           const headers = rows[headerIndex].map(h => String(h).trim());
           
-          // 2. تحديد مواضع الأعمدة الإضافية
           let fileCodeColIdx = headers.findIndex(h => ["رقم الملف", "كود الملف", "file code", "file no"].includes(h.toLowerCase()));
           let arrivalColIdx = headers.findIndex(h => ["تاريخ الوصول", "check in", "arrival date"].includes(h.toLowerCase()));
           let departureColIdx = headers.findIndex(h => ["تاريخ المغادرة", "check out", "departure date"].includes(h.toLowerCase()));
           let typeColIdx = headers.findIndex(h => ["نوع الحركة", "الحركة", "type"].includes(h.toLowerCase()));
           let descColIdx = headers.findIndex(h => ["البيان", "التفاصيل", "الوصف", "description", "notes"].includes(h.toLowerCase()));
 
-          // فحص وجود أعمدة العملات المنفصلة (مثل: المبلغ EGP، المبلغ USD، الرصيد EUR أو EIUR)
           let currencyCols = [];
           headers.forEach((h, idx) => {
             const hUpper = h.toUpperCase();
@@ -811,12 +854,10 @@
           let addedCount = 0;
           const batch = writeBatch(db);
 
-          // 3. معالجة صفوف البيانات
           for (let i = headerIndex + 1; i < rows.length; i++) {
             const row = rows[i];
             const entity = String(row[entityColIdx] || "").trim();
 
-            // استبعاد الصفوف الفارغة أو صفوف الإجمالي
             if (!entity || entity.toLowerCase().includes("اجمال") || entity.toLowerCase().includes("total")) {
               continue;
             }
@@ -830,13 +871,12 @@
 
             const typeStr = typeColIdx !== -1 ? String(row[typeColIdx] || "").toLowerCase() : "";
             let type = "deposit";
-            if (typeStr.includes("خصم") || typeStr.includes("علينا") || typeStr.includes("deduction") || typeStr.includes("debit")) {
+            if (typeStr.includes("دائن") || typeStr.includes("خصم") || typeStr.includes("علينا") || typeStr.includes("deduction") || typeStr.includes("debit")) {
               type = "deduction";
             }
 
             const description = descColIdx !== -1 ? String(row[descColIdx] || "").trim() : "";
 
-            // النمط الأول: ملف ذو أعمدة مبالغ متعددة العملات (كما في ملفك)
             if (currencyCols.length > 0) {
               for (let cCol of currencyCols) {
                 const amount = parseFloat(row[cCol.idx]) || 0;
@@ -857,7 +897,6 @@
                 }
               }
             } 
-            // النمط الثاني: ملف بجدول عادي (عمود للمبلغ وعمود للعملة)
             else if (standardAmountColIdx !== -1) {
               const amount = parseFloat(row[standardAmountColIdx]) || 0;
               if (amount > 0) {
@@ -908,7 +947,7 @@
         "رقم الملف": item.fileCode || '',
         "تاريخ الوصول": formatDateToDMY(item.arrivalDate),
         "تاريخ المغادرة": formatDateToDMY(item.departureDate),
-        "نوع الحركة": item.type === 'deposit' ? 'إيداع (لنا)' : 'خصم (علينا)',
+        "نوع الحركة": item.type === 'deposit' ? 'مدين (لنا)' : 'دائن (علينا)',
         "المبلغ": item.amount || 0,
         "العملة": item.currency || 'EGP',
         "البيان والتفاصيل": item.description || ''
