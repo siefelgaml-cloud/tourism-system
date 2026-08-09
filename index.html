@@ -78,6 +78,179 @@
     .dash-card-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; display: block; }
     .dash-card-value { font-size: 20px; font-weight: bold; }
 
+    /* =========================================================
+       التنسيقات الإضافية والمحسنة لنموذج الكريديت الجديد
+       ========================================================= */
+    .credit-card-form {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 28px 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      max-width: 850px;
+      margin: 10px auto;
+    }
+
+    .credit-form-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #f1f5f9;
+    }
+
+    .credit-form-header h3 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .credit-form-header .header-icon {
+      background: #eff6ff;
+      color: #2563eb;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      font-size: 20px;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .form-grid-full {
+      grid-column: span 2;
+    }
+
+    .modern-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .modern-form-group label {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .modern-form-group input,
+    .modern-form-group select,
+    .modern-form-group textarea {
+      width: 100%;
+      max-width: 100%;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: #1e293b;
+      background-color: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      box-sizing: border-box;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .modern-form-group input:focus,
+    .modern-form-group select:focus,
+    .modern-form-group textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .modern-form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .amount-currency-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .amount-currency-group input {
+      flex: 2;
+    }
+
+    .amount-currency-group select {
+      flex: 1;
+      min-width: 110px;
+      cursor: pointer;
+    }
+
+    .action-buttons-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-modern-primary {
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.2);
+    }
+
+    .btn-modern-primary:hover {
+      background: #15803d;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(22, 163, 74, 0.3);
+    }
+
+    .btn-modern-secondary {
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.2);
+    }
+
+    .btn-modern-secondary:hover {
+      background: #0369a1;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+    }
+
+    @media (max-width: 640px) {
+      .form-grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .form-grid-full {
+        grid-column: span 1;
+      }
+      .credit-card-form {
+        padding: 18px 20px;
+      }
+    }
+
     /* قواعد طباعة الصفحة الخاصة بالـ Dashboard */
     @media print {
       body * { visibility: hidden; }
@@ -205,64 +378,83 @@
       <!-- 2. قسم الكريديت -->
       <div id="creditTab" class="tab-content">
         
-        <!-- فرعي 1: تسجيل حركة كريديت -->
+        <!-- فرعي 1: تسجيل حركة كريديت (النموذج المحسن والمعدل) -->
         <div id="addCreditSubTab" class="sub-tab-content active">
-          <h3>تسجيل حركة كريديت جديدة</h3>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label>الجهة (فندق / كروز / عميل طيران):</label>
-              <input type="text" id="creditEntity" placeholder="اسم الجهة">
+          <div class="credit-card-form">
+            
+            <div class="credit-form-header">
+              <div class="header-icon">💳</div>
+              <h3>تسجيل حركة كريديت جديدة</h3>
             </div>
-            <div class="form-group">
-              <label>رقم الملف (File Code):</label>
-              <input type="text" id="creditFileCode" placeholder="مثال: EG-2026-99">
-            </div>
-          </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>تاريخ الوصول (Check-in):</label>
-              <input type="text" id="creditArrivalDate" placeholder="DD/MM/YYYY" onfocus="(this.type='date')" onchange="formatInputDate(this)" onblur="handleDateBlur(this)">
-            </div>
-            <div class="form-group">
-              <label>تاريخ المغادرة (Check-out):</label>
-              <input type="text" id="creditDepartureDate" placeholder="DD/MM/YYYY" onfocus="(this.type='date')" onchange="formatInputDate(this)" onblur="handleDateBlur(this)">
-            </div>
-          </div>
+            <div class="form-grid-2">
+              
+              <!-- الجهة -->
+              <div class="modern-form-group">
+                <label for="creditEntity">🏨 الجهة (فندق / كروز / عميل طيران):</label>
+                <input type="text" id="creditEntity" placeholder="أدخل اسم الجهة المسجلة...">
+              </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>نوع الحركة:</label>
-              <select id="creditType">
-                <option value="deposit">مدين (لنا)</option>
-                <option value="deduction">دائن (علينا)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>المبلغ والعملة:</label>
-              <div class="amount-input-group">
-                <input type="number" id="creditAmount" placeholder="0">
-                <select id="creditCurrency">
-                  <option value="EGP">EGP (ج.م)</option>
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
+              <!-- رقم الملف -->
+              <div class="modern-form-group">
+                <label for="creditFileCode">📁 رقم الملف (File Code):</label>
+                <input type="text" id="creditFileCode" placeholder="مثال: EG-2026-99">
+              </div>
+
+              <!-- تاريخ الوصول -->
+              <div class="modern-form-group">
+                <label for="creditArrivalDate">🛫 تاريخ الوصول (Check-in):</label>
+                <input type="text" id="creditArrivalDate" placeholder="DD/MM/YYYY" onfocus="(this.type='date')" onchange="formatInputDate(this)" onblur="handleDateBlur(this)">
+              </div>
+
+              <!-- تاريخ المغادرة -->
+              <div class="modern-form-group">
+                <label for="creditDepartureDate">🛬 تاريخ المغادرة (Check-out):</label>
+                <input type="text" id="creditDepartureDate" placeholder="DD/MM/YYYY" onfocus="(this.type='date')" onchange="formatInputDate(this)" onblur="handleDateBlur(this)">
+              </div>
+
+              <!-- نوع الحركة -->
+              <div class="modern-form-group">
+                <label for="creditType">🔄 نوع الحركة:</label>
+                <select id="creditType">
+                  <option value="deposit">مدين (لنا)</option>
+                  <option value="deduction">دائن (علينا)</option>
                 </select>
               </div>
+
+              <!-- المبلغ والعملة -->
+              <div class="modern-form-group">
+                <label for="creditAmount">💰 المبلغ والعملة:</label>
+                <div class="amount-currency-group">
+                  <input type="number" id="creditAmount" placeholder="0.00">
+                  <select id="creditCurrency">
+                    <option value="EGP">EGP (ج.م)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- البيان / تفاصيل الحركة -->
+              <div class="modern-form-group form-grid-full">
+                <label for="creditDescription">📝 البيان / تفاصيل الحركة:</label>
+                <textarea id="creditDescription" placeholder="أدخل تفاصيل وملاحظات الحركة المالية هنا..."></textarea>
+              </div>
+
+              <!-- الأزراـر الإجرائية -->
+              <div class="form-grid-full action-buttons-group">
+                <button class="btn-modern-primary" onclick="saveCreditTransaction()">
+                  <span>💾</span> تسجيل الحركة المالية
+                </button>
+
+                <label class="btn-modern-secondary">
+                  <span>📥</span> استيراد ملف الكريديت كامل من Excel
+                  <input type="file" id="creditExcelImport" accept=".xlsx, .xls" style="display: none;" onchange="importCreditFromExcel(event)">
+                </label>
+              </div>
+
             </div>
-          </div>
 
-          <div class="form-group">
-            <label>البيان / تفاصيل الحركة:</label>
-            <textarea id="creditDescription" placeholder="أدخل تفاصيل وملاحظات الحركة المالية هنا..."></textarea>
-          </div>
-
-          <div class="btn-group">
-            <button class="submit-btn" onclick="saveCreditTransaction()">تسجيل الحركة المالية</button>
-            <label class="excel-btn" style="display: inline-block;">
-              📥 استيراد ملف الكريديت كامل من Excel
-              <input type="file" id="creditExcelImport" accept=".xlsx, .xls" style="display: none;" onchange="importCreditFromExcel(event)">
-            </label>
           </div>
         </div>
 
