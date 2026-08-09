@@ -1,11 +1,15 @@
 <!-- فرعي 2: عرض كشف الحساب التفصيلي -->
 <div id="creditRecordsSubTab" class="sub-tab-content">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-    <h3>سجل حركة أرصدة الكريديت بالتفصيل</h3>
-    <div style="display: flex; gap: 10px;">
-      <input type="text" id="searchCredit" placeholder="🔍 بحث باسم الجهة أو رقم الملف..." onkeyup="filterCreditTable()" style="max-width: 250px;">
-      <button class="excel-btn" onclick="exportCreditToExcel()">📊 تصدير السجل لـ Excel</button>
-    </div>
+  
+  <!-- الهيدر الرئيسي: العنوان وبجواره زر التصدير -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <h3 style="margin: 0;">سجل حركة أرصدة الكريديت بالتفصيل</h3>
+    <button class="excel-btn" onclick="exportCreditToExcel()">📊 تصدير السجل لـ Excel</button>
+  </div>
+
+  <!-- خانة البحث مباشرة تحت العنوان -->
+  <div style="margin-bottom: 15px;">
+    <input type="text" id="searchCredit" placeholder="🔍 بحث باسم الجهة أو رقم الملف..." onkeyup="filterCreditTable()" style="max-width: 350px;">
   </div>
 
   <!-- بطاقات الإجمالي والملخص -->
@@ -46,4 +50,5 @@
       </tr>
     </tbody>
   </table>
+
 </div>
