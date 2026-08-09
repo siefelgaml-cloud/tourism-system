@@ -733,6 +733,7 @@
       XLSX.writeFile(workbook, "Suppliers_List.xlsx");
     };
 
+    /* دالة الاستيراد الذكية المحسّنة لقراءة أي شيت Excel بغض النظر عن المسافات الزائدة أو المسميات */
     window.importFromExcel = async function(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -754,19 +755,36 @@
           const batch = writeBatch(db);
 
           jsonData.forEach(row => {
-            let supplierType = String(row["النوع"] || row["Type"] || 'فندق').trim();
-            if (supplierType.includes("مطعم") || supplierType.toLowerCase().includes("restaurant")) {
+            // تنظيف مسافات المفاتيح والقيم لضمان المطابقة
+            const cleanRow = {};
+            Object.keys(row).forEach(key => {
+              cleanRow[String(key).trim()] = String(row[key]).trim();
+            });
+
+            // دالة البحث الذكي عن القيم في السطر
+            const getValue = (...possibleKeywords) => {
+              for (let kw of possibleKeywords) {
+                for (let k in cleanRow) {
+                  if (k.toLowerCase().includes(kw.toLowerCase())) {
+                    return cleanRow[k];
+                  }
+                }
+              }
+              return "";
+            };
+
+            let supplierTypeRaw = getValue("نوع", "النوع", "type");
+            let supplierType = "فندق";
+            if (supplierTypeRaw.includes("مطعم") || supplierTypeRaw.toLowerCase().includes("restaurant")) {
               supplierType = "مطعم";
-            } else if (supplierType.includes("كروز") || supplierType.toLowerCase().includes("cruise")) {
+            } else if (supplierTypeRaw.includes("كروز") || supplierTypeRaw.toLowerCase().includes("cruise")) {
               supplierType = "كروز";
-            } else {
-              supplierType = "فندق";
             }
 
-            const propertyName = String(row["الاسم"] || row["اسم (الفندق/الكروز/المطعم)"] || row["اسم (الفندق/الكروز)"] || row["Name"] || "").trim();
-            const supplierName = String(row["اسم المورد"] || row["Supplier Name"] || "").trim();
-            const taxCardNumber = String(row["رقم البطاقة الضريبية"] || row["Tax Card"] || "").trim();
-            const rawTax = String(row["حالة الضريبة"] || row["Tax Status"] || "").trim();
+            const propertyName = getValue("الاسم", "اسم الفندق", "اسم الكروز", "اسم المطعم", "name");
+            const supplierName = getValue("اسم المورد", "مورد", "supplier");
+            const taxCardNumber = getValue("البطاقة الضريبية", "بطاقة ضريبية", "tax card", "رقم البطاقة");
+            const rawTax = getValue("حالة الضريبة", "ضريبة", "tax status");
 
             let taxRate = "advance_payment";
             if (rawTax.includes("3%") || rawTax.includes("0.03") || rawTax.includes("خاضع")) {
