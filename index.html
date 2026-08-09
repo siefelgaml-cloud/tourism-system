@@ -521,19 +521,26 @@
       });
     });
 
-    // دالة لحساب وتحديث بيانات Dashboard والملخص الإجمالي للموردين
+    // دالة محدثة لحساب وتنسيق كروت الـ Dashboard بترتيب ثابت ومحمي من تداخل النصوص
     function updateCreditDashboardAndSummary(records) {
-      let totalsByCurrency = {};
+      let totalsByCurrency = {
+        'EGP': { deposit: 0, deduction: 0 },
+        'USD': { deposit: 0, deduction: 0 },
+        'EUR': { deposit: 0, deduction: 0 }
+      };
       let entityBalances = {};
 
       records.forEach(item => {
-        const curr = item.currency || 'EGP';
+        let curr = (item.currency || 'EGP').toUpperCase();
+        if (curr === 'EIUR') curr = 'EUR'; // توحيد الرمز
+        
         const entity = (item.entity || 'غير محدد').trim();
         const amt = parseFloat(item.amount) || 0;
 
         if (!totalsByCurrency[curr]) {
           totalsByCurrency[curr] = { deposit: 0, deduction: 0 };
         }
+        
         if (item.type === 'deposit') totalsByCurrency[curr].deposit += amt;
         else if (item.type === 'deduction') totalsByCurrency[curr].deduction += amt;
 
@@ -545,21 +552,28 @@
         else if (item.type === 'deduction') entityBalances[key].deduction += amt;
       });
 
-      let depList = [], dedList = [], netList = [];
-      Object.keys(totalsByCurrency).forEach(curr => {
-        const dep = totalsByCurrency[curr].deposit;
-        const ded = totalsByCurrency[curr].deduction;
-        const net = dep - ded;
+      // ترتيب العملات المعتمد دائماً
+      const orderedCurrencies = ['EGP', 'USD', 'EUR'];
 
-        if (dep > 0) depList.push(`${dep.toLocaleString()} <small>${curr}</small>`);
-        if (ded > 0) dedList.push(`${ded.toLocaleString()} <small>${curr}</small>`);
-        netList.push(`${net.toLocaleString()} <small>${curr}</small>`);
-      });
+      function formatCurrencyDisplay(type) {
+        let parts = [];
+        orderedCurrencies.forEach(curr => {
+          let val = 0;
+          if (type === 'deposit') val = totalsByCurrency[curr].deposit;
+          else if (type === 'deduction') val = totalsByCurrency[curr].deduction;
+          else if (type === 'net') val = totalsByCurrency[curr].deposit - totalsByCurrency[curr].deduction;
 
-      document.getElementById('dashTotalDeposits').innerHTML = depList.join(' | ') || '0';
-      document.getElementById('dashTotalDeductions').innerHTML = dedList.join(' | ') || '0';
-      document.getElementById('dashNetBalance').innerHTML = netList.join(' | ') || '0';
+          // تنسيق الرقم والرمز باتجاه يسار-إلى-يمين لمنع التداخل
+          parts.push(`<span style="display:inline-block; dir:ltr; unicode-bidi: embed;"><strong>${val.toLocaleString()}</strong> ${curr}</span>`);
+        });
+        return parts.join(' &nbsp;<span style="color:#cbd5e1;">|</span>&nbsp; ');
+      }
 
+      document.getElementById('dashTotalDeposits').innerHTML = formatCurrencyDisplay('deposit');
+      document.getElementById('dashTotalDeductions').innerHTML = formatCurrencyDisplay('deduction');
+      document.getElementById('dashNetBalance').innerHTML = formatCurrencyDisplay('net');
+
+      // تحديث جدول ملخص الجهات
       const tbodySummary = document.getElementById('entitySummaryTableBody');
       tbodySummary.innerHTML = '';
 
