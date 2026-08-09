@@ -47,12 +47,14 @@
     button.print-btn { background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
     button.pdf-btn { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
     button.delete-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    button.edit-btn { background: #eab308; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 4px; }
     
     button.submit-btn:hover { background: #15803d; }
     button.excel-btn:hover, label.excel-btn:hover { background: #0369a1; }
     button.print-btn:hover { background: #334155; }
     button.pdf-btn:hover { background: #b91c1c; }
     button.delete-btn:hover { background: #dc2626; }
+    button.edit-btn:hover { background: #ca8a04; }
 
     /* تنسيق حقل المبلغ مع العملة */
     .amount-input-group { display: flex; gap: 8px; align-items: center; max-width: 400px; }
@@ -69,6 +71,7 @@
     .badge-cruise { background-color: #fef3c7; color: #92400e; }
     .badge-taxable { background-color: #dcfce7; color: #166534; }
     .badge-exempt { background-color: #f3f4f6; color: #374151; }
+    .badge-advance { background-color: #e0e7ff; color: #3730a3; }
     .badge-deposit { background-color: #dcfce7; color: #15803d; }
     .badge-deduction { background-color: #fee2e2; color: #b91c1c; }
 
@@ -160,7 +163,7 @@
             <label>5. حالة الضريبة:</label>
             <select id="taxType">
               <option value="0.03">خاضع لضريبة 3%</option>
-              <option value="0">معفى من الضريبة</option>
+              <option value="advance_payment">دفعات مقدمة</option>
             </select>
           </div>
 
@@ -177,7 +180,10 @@
         <div id="suppliersListSubTab" class="sub-tab-content">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <h3>سجل الموردين (الفنادق والكروزات)</h3>
-            <input type="text" id="searchSupplier" placeholder="🔍 بحث باسم الفندق أو المورد..." onkeyup="filterSuppliersTable()" style="max-width: 250px;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button class="excel-btn" onclick="exportSuppliersToExcel()">📊 تصدير القائمة لـ Excel</button>
+              <input type="text" id="searchSupplier" placeholder="🔍 بحث باسم الفندق أو المورد..." onkeyup="filterSuppliersTable()" style="max-width: 250px;">
+            </div>
           </div>
 
           <table id="suppliersTable">
@@ -190,11 +196,12 @@
                 <th>رقم البطاقة الضريبية</th>
                 <th>حالة الضريبة</th>
                 <th>تاريخ التسجيل</th>
+                <th>إجراءات</th>
               </tr>
             </thead>
             <tbody id="suppliersTableBody">
               <tr>
-                <td colspan="7" style="text-align: center; color: #64748b;">جاري تحميل البيانات من Firebase...</td>
+                <td colspan="8" style="text-align: center; color: #64748b;">جاري تحميل البيانات من Firebase...</td>
               </tr>
             </tbody>
           </table>
@@ -487,7 +494,7 @@
   <!-- Firebase Script & Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AiZaSyBnVZaF4cbNqTM03tA3dWEfk2k3aWj0djs",
@@ -502,6 +509,7 @@
     const db = getFirestore(app);
 
     let currentCreditList = [];
+    let currentSuppliersList = [];
 
     function formatDateToDMY(dateString) {
       if (!dateString) return '-';
@@ -517,7 +525,8 @@
       const propertyName = document.getElementById('propertyName').value;
       const supplierName = document.getElementById('supplierName').value;
       const taxCardNumber = document.getElementById('taxCardNumber').value;
-      const taxRate = parseFloat(document.getElementById('taxType').value);
+      const taxTypeVal = document.getElementById('taxType').value;
+      const taxRate = taxTypeVal === "0.03" ? 0.03 : taxTypeVal;
 
       if(!propertyName || !supplierName || !taxCardNumber) {
         return alert('يرجى إدخال اسم الفندق/الكروز، اسم المورد، ورقم البطاقة الضريبية');
@@ -543,18 +552,30 @@
     onSnapshot(qSuppliers, (snapshot) => {
       const tbody = document.getElementById('suppliersTableBody');
       tbody.innerHTML = '';
+      currentSuppliersList = [];
 
       if (snapshot.empty) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد فنادق أو كروزات مسجلة حتى الآن</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد فنادق أو كروزات مسجلة حتى الآن</td></tr>';
         return;
       }
 
       let index = 1;
-      snapshot.forEach((doc) => {
-        const data = doc.data();
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        data.id = docSnap.id;
+        currentSuppliersList.push(data);
+
         const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
         const typeBadge = data.supplierType === 'فندق' ? '<span class="badge badge-hotel">فندق</span>' : '<span class="badge badge-cruise">كروز</span>';
-        const taxBadge = data.taxRate === 0.03 ? '<span class="badge badge-taxable">خاضع لضريبة 3%</span>' : '<span class="badge badge-exempt">معفى من الضريبة</span>';
+        
+        let taxBadge = '<span class="badge badge-exempt">غير محدد</span>';
+        if (data.taxRate === 0.03 || data.taxRate === "0.03") {
+          taxBadge = '<span class="badge badge-taxable">خاضع لضريبة 3%</span>';
+        } else if (data.taxRate === 'advance_payment' || data.taxRate === 'دفعات مقدمة') {
+          taxBadge = '<span class="badge badge-advance">دفعات مقدمة</span>';
+        } else if (data.taxRate === 0 || data.taxRate === "0") {
+          taxBadge = '<span class="badge badge-exempt">معفى من الضريبة</span>';
+        }
 
         const row = `
           <tr>
@@ -565,11 +586,82 @@
             <td>${data.taxCardNumber || '-'}</td>
             <td>${taxBadge}</td>
             <td>${dateStr}</td>
+            <td>
+              <button class="edit-btn" onclick="editSupplierRecord('${docSnap.id}')">تعديل</button>
+              <button class="delete-btn" onclick="deleteSupplierRecord('${docSnap.id}')">حذف</button>
+            </td>
           </tr>
         `;
         tbody.innerHTML += row;
       });
     });
+
+    // دالة حذف مورد من قائمة الخصم والإضافة
+    window.deleteSupplierRecord = async function(docId) {
+      if (confirm("هل أنت تأكد من رغبتك في حذف هذا المورد؟")) {
+        try {
+          await deleteDoc(doc(db, "tax_discount_records", docId));
+          alert("تم حذف المورد بنجاح");
+        } catch (e) { alert("خطأ عند الحذف: " + e.message); }
+      }
+    };
+
+    // دالة تعديل بيانات مورد
+    window.editSupplierRecord = async function(docId) {
+      const item = currentSuppliersList.find(s => s.id === docId);
+      if (!item) return;
+
+      const newPropertyName = prompt("اسم الفندق / الكروز:", item.propertyName || "");
+      if (newPropertyName === null) return;
+
+      const newSupplierName = prompt("اسم المورد:", item.supplierName || "");
+      if (newSupplierName === null) return;
+
+      const newTaxCardNumber = prompt("رقم البطاقة الضريبية:", item.taxCardNumber || "");
+      if (newTaxCardNumber === null) return;
+
+      const newTaxType = prompt("حالة الضريبة (3% أو دفعات مقدمة):", (item.taxRate === 0.03 || item.taxRate === "0.03") ? "3%" : "دفعات مقدمة");
+      if (newTaxType === null) return;
+
+      let formattedTaxRate = "advance_payment";
+      if (newTaxType.includes("3")) formattedTaxRate = 0.03;
+
+      try {
+        await updateDoc(doc(db, "tax_discount_records", docId), {
+          propertyName: newPropertyName,
+          supplierName: newSupplierName,
+          taxCardNumber: newTaxCardNumber,
+          taxRate: formattedTaxRate
+        });
+        alert("تم تعديل البيانات بنجاح!");
+      } catch (e) { alert("خطأ أثناء التعديل: " + e.message); }
+    };
+
+    // دالة تصدير قائمة الموردين لـ Excel
+    window.exportSuppliersToExcel = function() {
+      if (currentSuppliersList.length === 0) return alert('لا توجد بيانات لتصديرها');
+
+      const exportData = currentSuppliersList.map((item, idx) => {
+        let statusStr = "دفعات مقدمة";
+        if (item.taxRate === 0.03 || item.taxRate === "0.03") statusStr = "خاضع لضريبة 3%";
+        else if (item.taxRate === 0 || item.taxRate === "0") statusStr = "معفى";
+
+        return {
+          "م": idx + 1,
+          "النوع": item.supplierType || 'فندق',
+          "اسم (الفندق/الكروز)": item.propertyName || '',
+          "اسم المورد": item.supplierName || '',
+          "رقم البطاقة الضريبية": item.taxCardNumber || '',
+          "حالة الضريبة": statusStr,
+          "تاريخ التسجيل": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "قائمة الموردين");
+      XLSX.writeFile(workbook, "Suppliers_List.xlsx");
+    };
 
     // دالة لحساب وتنسيق كروت الـ Dashboard وترتيب الأرصدة
     function updateCreditDashboardAndSummary(records) {
@@ -711,12 +803,13 @@
     };
 
     window.exportToExcel = function() {
+      const taxVal = document.getElementById('taxType').value;
       const data = [{
         "النوع": document.getElementById('supplierType').value,
         "الاسم": document.getElementById('propertyName').value,
         "اسم المورد": document.getElementById('supplierName').value,
         "رقم البطاقة الضريبية": document.getElementById('taxCardNumber').value,
-        "حالة الضريبة": document.getElementById('taxType').value === "0.03" ? "3%" : "معفى"
+        "حالة الضريبة": taxVal === "0.03" ? "3%" : "دفعات مقدمة"
       }];
 
       const worksheet = XLSX.utils.json_to_sheet(data);
