@@ -1,85 +1,476 @@
-// دالة محدثة لحساب وتنسيق كروت الـ Dashboard بترتيب ثابت ومحمي من تداخل النصوص
-function updateCreditDashboardAndSummary(records) {
-  let totalsByCurrency = {
-    'EGP': { deposit: 0, deduction: 0 },
-    'USD': { deposit: 0, deduction: 0 },
-    'EUR': { deposit: 0, deduction: 0 }
-  };
-  let entityBalances = {};
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة أرقام وأرصدة الفنادق والرحلات</title>
 
-  records.forEach(item => {
-    let curr = (item.currency || 'EGP').toUpperCase();
-    if (curr === 'EIUR') curr = 'EUR'; // توحيد الرمز
-    
-    const entity = (item.entity || 'غير محدد').trim();
-    const amt = parseFloat(item.amount) || 0;
+  <!-- Google Fonts: Cairo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 
-    if (!totalsByCurrency[curr]) {
-      totalsByCurrency[curr] = { deposit: 0, deduction: 0 };
+  <!-- SheetJS & jsPDF (للتصدير) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    :root {
+      --primary-color: #0f172a;
+      --secondary-color: #2563eb;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-color: #334155;
+      --border-color: #e2e8f0;
+      --success-color: #16a34a;
+      --danger-color: #dc2626;
+      --warning-color: #d97706;
     }
-    
-    if (item.type === 'deposit') totalsByCurrency[curr].deposit += amt;
-    else if (item.type === 'deduction') totalsByCurrency[curr].deduction += amt;
 
-    const key = `${entity}___${curr}`;
-    if (!entityBalances[key]) {
-      entityBalances[key] = { entity, currency: curr, deposit: 0, deduction: 0 };
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', sans-serif;
     }
-    if (item.type === 'deposit') entityBalances[key].deposit += amt;
-    else if (item.type === 'deduction') entityBalances[key].deduction += amt;
-  });
 
-  // ترتيب العملات المعتمد دائماً
-  const orderedCurrencies = ['EGP', 'USD', 'EUR'];
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 20px;
+    }
 
-  function formatCurrencyDisplay(type) {
-    let parts = [];
-    orderedCurrencies.forEach(curr => {
-      let val = 0;
-      if (type === 'deposit') val = totalsByCurrency[curr].deposit;
-      else if (type === 'deduction') val = totalsByCurrency[curr].deduction;
-      else if (type === 'net') val = totalsByCurrency[curr].deposit - totalsByCurrency[curr].deduction;
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
 
-      // تنسيق الرقم والرمز باتجاه يسار-إلى-يمين لمنع التداخل
-      parts.push(`<span style="display:inline-block; dir:ltr; unicode-bidi: embed;"><strong>${val.toLocaleString()}</strong> ${curr}</span>`);
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    header h1 {
+      color: var(--primary-color);
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .dashboard-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      border-right: 5px solid var(--secondary-color);
+    }
+
+    .card.deposit { border-right-color: var(--success-color); background: #f0fdf4; }
+    .card.deduction { border-right-color: var(--danger-color); background: #fef2f2; }
+    .card.net { border-right-color: var(--secondary-color); background: #f0f9ff; }
+
+    .card h3 {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 10px;
+    }
+
+    .card .amount {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary-color);
+      word-spacing: 2px;
+    }
+
+    .currency-item {
+      display: inline-block;
+      direction: ltr;
+      unicode-bidi: embed;
+    }
+
+    .form-section, .table-section {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: var(--primary-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary { background: var(--secondary-color); color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-excel { background: #15803d; color: #fff; }
+    .btn-pdf { background: #b91c1c; color: #fff; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-deposit { background: #dcfce7; color: #15803d; }
+    .badge-deduction { background: #fee2e2; color: #b91c1c; }
+    .badge-exempt { background: #f1f5f9; color: #475569; }
+
+    .actions-btn {
+      background: none;
+      border: none;
+      color: var(--danger-color);
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>نظام إرشادي وإدارة أرصدة الفنادق والرحلات</h1>
+    </header>
+
+    <!-- Dashboards -->
+    <div class="dashboard-cards">
+      <div class="card deposit">
+        <h3>إجمالي الإيداعات (لنا)</h3>
+        <div class="amount" id="dashTotalDeposits">0 EGP &nbsp;|&nbsp; 0 USD &nbsp;|&nbsp; 0 EUR</div>
+      </div>
+      <div class="card deduction">
+        <h3>إجمالي الخصومات (علينا)</h3>
+        <div class="amount" id="dashTotalDeductions">0 EGP &nbsp;|&nbsp; 0 USD &nbsp;|&nbsp; 0 EUR</div>
+      </div>
+      <div class="card net">
+        <h3>صافي الرصيد الإجمالي</h3>
+        <div class="amount" id="dashNetBalance">0 EGP &nbsp;|&nbsp; 0 USD &nbsp;|&nbsp; 0 EUR</div>
+      </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="form-section">
+      <div class="section-title">إضافة حركة رصيد جديدة</div>
+      <form id="balanceForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>اسم الجهة / الفندق / المركب</label>
+            <input type="text" id="entity" placeholder="مثال: فندق الفيروز" required>
+          </div>
+          <div class="form-group">
+            <label>نوع الحركة</label>
+            <select id="type" required>
+              <option value="deposit">إيداع / رصيد لنا</option>
+              <option value="deduction">خصم / رصيد علينا</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>المبلغ</label>
+            <input type="number" id="amount" step="any" placeholder="0.00" required>
+          </div>
+          <div class="form-group">
+            <label>العملة</label>
+            <select id="currency" required>
+              <option value="EGP">جنيه مصري (EGP)</option>
+              <option value="USD">دولار أمريكي (USD)</option>
+              <option value="EUR">يورو (EUR)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>التاريخ</label>
+            <input type="date" id="date" required>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label>البيان / التفاصيل</label>
+          <textarea id="notes" rows="2" placeholder="ملاحظات الحركة..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">حفظ الحركة</button>
+      </form>
+    </div>
+
+    <!-- Summary Table Section -->
+    <div class="table-section">
+      <div class="section-title">ملخص أرصدة الجهات</div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الجهة / الفندق</th>
+            <th>العملة</th>
+            <th>إجمالي الإيداع</th>
+            <th>إجمالي الخصم</th>
+            <th>الرصيد الصافي</th>
+            <th>الحالة</th>
+          </tr>
+        </thead>
+        <tbody id="entitySummaryTableBody">
+          <tr><td colspan="7" style="text-align: center;">لا توجد بيانات متاحة</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Full Records Section -->
+    <div class="table-section">
+      <div class="section-title">
+        <span>سجل الحركات التفصيلي</span>
+        <div class="controls">
+          <button class="btn btn-excel" onclick="exportToExcel()">تصدير Excel</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>الجهة</th>
+            <th>نوع الحركة</th>
+            <th>المبلغ</th>
+            <th>العملة</th>
+            <th>البيان</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="recordsTableBody">
+          <tr><td colspan="7" style="text-align: center;">لا توجد حركات مسجلة</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let records = JSON.parse(localStorage.getItem('credit_records')) || [];
+
+    document.getElementById('date').valueAsDate = new Date();
+
+    document.getElementById('balanceForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const newRecord = {
+        id: Date.now(),
+        entity: document.getElementById('entity').value.trim(),
+        type: document.getElementById('type').value,
+        amount: parseFloat(document.getElementById('amount').value),
+        currency: document.getElementById('currency').value,
+        date: document.getElementById('date').value,
+        notes: document.getElementById('notes').value.trim()
+      };
+
+      records.push(newRecord);
+      saveAndRefresh();
+      this.reset();
+      document.getElementById('date').valueAsDate = new Date();
     });
-    return parts.join(' &nbsp;<span style="color:#cbd5e1;">|</span>&nbsp; ');
-  }
 
-  document.getElementById('dashTotalDeposits').innerHTML = formatCurrencyDisplay('deposit');
-  document.getElementById('dashTotalDeductions').innerHTML = formatCurrencyDisplay('deduction');
-  document.getElementById('dashNetBalance').innerHTML = formatCurrencyDisplay('net');
+    function deleteRecord(id) {
+      if (confirm('هل أنت تأكد من حذف هذه الحركة؟')) {
+        records = records.filter(r => r.id !== id);
+        saveAndRefresh();
+      }
+    }
 
-  // تحديث جدول ملخص الجهات
-  const tbodySummary = document.getElementById('entitySummaryTableBody');
-  tbodySummary.innerHTML = '';
+    function saveAndRefresh() {
+      localStorage.setItem('credit_records', JSON.stringify(records));
+      renderTable();
+      updateCreditDashboardAndSummary(records);
+    }
 
-  const keys = Object.keys(entityBalances);
-  if (keys.length === 0) {
-    tbodySummary.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد بيانات متاحة</td></tr>';
-    return;
-  }
+    function renderTable() {
+      const tbody = document.getElementById('recordsTableBody');
+      tbody.innerHTML = '';
 
-  let idx = 1;
-  keys.forEach(k => {
-    const e = entityBalances[k];
-    const net = e.deposit - e.deduction;
+      if (records.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد حركات مسجلة</td></tr>';
+        return;
+      }
 
-    let statusBadge = '<span class="badge badge-exempt">متزن (0)</span>';
-    if (net > 0) statusBadge = '<span class="badge badge-deposit">رصيد لنا</span>';
-    else if (net < 0) statusBadge = '<span class="badge badge-deduction">مستحق علينا</span>';
+      records.forEach(r => {
+        const typeLabel = r.type === 'deposit' ? '<span class="badge badge-deposit">إيداع (لنا)</span>' : '<span class="badge badge-deduction">خصم (علينا)</span>';
+        const row = `
+          <tr>
+            <td>${r.date}</td>
+            <td><strong>${r.entity}</strong></td>
+            <td>${typeLabel}</td>
+            <td>${r.amount.toLocaleString()}</td>
+            <td>${r.currency}</td>
+            <td>${r.notes || '-'}</td>
+            <td><button class="actions-btn" onclick="deleteRecord(${r.id})">حذف</button></td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    }
 
-    const row = `
-      <tr>
-        <td>${idx++}</td>
-        <td><strong>${e.entity}</strong></td>
-        <td>${e.currency}</td>
-        <td style="color: #15803d; font-weight: bold;">${e.deposit.toLocaleString()}</td>
-        <td style="color: #b91c1c; font-weight: bold;">${e.deduction.toLocaleString()}</td>
-        <td style="font-weight: bold; font-size: 15px;">${net.toLocaleString()}</td>
-        <td>${statusBadge}</td>
-      </tr>
-    `;
-    tbodySummary.innerHTML += row;
-  });
-}
+    // دالة محدثة لحساب وتنسيق كروت الـ Dashboard بترتيب ثابت ومحمي من تداخل النصوص
+    function updateCreditDashboardAndSummary(records) {
+      let totalsByCurrency = {
+        'EGP': { deposit: 0, deduction: 0 },
+        'USD': { deposit: 0, deduction: 0 },
+        'EUR': { deposit: 0, deduction: 0 }
+      };
+      let entityBalances = {};
+
+      records.forEach(item => {
+        let curr = (item.currency || 'EGP').toUpperCase();
+        if (curr === 'EIUR') curr = 'EUR'; // توحيد الرمز
+        
+        const entity = (item.entity || 'غير محدد').trim();
+        const amt = parseFloat(item.amount) || 0;
+
+        if (!totalsByCurrency[curr]) {
+          totalsByCurrency[curr] = { deposit: 0, deduction: 0 };
+        }
+        
+        if (item.type === 'deposit') totalsByCurrency[curr].deposit += amt;
+        else if (item.type === 'deduction') totalsByCurrency[curr].deduction += amt;
+
+        const key = `${entity}___${curr}`;
+        if (!entityBalances[key]) {
+          entityBalances[key] = { entity, currency: curr, deposit: 0, deduction: 0 };
+        }
+        if (item.type === 'deposit') entityBalances[key].deposit += amt;
+        else if (item.type === 'deduction') entityBalances[key].deduction += amt;
+      });
+
+      // ترتيب العملات الثابت دائماً: EGP ثم USD ثم EUR
+      const orderedCurrencies = ['EGP', 'USD', 'EUR'];
+
+      function formatCurrencyDisplay(type) {
+        let parts = [];
+        orderedCurrencies.forEach(curr => {
+          let val = 0;
+          if (type === 'deposit') val = totalsByCurrency[curr].deposit;
+          else if (type === 'deduction') val = totalsByCurrency[curr].deduction;
+          else if (type === 'net') val = totalsByCurrency[curr].deposit - totalsByCurrency[curr].deduction;
+
+          // تنسيق الرقم والرمز باتجاه يسار-إلى-يمين لمنع التداخل
+          parts.push(`<span class="currency-item"><strong>${val.toLocaleString()}</strong> ${curr}</span>`);
+        });
+        return parts.join(' &nbsp;<span style="color:#cbd5e1;">|</span>&nbsp; ');
+      }
+
+      document.getElementById('dashTotalDeposits').innerHTML = formatCurrencyDisplay('deposit');
+      document.getElementById('dashTotalDeductions').innerHTML = formatCurrencyDisplay('deduction');
+      document.getElementById('dashNetBalance').innerHTML = formatCurrencyDisplay('net');
+
+      // تحديث جدول ملخص الجهات
+      const tbodySummary = document.getElementById('entitySummaryTableBody');
+      tbodySummary.innerHTML = '';
+
+      const keys = Object.keys(entityBalances);
+      if (keys.length === 0) {
+        tbodySummary.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد بيانات متاحة</td></tr>';
+        return;
+      }
+
+      let idx = 1;
+      keys.forEach(k => {
+        const e = entityBalances[k];
+        const net = e.deposit - e.deduction;
+
+        let statusBadge = '<span class="badge badge-exempt">متزن (0)</span>';
+        if (net > 0) statusBadge = '<span class="badge badge-deposit">رصيد لنا</span>';
+        else if (net < 0) statusBadge = '<span class="badge badge-deduction">مستحق علينا</span>';
+
+        const row = `
+          <tr>
+            <td>${idx++}</td>
+            <td><strong>${e.entity}</strong></td>
+            <td>${e.currency}</td>
+            <td style="color: #15803d; font-weight: bold;">${e.deposit.toLocaleString()}</td>
+            <td style="color: #b91c1c; font-weight: bold;">${e.deduction.toLocaleString()}</td>
+            <td style="font-weight: bold; font-size: 15px;">${net.toLocaleString()}</td>
+            <td>${statusBadge}</td>
+          </tr>
+        `;
+        tbodySummary.innerHTML += row;
+      });
+    }
+
+    function exportToExcel() {
+      if(records.length === 0) {
+        alert('لا توجد بيانات للتصدير');
+        return;
+      }
+      const worksheet = XLSX.utils.json_to_sheet(records);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "الحركات");
+      XLSX.writeFile(workbook, "سجل_أرصدة_الفنادق.xlsx");
+    }
+
+    // التهيئة عند التحميل الأول
+    saveAndRefresh();
+  </script>
+</body>
+</html>
