@@ -81,6 +81,11 @@
     .dash-card-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; display: block; }
     .dash-card-value { font-size: 20px; font-weight: bold; }
 
+    /* نافذة منبثقة لتعديل بيانات المورد */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .modal-content input, .modal-content select { max-width: 100%; }
+
     /* قواعد طباعة الصفحة الخاصة بالـ Dashboard */
     @media print {
       body * { visibility: hidden; }
@@ -433,6 +438,50 @@
     </div>
   </div>
 
+  <!-- النافذة المنبثقة لتعديل المورد بالكامل -->
+  <div id="editSupplierModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 style="margin-top: 0; color: #1e293b;">تعديل بيانات المورد</h3>
+      <input type="hidden" id="editSupplierId">
+
+      <div class="form-group">
+        <label>النوع:</label>
+        <select id="editSupplierType">
+          <option value="فندق">فندق</option>
+          <option value="كروز">كروز</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>الاسم (اسم الفندق أو الكروز):</label>
+        <input type="text" id="editPropertyName" placeholder="اسم الفندق أو الكروز">
+      </div>
+
+      <div class="form-group">
+        <label>اسم المورد:</label>
+        <input type="text" id="editSupplierName" placeholder="اسم المورد">
+      </div>
+
+      <div class="form-group">
+        <label>رقم البطاقة الضريبية:</label>
+        <input type="text" id="editTaxCardNumber" placeholder="رقم البطاقة الضريبية">
+      </div>
+
+      <div class="form-group">
+        <label>حالة الضريبة:</label>
+        <select id="editTaxType">
+          <option value="0.03">خاضع لضريبة 3%</option>
+          <option value="advance_payment">دفعات مقدمة</option>
+        </select>
+      </div>
+
+      <div class="btn-group" style="justify-content: flex-end;">
+        <button class="submit-btn" onclick="saveEditedSupplier()">حفظ التعديلات</button>
+        <button class="print-btn" onclick="closeEditSupplierModal()">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
   <!-- الدوال العامة للتحكم في معالجة التواريخ والطباعة والتصدير -->
   <script>
     function formatInputDate(input) {
@@ -587,7 +636,7 @@
             <td>${taxBadge}</td>
             <td>${dateStr}</td>
             <td>
-              <button class="edit-btn" onclick="editSupplierRecord('${docSnap.id}')">تعديل</button>
+              <button class="edit-btn" onclick="openEditSupplierModal('${docSnap.id}')">تعديل</button>
               <button class="delete-btn" onclick="deleteSupplierRecord('${docSnap.id}')">حذف</button>
             </td>
           </tr>
@@ -606,35 +655,58 @@
       }
     };
 
-    // دالة تعديل بيانات مورد
-    window.editSupplierRecord = async function(docId) {
+    // فتح النافذة المنبثقة وتعبئتها ببيانات المورد الحالية
+    window.openEditSupplierModal = function(docId) {
       const item = currentSuppliersList.find(s => s.id === docId);
       if (!item) return;
 
-      const newPropertyName = prompt("اسم الفندق / الكروز:", item.propertyName || "");
-      if (newPropertyName === null) return;
+      document.getElementById('editSupplierId').value = docId;
+      document.getElementById('editSupplierType').value = item.supplierType || 'فندق';
+      document.getElementById('editPropertyName').value = item.propertyName || '';
+      document.getElementById('editSupplierName').value = item.supplierName || '';
+      document.getElementById('editTaxCardNumber').value = item.taxCardNumber || '';
 
-      const newSupplierName = prompt("اسم المورد:", item.supplierName || "");
-      if (newSupplierName === null) return;
+      if (item.taxRate === 0.03 || item.taxRate === "0.03") {
+        document.getElementById('editTaxType').value = "0.03";
+      } else {
+        document.getElementById('editTaxType').value = "advance_payment";
+      }
 
-      const newTaxCardNumber = prompt("رقم البطاقة الضريبية:", item.taxCardNumber || "");
-      if (newTaxCardNumber === null) return;
+      document.getElementById('editSupplierModal').style.display = 'flex';
+    };
 
-      const newTaxType = prompt("حالة الضريبة (3% أو دفعات مقدمة):", (item.taxRate === 0.03 || item.taxRate === "0.03") ? "3%" : "دفعات مقدمة");
-      if (newTaxType === null) return;
+    // إغلاق النافذة المنبثقة
+    window.closeEditSupplierModal = function() {
+      document.getElementById('editSupplierModal').style.display = 'none';
+    };
 
-      let formattedTaxRate = "advance_payment";
-      if (newTaxType.includes("3")) formattedTaxRate = 0.03;
+    // حفظ البيانات المعدلة في Firebase
+    window.saveEditedSupplier = async function() {
+      const docId = document.getElementById('editSupplierId').value;
+      const supplierType = document.getElementById('editSupplierType').value;
+      const propertyName = document.getElementById('editPropertyName').value.trim();
+      const supplierName = document.getElementById('editSupplierName').value.trim();
+      const taxCardNumber = document.getElementById('editTaxCardNumber').value.trim();
+      const taxTypeVal = document.getElementById('editTaxType').value;
+      const taxRate = taxTypeVal === "0.03" ? 0.03 : taxTypeVal;
+
+      if (!propertyName || !supplierName || !taxCardNumber) {
+        return alert("يرجى ملء جميع الحقول المطلوب تعديلها.");
+      }
 
       try {
         await updateDoc(doc(db, "tax_discount_records", docId), {
-          propertyName: newPropertyName,
-          supplierName: newSupplierName,
-          taxCardNumber: newTaxCardNumber,
-          taxRate: formattedTaxRate
+          supplierType,
+          propertyName,
+          supplierName,
+          taxCardNumber,
+          taxRate
         });
-        alert("تم تعديل البيانات بنجاح!");
-      } catch (e) { alert("خطأ أثناء التعديل: " + e.message); }
+        alert("تم تعديل بيانات المورد بنجاح!");
+        closeEditSupplierModal();
+      } catch (e) {
+        alert("خطأ أثناء حفظ التعديل: " + e.message);
+      }
     };
 
     // دالة تصدير قائمة الموردين لـ Excel
