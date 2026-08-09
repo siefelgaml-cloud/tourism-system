@@ -531,14 +531,12 @@
         const entity = (item.entity || 'غير محدد').trim();
         const amt = parseFloat(item.amount) || 0;
 
-        // 1. حساب الإجمالي العام حسب العملة
         if (!totalsByCurrency[curr]) {
           totalsByCurrency[curr] = { deposit: 0, deduction: 0 };
         }
         if (item.type === 'deposit') totalsByCurrency[curr].deposit += amt;
         else if (item.type === 'deduction') totalsByCurrency[curr].deduction += amt;
 
-        // 2. حساب رصيد كل مورد حسب الاسم والعملة
         const key = `${entity}___${curr}`;
         if (!entityBalances[key]) {
           entityBalances[key] = { entity, currency: curr, deposit: 0, deduction: 0 };
@@ -547,7 +545,6 @@
         else if (item.type === 'deduction') entityBalances[key].deduction += amt;
       });
 
-      // تحديث كروت الـ Dashboard
       let depList = [], dedList = [], netList = [];
       Object.keys(totalsByCurrency).forEach(curr => {
         const dep = totalsByCurrency[curr].deposit;
@@ -563,7 +560,6 @@
       document.getElementById('dashTotalDeductions').innerHTML = dedList.join(' | ') || '0';
       document.getElementById('dashNetBalance').innerHTML = netList.join(' | ') || '0';
 
-      // تحديث جدول ملخص الجهات
       const tbodySummary = document.getElementById('entitySummaryTableBody');
       tbodySummary.innerHTML = '';
 
@@ -731,7 +727,7 @@
       } catch (e) { alert("خطأ: " + e.message); }
     };
 
-    // استيراد كافة حركات الكريديت من Excel ورفعها فوراً لقاعدة البيانات Firebase
+    // الدالة المحدثة الذكية لاستيراد ملف الكريديت بجميع هيئاته
     window.importCreditFromExcel = async function(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -742,67 +738,144 @@
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
-          if (jsonData.length === 0) {
+          // قراءة البيانات كمصفوفة صفوف (2D array) للتعامل مع الصفوف الفارغة في البداية
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "" });
+
+          if (rows.length === 0) {
             alert('الملف فارغ أو لا يحتوي على بيانات مقبولة');
             return;
           }
 
+          // 1. البحث عن صف العناوين الرئيسية ديناميكيًا
+          let headerIndex = -1;
+          let entityColIdx = -1;
+
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            for (let j = 0; j < row.length; j++) {
+              const cellStr = String(row[j]).trim().toLowerCase();
+              if (["الجهة", "المورد", "اسم الجهة", "entity", "supplier"].includes(cellStr)) {
+                headerIndex = i;
+                entityColIdx = j;
+                break;
+              }
+            }
+            if (headerIndex !== -1) break;
+          }
+
+          if (headerIndex === -1) {
+            alert('لم يتم العثور على عمود باسم "الجهة" أو "المورد" في ملف Excel');
+            return;
+          }
+
+          const headers = rows[headerIndex].map(h => String(h).trim());
+          
+          // 2. تحديد مواضع الأعمدة الإضافية
+          let fileCodeColIdx = headers.findIndex(h => ["رقم الملف", "كود الملف", "file code", "file no"].includes(h.toLowerCase()));
+          let arrivalColIdx = headers.findIndex(h => ["تاريخ الوصول", "check in", "arrival date"].includes(h.toLowerCase()));
+          let departureColIdx = headers.findIndex(h => ["تاريخ المغادرة", "check out", "departure date"].includes(h.toLowerCase()));
+          let typeColIdx = headers.findIndex(h => ["نوع الحركة", "الحركة", "type"].includes(h.toLowerCase()));
+          let descColIdx = headers.findIndex(h => ["البيان", "التفاصيل", "الوصف", "description", "notes"].includes(h.toLowerCase()));
+
+          // فحص وجود أعمدة العملات المنفصلة (مثل: المبلغ EGP، المبلغ USD، الرصيد EUR أو EIUR)
+          let currencyCols = [];
+          headers.forEach((h, idx) => {
+            const hUpper = h.toUpperCase();
+            if (hUpper.includes("EGP") || hUpper.includes("جنيه") || hUpper.includes("ج.م")) {
+              currencyCols.push({ idx, currency: "EGP" });
+            } else if (hUpper.includes("USD") || hUpper.includes("دولار") || hUpper.includes("$")) {
+              currencyCols.push({ idx, currency: "USD" });
+            } else if (hUpper.includes("EUR") || hUpper.includes("EIUR") || hUpper.includes("يورو") || hUpper.includes("€")) {
+              currencyCols.push({ idx, currency: "EUR" });
+            }
+          });
+
+          let standardAmountColIdx = headers.findIndex(h => ["المبلغ", "القيمة", "amount"].includes(h.toLowerCase()));
+          let standardCurrColIdx = headers.findIndex(h => ["العملة", "currency"].includes(h.toLowerCase()));
+
           let addedCount = 0;
           const batch = writeBatch(db);
 
-          for (let row of jsonData) {
-            // الاستعلام المرن عن اسم الجهة
-            const entity = row["الجهة"] || row["المورد"] || row["اسم الجهة"] || row["Entity"] || row["Supplier"] || "";
-            if (!entity) continue;
+          // 3. معالجة صفوف البيانات
+          for (let i = headerIndex + 1; i < rows.length; i++) {
+            const row = rows[i];
+            const entity = String(row[entityColIdx] || "").trim();
 
-            const fileCode = row["رقم الملف"] || row["كود الملف"] || row["File Code"] || row["File No"] || "";
-            
-            let arrivalDate = row["تاريخ الوصول"] || row["Check In"] || row["Arrival Date"] || "";
-            let departureDate = row["تاريخ المغادرة"] || row["Check Out"] || row["Departure Date"] || "";
+            // استبعاد الصفوف الفارغة أو صفوف الإجمالي
+            if (!entity || entity.toLowerCase().includes("اجمال") || entity.toLowerCase().includes("total")) {
+              continue;
+            }
 
-            if (String(arrivalDate).includes('/')) arrivalDate = parseDMYToISO(arrivalDate);
-            if (String(departureDate).includes('/')) departureDate = parseDMYToISO(departureDate);
+            const fileCode = fileCodeColIdx !== -1 ? String(row[fileCodeColIdx] || "").trim() : "";
+            let arrivalDate = arrivalColIdx !== -1 ? String(row[arrivalColIdx] || "").trim() : "";
+            let departureDate = departureColIdx !== -1 ? String(row[departureColIdx] || "").trim() : "";
 
-            // تحديد نوع الحركة (إيداع أم خصم)
-            const typeStr = String(row["نوع الحركة"] || row["الحركة"] || row["Type"] || "").toLowerCase();
+            if (arrivalDate.includes('/')) arrivalDate = parseDMYToISO(arrivalDate);
+            if (departureDate.includes('/')) departureDate = parseDMYToISO(departureDate);
+
+            const typeStr = typeColIdx !== -1 ? String(row[typeColIdx] || "").toLowerCase() : "";
             let type = "deposit";
             if (typeStr.includes("خصم") || typeStr.includes("علينا") || typeStr.includes("deduction") || typeStr.includes("debit")) {
               type = "deduction";
             }
 
-            const amount = parseFloat(row["المبلغ"] || row["القيمة"] || row["Amount"] || 0);
+            const description = descColIdx !== -1 ? String(row[descColIdx] || "").trim() : "";
 
-            // تحديد العملة
-            const rawCurr = String(row["العملة"] || row["Currency"] || "EGP").toUpperCase();
-            let currency = "EGP";
-            if (rawCurr.includes("USD") || rawCurr.includes("دولار") || rawCurr.includes("$")) currency = "USD";
-            else if (rawCurr.includes("EUR") || rawCurr.includes("يورو") || rawCurr.includes("€")) currency = "EUR";
+            // النمط الأول: ملف ذو أعمدة مبالغ متعددة العملات (كما في ملفك)
+            if (currencyCols.length > 0) {
+              for (let cCol of currencyCols) {
+                const amount = parseFloat(row[cCol.idx]) || 0;
+                if (amount > 0) {
+                  const docRef = doc(collection(db, "credit_balances"));
+                  batch.set(docRef, {
+                    entity,
+                    fileCode,
+                    arrivalDate,
+                    departureDate,
+                    type,
+                    amount,
+                    currency: cCol.currency,
+                    description,
+                    createdAt: new Date()
+                  });
+                  addedCount++;
+                }
+              }
+            } 
+            // النمط الثاني: ملف بجدول عادي (عمود للمبلغ وعمود للعملة)
+            else if (standardAmountColIdx !== -1) {
+              const amount = parseFloat(row[standardAmountColIdx]) || 0;
+              if (amount > 0) {
+                let currency = "EGP";
+                if (standardCurrColIdx !== -1) {
+                  const rawCurr = String(row[standardCurrColIdx] || "").toUpperCase();
+                  if (rawCurr.includes("USD") || rawCurr.includes("دولار") || rawCurr.includes("$")) currency = "USD";
+                  else if (rawCurr.includes("EUR") || rawCurr.includes("EIUR") || rawCurr.includes("يورو") || rawCurr.includes("€")) currency = "EUR";
+                }
 
-            const description = row["البيان"] || row["التفاصيل"] || row["الوصف"] || row["Description"] || row["Notes"] || "";
-
-            const docRef = doc(collection(db, "credit_balances"));
-            batch.set(docRef, {
-              entity,
-              fileCode,
-              arrivalDate,
-              departureDate,
-              type,
-              amount,
-              currency,
-              description,
-              createdAt: new Date()
-            });
-
-            addedCount++;
+                const docRef = doc(collection(db, "credit_balances"));
+                batch.set(docRef, {
+                  entity,
+                  fileCode,
+                  arrivalDate,
+                  departureDate,
+                  type,
+                  amount,
+                  currency,
+                  description,
+                  createdAt: new Date()
+                });
+                addedCount++;
+              }
+            }
           }
 
           if (addedCount > 0) {
             await batch.commit();
             alert(`تم رفع وتسميع ${addedCount} حركة كريديت بنجاح إلى السيستم والقوائم التجميعية!`);
           } else {
-            alert('لم يتم العثور على حركات صالحة. تأكد من أن ملف Excel يحتوي على عمود باسم "الجهة" أو "المورد".');
+            alert('لم يتم العثور على مبالغ أو أرصدة صالحة للإدخال في الملف.');
           }
 
         } catch (err) {
