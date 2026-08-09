@@ -176,7 +176,7 @@
             <button class="submit-btn" onclick="saveHotelBooking()">حفظ البيانات</button>
             <button class="excel-btn" onclick="exportToExcel()">📊 تصدير الحقل لـ Excel</button>
             <label class="excel-btn" style="display: inline-block;">
-              📥 استيراد من Excel
+              📥 استيراد موردين كامل من Excel
               <input type="file" id="excelImport" accept=".xlsx, .xls" style="display: none;" onchange="importFromExcel(event)">
             </label>
           </div>
@@ -323,9 +323,7 @@
             </div>
           </div>
 
-          <!-- الحاوية المخصصة للطباعة وتصدير PDF -->
           <div id="printableArea">
-            <!-- Dashboard Cards -->
             <div class="dashboard-grid">
               <div class="dash-card" style="border-right: 4px solid #16a34a; background: #f0fdf4;">
                 <span class="dash-card-title" style="color: #166534;">إجمالي المدين (لنا)</span>
@@ -482,7 +480,6 @@
     </div>
   </div>
 
-  <!-- الدوال العامة للتحكم في معالجة التواريخ والطباعة والتصدير -->
   <script>
     function formatInputDate(input) {
       if (input.value) {
@@ -513,17 +510,14 @@
       return dmyString;
     }
 
-    // دالة طباعة الـ Dashboard والملخص
     function printDashboard() {
       window.print();
     }
 
-    // دالة تحميل ملف PDF للـ Dashboard والملخص
     function downloadDashboardPDF() {
       const element = document.getElementById('printableArea');
       const searchBox = document.getElementById('searchEntitySummary');
       
-      // إخفاء حقل البحث أثناء إنشاء الملف
       if (searchBox) searchBox.style.display = 'none';
 
       const opt = {
@@ -645,7 +639,6 @@
       });
     });
 
-    // دالة حذف مورد من قائمة الخصم والإضافة
     window.deleteSupplierRecord = async function(docId) {
       if (confirm("هل أنت تأكد من رغبتك في حذف هذا المورد؟")) {
         try {
@@ -655,7 +648,6 @@
       }
     };
 
-    // فتح النافذة المنبثقة وتعبئتها ببيانات المورد الحالية
     window.openEditSupplierModal = function(docId) {
       const item = currentSuppliersList.find(s => s.id === docId);
       if (!item) return;
@@ -675,12 +667,10 @@
       document.getElementById('editSupplierModal').style.display = 'flex';
     };
 
-    // إغلاق النافذة المنبثقة
     window.closeEditSupplierModal = function() {
       document.getElementById('editSupplierModal').style.display = 'none';
     };
 
-    // حفظ البيانات المعدلة في Firebase
     window.saveEditedSupplier = async function() {
       const docId = document.getElementById('editSupplierId').value;
       const supplierType = document.getElementById('editSupplierType').value;
@@ -709,7 +699,6 @@
       }
     };
 
-    // دالة تصدير قائمة الموردين لـ Excel
     window.exportSuppliersToExcel = function() {
       if (currentSuppliersList.length === 0) return alert('لا توجد بيانات لتصديرها');
 
@@ -735,7 +724,67 @@
       XLSX.writeFile(workbook, "Suppliers_List.xlsx");
     };
 
-    // دالة لحساب وتنسيق كروت الـ Dashboard وترتيب الأرصدة
+    // التحديث: دالة استيراد ملفات الموردين تلقائياً وحفظها مباشرة في Firebase
+    window.importFromExcel = async function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+
+          if (jsonData.length === 0) {
+            alert('الملف فارغ أو لا يحتوي على بيانات مقبولة');
+            return;
+          }
+
+          let addedCount = 0;
+          const batch = writeBatch(db);
+
+          jsonData.forEach(row => {
+            const supplierType = row["النوع"] || row["Type"] || 'فندق';
+            const propertyName = String(row["الاسم"] || row["اسم (الفندق/الكروز)"] || row["Name"] || "").trim();
+            const supplierName = String(row["اسم المورد"] || row["Supplier Name"] || "").trim();
+            const taxCardNumber = String(row["رقم البطاقة الضريبية"] || row["Tax Card"] || "").trim();
+            const rawTax = String(row["حالة الضريبة"] || row["Tax Status"] || "").trim();
+
+            let taxRate = "advance_payment";
+            if (rawTax.includes("3%") || rawTax.includes("0.03") || rawTax.includes("خاضع")) {
+              taxRate = 0.03;
+            }
+
+            if (propertyName || supplierName) {
+              const docRef = doc(collection(db, "tax_discount_records"));
+              batch.set(docRef, {
+                supplierType,
+                propertyName,
+                supplierName,
+                taxCardNumber,
+                taxRate,
+                createdAt: new Date()
+              });
+              addedCount++;
+            }
+          });
+
+          if (addedCount > 0) {
+            await batch.commit();
+            alert(`تم استيراد وحفظ ${addedCount} مورد بنجاح وتسميعهم في الجدول تلقائياً!`);
+            event.target.value = ''; // إعادة تعيين حقل الملف
+          } else {
+            alert('لم يتم العثور على أعمدة متطابقة في الملف.');
+          }
+        } catch (err) {
+          alert("حدث خطأ أثناء معالجة ملف Excel: " + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    };
+
     function updateCreditDashboardAndSummary(records) {
       let totalsByCurrency = {
         'EGP': { deposit: 0, deduction: 0 },
@@ -785,7 +834,6 @@
       document.getElementById('dashTotalDeductions').innerHTML = formatCurrencyDisplay('deduction');
       document.getElementById('dashNetBalance').innerHTML = formatCurrencyDisplay('net');
 
-      // تحديث جدول ملخص الجهات
       const tbodySummary = document.getElementById('entitySummaryTableBody');
       tbodySummary.innerHTML = '';
 
@@ -888,31 +936,6 @@
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "الخصم والإضافة");
       XLSX.writeFile(workbook, "Tax_Discount_Report.xlsx");
-    };
-
-    window.importFromExcel = function(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-
-        if (jsonData.length > 0) {
-          const row = jsonData[0];
-          document.getElementById('supplierType').value = row["النوع"] || row["Type"] || 'فندق';
-          document.getElementById('propertyName').value = row["الاسم"] || row["Name"] || '';
-          document.getElementById('supplierName').value = row["اسم المورد"] || row["Supplier Name"] || '';
-          document.getElementById('taxCardNumber').value = row["رقم البطاقة الضريبية"] || row["Tax Card"] || '';
-          alert('تم قراءة البيانات من الملف بنجاح!');
-        } else {
-          alert('الملف فارغ أو غير مطابق للتنسيق');
-        }
-      };
-      reader.readAsArrayBuffer(file);
     };
 
     window.saveCreditTransaction = async function() {
@@ -1092,6 +1115,7 @@
           if (addedCount > 0) {
             await batch.commit();
             alert(`تم رفع وتسميع ${addedCount} حركة كريديت بنجاح إلى السيستم والقوائم التجميعية!`);
+            event.target.value = '';
           } else {
             alert('لم يتم العثور على مبالغ أو أرصدة صالحة للإدخال في الملف.');
           }
