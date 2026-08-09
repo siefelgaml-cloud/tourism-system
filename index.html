@@ -64,6 +64,12 @@
     .badge-exempt { background-color: #f3f4f6; color: #374151; }
     .badge-deposit { background-color: #dcfce7; color: #15803d; }
     .badge-deduction { background-color: #fee2e2; color: #b91c1c; }
+
+    /* كروت Dashboard */
+    .dashboard-grid { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+    .dash-card { flex: 1; min-width: 200px; padding: 15px 20px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .dash-card-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; display: block; }
+    .dash-card-value { font-size: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -95,6 +101,7 @@
       <div id="creditSubMenu" class="sub-tabs-container" style="display: none;">
         <button class="sub-tab-btn active" id="subTabBtnCredit1" onclick="openSubTab(event, 'addCreditSubTab')">1- تسجيل حركة كريديت</button>
         <button class="sub-tab-btn" id="subTabBtnCredit2" onclick="openSubTab(event, 'creditRecordsSubTab')">2- سجل كشف الحساب والعمليات</button>
+        <button class="sub-tab-btn" id="subTabBtnCredit3" onclick="openSubTab(event, 'creditSummarySubTab')">3- ملخص الأرصدة والـ Dashboard</button>
       </div>
 
       <button class="tab-btn" onclick="openTab(event, 'aviationTab')"><span>✈️ حجوزات الطيران</span></button>
@@ -246,12 +253,13 @@
 
         <!-- فرعي 2: عرض كشف الحساب التفصيلي -->
         <div id="creditRecordsSubTab" class="sub-tab-content">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <h3>سجل حركة أرصدة الكريديت بالتفصيل</h3>
-            <div style="display: flex; gap: 10px;">
-              <input type="text" id="searchCredit" placeholder="🔍 بحث باسم الجهة أو رقم الملف..." onkeyup="filterCreditTable()" style="max-width: 250px;">
-              <button class="excel-btn" onclick="exportCreditToExcel()">📊 تصدير السجل لـ Excel</button>
-            </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0;">سجل حركة أرصدة الكريديت بالتفصيل</h3>
+            <button class="excel-btn" onclick="exportCreditToExcel()">📊 تصدير السجل لـ Excel</button>
+          </div>
+
+          <div style="margin-bottom: 15px;">
+            <input type="text" id="searchCredit" placeholder="🔍 بحث باسم الجهة أو رقم الملف..." onkeyup="filterCreditTable()" style="max-width: 350px;">
           </div>
 
           <table id="creditTable">
@@ -273,6 +281,51 @@
             <tbody id="creditTableBody">
               <tr>
                 <td colspan="11" style="text-align: center; color: #64748b;">جاري تحميل سجل الكريديت من Firebase...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- فرعي 3: ملخص الأرصدة والـ Dashboard -->
+        <div id="creditSummarySubTab" class="sub-tab-content">
+          <h3>لوحة التحكم والملخص الإجمالي للأرصدة</h3>
+
+          <!-- Dashboard Cards -->
+          <div class="dashboard-grid">
+            <div class="dash-card" style="border-right: 4px solid #16a34a; background: #f0fdf4;">
+              <span class="dash-card-title" style="color: #166534;">إجمالي الإيداعات (لنا)</span>
+              <div class="dash-card-value" id="dashTotalDeposits" style="color: #15803d;">0</div>
+            </div>
+            <div class="dash-card" style="border-right: 4px solid #dc2626; background: #fef2f2;">
+              <span class="dash-card-title" style="color: #991b1b;">إجمالي الخصومات (علينا)</span>
+              <div class="dash-card-value" id="dashTotalDeductions" style="color: #b91c1c;">0</div>
+            </div>
+            <div class="dash-card" style="border-right: 4px solid #0284c7; background: #f0f9ff;">
+              <span class="dash-card-title" style="color: #075985;">صافي الرصيد الإجمالي</span>
+              <div class="dash-card-value" id="dashNetBalance" style="color: #0369a1;">0</div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; margin-bottom: 10px;">
+            <h4 style="margin: 0; color: #334155;">ملخص رصيد كل مورد / جهة</h4>
+            <input type="text" id="searchEntitySummary" placeholder="🔍 بحث باسم الجهة..." onkeyup="filterEntitySummaryTable()" style="max-width: 250px;">
+          </div>
+
+          <table id="entitySummaryTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>اسم الجهة (المورد/العميل)</th>
+                <th>العملة</th>
+                <th>إجمالي الإيداعات (لنا)</th>
+                <th>إجمالي الخصومات (علينا)</th>
+                <th>صافي الرصيد الحالي</th>
+                <th>حالة الحساب</th>
+              </tr>
+            </thead>
+            <tbody id="entitySummaryTableBody">
+              <tr>
+                <td colspan="7" style="text-align: center; color: #64748b;">جاري حساب الأرصدة...</td>
               </tr>
             </tbody>
           </table>
@@ -356,7 +409,7 @@
         const parts = input.value.split('-');
         if (parts.length === 3) {
           const formatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
-          input.dataset.isoValue = input.value; // احتفاظ بالـ ISO للاستخدام الداخلي
+          input.dataset.isoValue = input.value;
           input.type = 'text';
           input.value = formatted;
         }
@@ -400,7 +453,6 @@
 
     let currentCreditList = [];
 
-    // دالة تحويل صيغة YYYY-MM-DD إلى DD/MM/YYYY للعرض في الجدول
     function formatDateToDMY(dateString) {
       if (!dateString) return '-';
       const parts = dateString.split('-');
@@ -469,6 +521,82 @@
       });
     });
 
+    // دالة لحساب وتحديث بيانات Dashboard والملخص الإجمالي للموردين
+    function updateCreditDashboardAndSummary(records) {
+      let totalsByCurrency = {};
+      let entityBalances = {};
+
+      records.forEach(item => {
+        const curr = item.currency || 'EGP';
+        const entity = (item.entity || 'غير محدد').trim();
+        const amt = parseFloat(item.amount) || 0;
+
+        // 1. حساب الإجمالي العام حسب العملة
+        if (!totalsByCurrency[curr]) {
+          totalsByCurrency[curr] = { deposit: 0, deduction: 0 };
+        }
+        if (item.type === 'deposit') totalsByCurrency[curr].deposit += amt;
+        else if (item.type === 'deduction') totalsByCurrency[curr].deduction += amt;
+
+        // 2. حساب رصيد كل مورد حسب الاسم والعملة
+        const key = `${entity}___${curr}`;
+        if (!entityBalances[key]) {
+          entityBalances[key] = { entity, currency: curr, deposit: 0, deduction: 0 };
+        }
+        if (item.type === 'deposit') entityBalances[key].deposit += amt;
+        else if (item.type === 'deduction') entityBalances[key].deduction += amt;
+      });
+
+      // تحديث كروت الـ Dashboard
+      let depList = [], dedList = [], netList = [];
+      Object.keys(totalsByCurrency).forEach(curr => {
+        const dep = totalsByCurrency[curr].deposit;
+        const ded = totalsByCurrency[curr].deduction;
+        const net = dep - ded;
+
+        if (dep > 0) depList.push(`${dep.toLocaleString()} <small>${curr}</small>`);
+        if (ded > 0) dedList.push(`${ded.toLocaleString()} <small>${curr}</small>`);
+        netList.push(`${net.toLocaleString()} <small>${curr}</small>`);
+      });
+
+      document.getElementById('dashTotalDeposits').innerHTML = depList.join(' | ') || '0';
+      document.getElementById('dashTotalDeductions').innerHTML = dedList.join(' | ') || '0';
+      document.getElementById('dashNetBalance').innerHTML = netList.join(' | ') || '0';
+
+      // تحديث جدول ملخص الجهات
+      const tbodySummary = document.getElementById('entitySummaryTableBody');
+      tbodySummary.innerHTML = '';
+
+      const keys = Object.keys(entityBalances);
+      if (keys.length === 0) {
+        tbodySummary.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد بيانات متاحة</td></tr>';
+        return;
+      }
+
+      let idx = 1;
+      keys.forEach(k => {
+        const e = entityBalances[k];
+        const net = e.deposit - e.deduction;
+
+        let statusBadge = '<span class="badge badge-exempt">متزن (0)</span>';
+        if (net > 0) statusBadge = '<span class="badge badge-deposit">رصيد لنا</span>';
+        else if (net < 0) statusBadge = '<span class="badge badge-deduction">مستحق علينا</span>';
+
+        const row = `
+          <tr>
+            <td>${idx++}</td>
+            <td><strong>${e.entity}</strong></td>
+            <td>${e.currency}</td>
+            <td style="color: #15803d; font-weight: bold;">${e.deposit.toLocaleString()}</td>
+            <td style="color: #b91c1c; font-weight: bold;">${e.deduction.toLocaleString()}</td>
+            <td style="font-weight: bold; font-size: 15px;">${net.toLocaleString()}</td>
+            <td>${statusBadge}</td>
+          </tr>
+        `;
+        tbodySummary.innerHTML += row;
+      });
+    }
+
     const qCredit = query(collection(db, "credit_balances"), orderBy("createdAt", "desc"));
     onSnapshot(qCredit, (snapshot) => {
       const tbody = document.getElementById('creditTableBody');
@@ -477,6 +605,7 @@
 
       if (snapshot.empty) {
         tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">لا توجد حركة أرصدة كريديت مسجلة حتى الآن</td></tr>';
+        updateCreditDashboardAndSummary([]);
         return;
       }
 
@@ -510,6 +639,8 @@
         `;
         tbody.innerHTML += row;
       });
+
+      updateCreditDashboardAndSummary(currentCreditList);
     });
 
     window.deleteCreditRecord = async function(docId) {
@@ -568,7 +699,6 @@
       const rawArrival = document.getElementById('creditArrivalDate').value;
       const rawDeparture = document.getElementById('creditDepartureDate').value;
       
-      // تحويل التاريخ لصيغة YYYY-MM-DD القياسية عند التخزين
       const arrivalDate = rawArrival.includes('/') ? parseDMYToISO(rawArrival) : rawArrival;
       const departureDate = rawDeparture.includes('/') ? parseDMYToISO(rawDeparture) : rawDeparture;
 
@@ -818,6 +948,25 @@
           let entityTxt = tdEntity.textContent || tdEntity.innerText;
           let fileTxt = tdFile.textContent || tdFile.innerText;
           if (entityTxt.toLowerCase().indexOf(filter) > -1 || fileTxt.toLowerCase().indexOf(filter) > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
+        }
+      }
+    }
+
+    function filterEntitySummaryTable() {
+      const input = document.getElementById("searchEntitySummary");
+      const filter = input.value.toLowerCase();
+      const table = document.getElementById("entitySummaryTable");
+      const tr = table.getElementsByTagName("tr");
+
+      for (let i = 1; i < tr.length; i++) {
+        let tdEntity = tr[i].getElementsByTagName("td")[1];
+        if (tdEntity) {
+          let entityTxt = tdEntity.textContent || tdEntity.innerText;
+          if (entityTxt.toLowerCase().indexOf(filter) > -1) {
             tr[i].style.display = "";
           } else {
             tr[i].style.display = "none";
