@@ -1,54 +1,112 @@
-<!-- فرعي 2: عرض كشف الحساب التفصيلي -->
-<div id="creditRecordsSubTab" class="sub-tab-content">
-  
-  <!-- الهيدر الرئيسي: العنوان وبجواره زر التصدير -->
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-    <h3 style="margin: 0;">سجل حركة أرصدة الكريديت بالتفصيل</h3>
-    <button class="excel-btn" onclick="exportCreditToExcel()">📊 تصدير السجل لـ Excel</button>
-  </div>
+// دالة حساب وتحديث بطاقات الإجمالي
+function updateCreditTotals(records) {
+  let totalsByCurrency = {};
 
-  <!-- خانة البحث مباشرة تحت العنوان -->
-  <div style="margin-bottom: 15px;">
-    <input type="text" id="searchCredit" placeholder="🔍 بحث باسم الجهة أو رقم الملف..." onkeyup="filterCreditTable()" style="max-width: 350px;">
-  </div>
+  records.forEach(item => {
+    const curr = item.currency || 'EGP';
+    const amt = parseFloat(item.amount) || 0;
 
-  <!-- بطاقات الإجمالي والملخص -->
-  <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-    <div style="flex: 1; min-width: 180px; background: #dcfce7; border: 1px solid #86efac; padding: 12px 16px; border-radius: 8px;">
-      <span style="font-size: 13px; color: #166534; font-weight: bold; display: block;">إجمالي الإيداعات (لنا):</span>
-      <span id="totalDepositCard" style="font-size: 18px; font-weight: bold; color: #15803d;">0</span>
-    </div>
-    <div style="flex: 1; min-width: 180px; background: #fee2e2; border: 1px solid #fca5a5; padding: 12px 16px; border-radius: 8px;">
-      <span style="font-size: 13px; color: #991b1b; font-weight: bold; display: block;">إجمالي الخصومات (علينا):</span>
-      <span id="totalDeductionCard" style="font-size: 18px; font-weight: bold; color: #b91c1c;">0</span>
-    </div>
-    <div style="flex: 1; min-width: 180px; background: #e0f2fe; border: 1px solid #7dd3fc; padding: 12px 16px; border-radius: 8px;">
-      <span style="font-size: 13px; color: #075985; font-weight: bold; display: block;">صافي الرصيد:</span>
-      <span id="netBalanceCard" style="font-size: 18px; font-weight: bold; color: #0369a1;">0</span>
-    </div>
-  </div>
+    if (!totalsByCurrency[curr]) {
+      totalsByCurrency[curr] = { deposit: 0, deduction: 0 };
+    }
 
-  <table id="creditTable">
-    <thead>
+    if (item.type === 'deposit') {
+      totalsByCurrency[curr].deposit += amt;
+    } else if (item.type === 'deduction') {
+      totalsByCurrency[curr].deduction += amt;
+    }
+  });
+
+  let depText = [], dedText = [], netText = [];
+
+  Object.keys(totalsByCurrency).forEach(curr => {
+    const dep = totalsByCurrency[curr].deposit;
+    const ded = totalsByCurrency[curr].deduction;
+    const net = dep - ded;
+
+    if (dep > 0) depText.push(`${dep.toLocaleString()} ${curr}`);
+    if (ded > 0) dedText.push(`${ded.toLocaleString()} ${curr}`);
+    netText.push(`${net.toLocaleString()} ${curr}`);
+  });
+
+  document.getElementById('totalDepositCard').innerText = depText.join(' | ') || '0';
+  document.getElementById('totalDeductionCard').innerText = dedText.join(' | ') || '0';
+  document.getElementById('netBalanceCard').innerText = netText.join(' | ') || '0';
+}
+
+// مراقبة بيانات Firebase وتحديث الجدول والملخص
+const qCredit = query(collection(db, "credit_balances"), orderBy("createdAt", "desc"));
+onSnapshot(qCredit, (snapshot) => {
+  const tbody = document.getElementById('creditTableBody');
+  tbody.innerHTML = '';
+  currentCreditList = [];
+
+  if (snapshot.empty) {
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">لا توجد حركة أرصدة كريديت مسجلة حتى الآن</td></tr>';
+    updateCreditTotals([]);
+    return;
+  }
+
+  let index = 1;
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    data.id = docSnap.id;
+    currentCreditList.push(data);
+
+    const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
+    const typeBadge = data.type === 'deposit' 
+      ? '<span class="badge badge-deposit">إيداع (لنا)</span>' 
+      : '<span class="badge badge-deduction">خصم (علينا)</span>';
+
+    const row = `
       <tr>
-        <th>#</th>
-        <th>الجهة</th>
-        <th>رقم الملف</th>
-        <th>تاريخ الوصول</th>
-        <th>تاريخ المغادرة</th>
-        <th>نوع الحركة</th>
-        <th>المبلغ</th>
-        <th>العملة</th>
-        <th>البيان / التفاصيل</th>
-        <th>تاريخ التسجيل</th>
-        <th>إجراءات</th>
+        <td>${index++}</td>
+        <td><strong>${data.entity || '-'}</strong></td>
+        <td>${data.fileCode || '-'}</td>
+        <td>${formatDateToDMY(data.arrivalDate)}</td>
+        <td>${formatDateToDMY(data.departureDate)}</td>
+        <td>${typeBadge}</td>
+        <td><strong>${Number(data.amount || 0).toLocaleString()}</strong></td>
+        <td>${data.currency || 'EGP'}</td>
+        <td>${data.description || '-'}</td>
+        <td>${dateStr}</td>
+        <td>
+          <button class="delete-btn" onclick="deleteCreditRecord('${docSnap.id}')">حذف</button>
+        </td>
       </tr>
-    </thead>
-    <tbody id="creditTableBody">
-      <tr>
-        <td colspan="11" style="text-align: center; color: #64748b;">جاري تحميل سجل الكريديت من Firebase...</td>
-      </tr>
-    </tbody>
-  </table>
+    `;
+    tbody.innerHTML += row;
+  });
 
-</div>
+  updateCreditTotals(currentCreditList);
+});
+
+// فلترة الجدول وتحديث الإجماليات حسب نتائج البحث
+function filterCreditTable() {
+  const input = document.getElementById("searchCredit");
+  const filter = input.value.toLowerCase();
+  const table = document.getElementById("creditTable");
+  const tr = table.getElementsByTagName("tr");
+
+  let filteredRecords = [];
+
+  for (let i = 1; i < tr.length; i++) {
+    let tdEntity = tr[i].getElementsByTagName("td")[1];
+    let tdFile = tr[i].getElementsByTagName("td")[2];
+    if (tdEntity || tdFile) {
+      let entityTxt = tdEntity.textContent || tdEntity.innerText;
+      let fileTxt = tdFile.textContent || tdFile.innerText;
+      if (entityTxt.toLowerCase().indexOf(filter) > -1 || fileTxt.toLowerCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+        // إضافة السجل الظاهر لإعادة حساب إجماليات البحث
+        if (currentCreditList[i - 1]) {
+          filteredRecords.push(currentCreditList[i - 1]);
+        }
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+
+  updateCreditTotals(filteredRecords);
+}
