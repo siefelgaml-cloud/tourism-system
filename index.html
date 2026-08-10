@@ -82,16 +82,19 @@
     .dash-card-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; display: block; }
     .dash-card-value { font-size: 20px; font-weight: bold; }
 
-    /* نافذة منبثقة لتعديل بيانات المورد */
+    /* النوافذ المنبثقة Modal */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 850px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-height: 85vh; overflow-y: auto; }
     .modal-content input, .modal-content select { max-width: 100%; }
 
-    /* قواعد طباعة الصفحة الخاصة بالـ Dashboard */
+    .clickable-supplier { color: #2563eb; cursor: pointer; text-decoration: underline; font-weight: bold; }
+    .clickable-supplier:hover { color: #1d4ed8; }
+
+    /* قواعد طباعة الصفحة الخاصة بالـ Dashboard والطباعة العامة */
     @media print {
       body * { visibility: hidden; }
-      #printableArea, #printableArea * { visibility: visible; }
-      #printableArea { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
+      #printableArea, #printableArea *, #printableSuppliersArea, #printableSuppliersArea *, #printableStatementModal, #printableStatementModal * { visibility: visible; }
+      #printableArea, #printableSuppliersArea, #printableStatementModal { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
       .no-print { display: none !important; }
     }
   </style>
@@ -187,31 +190,35 @@
         <div id="suppliersListSubTab" class="sub-tab-content">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <h3>سجل الموردين (الفنادق، الكروزات، والمطاعم)</h3>
-            <div style="display: flex; gap: 10px; align-items: center;">
+            <div style="display: flex; gap: 10px; align-items: center;" class="no-print">
+              <button class="print-btn" onclick="printSuppliersList()">𖥕 طباعة القائمة</button>
+              <button class="pdf-btn" onclick="downloadSuppliersPDF()">📄 تحميل PDF</button>
               <button class="excel-btn" onclick="exportSuppliersToExcel()">📊 تصدير القائمة لـ Excel</button>
               <input type="text" id="searchSupplier" placeholder="🔍 بحث باسم المكان أو المورد..." onkeyup="filterSuppliersTable()" style="max-width: 250px;">
             </div>
           </div>
 
-          <table id="suppliersTable">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>النوع</th>
-                <th>الاسم (فندق/كروز/مطعم)</th>
-                <th>اسم المورد</th>
-                <th>رقم البطاقة الضريبية</th>
-                <th>حالة الضريبة</th>
-                <th>تاريخ التسجيل</th>
-                <th>إجراءات</th>
-              </tr>
-            </thead>
-            <tbody id="suppliersTableBody">
-              <tr>
-                <td colspan="8" style="text-align: center; color: #64748b;">جاري تحميل البيانات من Firebase...</td>
-              </tr>
-            </tbody>
-          </table>
+          <div id="printableSuppliersArea">
+            <table id="suppliersTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>النوع</th>
+                  <th>الاسم (فندق/كروز/مطعم)</th>
+                  <th>اسم المورد</th>
+                  <th>رقم البطاقة الضريبية</th>
+                  <th>حالة الضريبة</th>
+                  <th>تاريخ التسجيل</th>
+                  <th class="no-print">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="suppliersTableBody">
+                <tr>
+                  <td colspan="8" style="text-align: center; color: #64748b;">جاري تحميل البيانات من Firebase...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
       </div>
@@ -483,6 +490,41 @@
     </div>
   </div>
 
+  <!-- النافذة المنبثقة لعرض كشف حساب المورد من الـ Dashboard -->
+  <div id="supplierStatementModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 900px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;" class="no-print">
+        <h3 id="modalSupplierTitle" style="margin: 0; color: #1e293b;">كشف حساب المورد</h3>
+        <div style="display: flex; gap: 10px;">
+          <button class="print-btn" onclick="printModalStatement()">𖥕 طباعة كشف الحساب</button>
+          <button class="delete-btn" style="background: #64748b; font-size: 14px; padding: 6px 12px;" onclick="closeSupplierStatementModal()">إغلاق</button>
+        </div>
+      </div>
+
+      <div id="printableStatementModal">
+        <h3 id="modalPrintTitle" style="margin-top: 0; color: #1e293b; display: none;">كشف حساب</h3>
+        <table id="supplierStatementTable">
+          <thead>
+            <tr>
+              <th>1- التاريخ</th>
+              <th>2- البيان</th>
+              <th>3- رقم الملف</th>
+              <th>4- المبلغ</th>
+              <th>5- مدين</th>
+              <th>6- دائن</th>
+              <th>7- الرصيد (مدين/دائن)</th>
+            </tr>
+          </thead>
+          <tbody id="supplierStatementTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; color: #64748b;">جاري تحميل كشف الحساب...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <script>
     function formatInputDate(input) {
       if (input.value) {
@@ -534,6 +576,33 @@
       html2pdf().set(opt).from(element).save().then(() => {
         if (searchBox) searchBox.style.display = '';
       });
+    }
+
+    /* طباعة وتنزيل قائمة الفنادق والكروزات والمطاعم */
+    function printSuppliersList() {
+      window.print();
+    }
+
+    function downloadSuppliersPDF() {
+      const element = document.getElementById('printableSuppliersArea');
+      const opt = {
+        margin:       10,
+        filename:     `Suppliers_List_${new Date().toISOString().slice(0,10)}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+    }
+
+    /* طباعة كشف حساب المورد من الـ Modal */
+    function printModalStatement() {
+      const title = document.getElementById('modalPrintTitle');
+      title.style.display = 'block';
+      title.innerText = document.getElementById('modalSupplierTitle').innerText;
+      window.print();
+      title.style.display = 'none';
     }
   </script>
 
@@ -638,7 +707,7 @@
             <td>${data.taxCardNumber || '-'}</td>
             <td>${taxBadge}</td>
             <td>${dateStr}</td>
-            <td>
+            <td class="no-print">
               <button class="edit-btn" onclick="openEditSupplierModal('${docSnap.id}')">تعديل</button>
               <button class="delete-btn" onclick="deleteSupplierRecord('${docSnap.id}')">حذف</button>
             </td>
@@ -755,13 +824,11 @@
           const batch = writeBatch(db);
 
           jsonData.forEach(row => {
-            // تنظيف مسافات المفاتيح والقيم لضمان المطابقة
             const cleanRow = {};
             Object.keys(row).forEach(key => {
               cleanRow[String(key).trim()] = String(row[key]).trim();
             });
 
-            // دالة البحث الذكي عن القيم في السطر
             const getValue = (...possibleKeywords) => {
               for (let kw of possibleKeywords) {
                 for (let k in cleanRow) {
@@ -889,7 +956,7 @@
         const row = `
           <tr>
             <td>${idx++}</td>
-            <td><strong>${e.entity}</strong></td>
+            <td><span class="clickable-supplier" onclick="openSupplierStatementModal('${e.entity.replace(/'/g, "\\'")}', '${e.currency}')">${e.entity}</span></td>
             <td>${e.currency}</td>
             <td style="color: #15803d; font-weight: bold;">${e.deposit.toLocaleString()}</td>
             <td style="color: #b91c1c; font-weight: bold;">${e.deduction.toLocaleString()}</td>
@@ -900,6 +967,71 @@
         tbodySummary.innerHTML += row;
       });
     }
+
+    /* دالة فتح كشف الحساب بالتنسيق والترتيب المفضل عند النقر على المورد في الـ Dashboard */
+    window.openSupplierStatementModal = function(entityName, currency) {
+      const modal = document.getElementById('supplierStatementModal');
+      const title = document.getElementById('modalSupplierTitle');
+      const tbody = document.getElementById('supplierStatementTableBody');
+
+      title.innerHTML = `كشف حساب المورد: <span style="color: #2563eb;">${entityName}</span> (${currency})`;
+      tbody.innerHTML = '';
+
+      // تصفية الحركات وترتيبها زمنياً من الأقدم للأحدث لحساب الرصيد التراكمي الصحيح
+      const filteredRecords = currentCreditList.filter(item => {
+        return (item.entity || '').trim().toLowerCase() === entityName.trim().toLowerCase() && 
+               ((item.currency || 'EGP').toUpperCase() === currency.toUpperCase() || (currency === 'EUR' && (item.currency || '').toUpperCase() === 'EIUR'));
+      }).sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt.seconds * 1000) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt.seconds * 1000) : new Date(0);
+        return dateA - dateB;
+      });
+
+      if (filteredRecords.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد حركات مسجلة لهذا المورد</td></tr>';
+      } else {
+        let runningBalance = 0;
+        filteredRecords.forEach(item => {
+          const amt = parseFloat(item.amount) || 0;
+          let debit = 0;
+          let credit = 0;
+
+          if (item.type === 'deposit') {
+            debit = amt;
+            runningBalance += amt;
+          } else if (item.type === 'deduction') {
+            credit = amt;
+            runningBalance -= amt;
+          }
+
+          let balanceTypeStr = "0";
+          if (runningBalance > 0) balanceTypeStr = `<span style="color:#15803d; font-weight:bold;">${runningBalance.toLocaleString()} (مدين - لنا)</span>`;
+          else if (runningBalance < 0) balanceTypeStr = `<span style="color:#b91c1c; font-weight:bold;">${Math.abs(runningBalance).toLocaleString()} (دائن - علينا)</span>`;
+
+          const dateFormatted = item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
+
+          // 1- التاريخ | 2- البيان | 3- رقم الملف | 4- المبلغ | 5- مدين | 6- دائن | 7- الرصيد مدين أو دائن
+          const row = `
+            <tr>
+              <td>${dateFormatted}</td>
+              <td>${item.description || '-'}</td>
+              <td>${item.fileCode || '-'}</td>
+              <td><strong>${amt.toLocaleString()}</strong></td>
+              <td style="color: #15803d; font-weight: bold;">${debit ? debit.toLocaleString() : '-'}</td>
+              <td style="color: #b91c1c; font-weight: bold;">${credit ? credit.toLocaleString() : '-'}</td>
+              <td>${balanceTypeStr}</td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+      }
+
+      modal.style.display = 'flex';
+    };
+
+    window.closeSupplierStatementModal = function() {
+      document.getElementById('supplierStatementModal').style.display = 'none';
+    };
 
     const qCredit = query(collection(db, "credit_balances"), orderBy("createdAt", "desc"));
     onSnapshot(qCredit, (snapshot) => {
