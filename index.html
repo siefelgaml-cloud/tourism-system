@@ -97,8 +97,8 @@
     /* قواعد طباعة الصفحة */
     @media print {
       body * { visibility: hidden; }
-      #printableArea, #printableArea *, #printableSuppliersArea, #printableSuppliersArea *, #printableStatementModal, #printableStatementModal *, #horizontalSummaryResult, #horizontalSummaryResult * { visibility: visible; }
-      #printableArea, #printableSuppliersArea, #printableStatementModal, #horizontalSummaryResult { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
+      #printableArea, #printableArea *, #printableSuppliersArea, #printableSuppliersArea *, #printableStatementModal, #printableStatementModal * { visibility: visible; }
+      #printableArea, #printableSuppliersArea, #printableStatementModal { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
       .no-print { display: none !important; }
     }
   </style>
@@ -379,67 +379,9 @@
           </div>
         </div>
 
-        <!-- فرعي 4: كشف حساب (تم التحديث ليعرض الجدول بالترتيب المطلوب عند النقر على بحث) -->
+        <!-- فرعي 4: كشف حساب -->
         <div id="accountStatementSubTab" class="sub-tab-content">
-          <!-- أدوات البحث والتصفية -->
-          <div class="form-row no-print" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; align-items: flex-end; justify-content: flex-start; gap: 15px;">
-            
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>اسم المورد / الجهة:</label>
-              <input type="text" id="stmtSupplierSearch" placeholder="اسم المورد...">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>رقم الملف (File Code):</label>
-              <input type="text" id="stmtFileCodeSearch" placeholder="رقم الملف...">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>العملة:</label>
-              <select id="stmtCurrencySelect">
-                <option value="ALL">جميع العملات</option>
-                <option value="EGP">EGP (ج.م)</option>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-              </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0; display: flex; gap: 8px;">
-              <button class="search-btn" onclick="executeHorizontalSearch()">🔍 بحث</button>
-              <button class="reset-btn" onclick="resetAccountStatementSearch()">إعادة ضبط</button>
-            </div>
-          </div>
-
-          <hr class="no-print" style="margin: 20px 0; border: 0; border-top: 1px solid #cbd5e1;" />
-
-          <!-- جدول النتائج المباشرة يظهر فور النقر على زر "بحث" بالترتيب المطلوبة -->
-          <div id="horizontalSummaryResult" style="display: none; margin-top: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <h4 style="margin: 0; color: #1e293b;" id="stmtSearchResultTitle">كشف حركة الحساب:</h4>
-              <button class="print-btn no-print" onclick="window.print()">𖥕 طباعة كشف الحساب</button>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>التاريخ</th>
-                  <th>البيان</th>
-                  <th>رقم الملف</th>
-                  <th>المبلغ</th>
-                  <th>مدين</th>
-                  <th>دائن</th>
-                  <th>الرصيد مدين أو دائن</th>
-                </tr>
-              </thead>
-              <tbody id="stmtSearchResultsBody">
-                <!-- سيتم ملؤها ديناميكياً بواسطة JavaScript -->
-              </tbody>
-            </table>
-          </div>
-
-          <!-- رسالة تنبيه عند عدم وجود بيانات -->
-          <div id="stmtNoResults" style="display: none; text-align: center; padding: 20px; color: #64748b; font-weight: bold;">
-            لا توجد حركات حقيقية تطابق معايير البحث المدخلة.
-          </div>
+          <button class="search-btn">🔍 بحث</button>
         </div>
 
       </div>
@@ -702,96 +644,6 @@
       }
       return dateString;
     }
-
-    /* تنفيذ البحث والأظهار الديناميكي لبيانات كشف الحركة بالترتيب المطلوب عند الضغط على بحث */
-    window.executeHorizontalSearch = function() {
-      const supplierInput = document.getElementById('stmtSupplierSearch').value.trim().toLowerCase();
-      const fileCodeInput = document.getElementById('stmtFileCodeSearch').value.trim().toLowerCase();
-      const currencyInput = document.getElementById('stmtCurrencySelect').value;
-
-      // تصفية وترتيب البيانات تصاعدياً حسب التاريخ
-      const filtered = currentCreditList.filter(item => {
-        const matchesSupplier = (item.entity || '').toLowerCase().includes(supplierInput);
-        const matchesFileCode = (item.fileCode || '').toLowerCase().includes(fileCodeInput);
-        const matchesCurrency = currencyInput === 'ALL' || (item.currency || 'EGP').toUpperCase() === currencyInput.toUpperCase();
-
-        return matchesSupplier && matchesFileCode && matchesCurrency;
-      }).sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt.seconds * 1000) : new Date(0);
-        const dateB = b.createdAt ? new Date(b.createdAt.seconds * 1000) : new Date(0);
-        return dateA - dateB;
-      });
-
-      const tbody = document.getElementById('stmtSearchResultsBody');
-      const resultContainer = document.getElementById('horizontalSummaryResult');
-      const noResults = document.getElementById('stmtNoResults');
-      const titleElem = document.getElementById('stmtSearchResultTitle');
-
-      tbody.innerHTML = '';
-
-      if (filtered.length > 0) {
-        let titleText = 'كشف حركة الحساب';
-        if (supplierInput) {
-          titleText += ` - الجهة: ${document.getElementById('stmtSupplierSearch').value.trim()}`;
-        }
-        if (currencyInput !== 'ALL') {
-          titleText += ` (${currencyInput})`;
-        }
-        titleElem.innerText = titleText;
-
-        let runningBalance = 0;
-
-        filtered.forEach((item) => {
-          const dateFormatted = item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
-          const amt = parseFloat(item.amount) || 0;
-          let debit = 0;
-          let credit = 0;
-
-          if (item.type === 'deposit') {
-            debit = amt;
-            runningBalance += amt;
-          } else if (item.type === 'deduction') {
-            credit = amt;
-            runningBalance -= amt;
-          }
-
-          let balanceTypeStr = "0";
-          if (runningBalance > 0) {
-            balanceTypeStr = `<span style="color:#15803d; font-weight:bold;">${runningBalance.toLocaleString()} (مدين - لنا)</span>`;
-          } else if (runningBalance < 0) {
-            balanceTypeStr = `<span style="color:#b91c1c; font-weight:bold;">${Math.abs(runningBalance).toLocaleString()} (دائن - علينا)</span>`;
-          }
-
-          // العرض الترتيبي: التاريخ / البيان / رقم الملف / المبلغ / مدين / دائن / الرصيد مدين أو دائن
-          const row = `
-            <tr>
-              <td>${dateFormatted}</td>
-              <td>${item.description || '-'}</td>
-              <td>${item.fileCode || '-'}</td>
-              <td><strong>${amt.toLocaleString()}</strong></td>
-              <td style="color: #15803d; font-weight: bold;">${debit ? debit.toLocaleString() : '-'}</td>
-              <td style="color: #b91c1c; font-weight: bold;">${credit ? credit.toLocaleString() : '-'}</td>
-              <td>${balanceTypeStr}</td>
-            </tr>
-          `;
-          tbody.innerHTML += row;
-        });
-
-        resultContainer.style.display = 'block';
-        noResults.style.display = 'none';
-      } else {
-        resultContainer.style.display = 'none';
-        noResults.style.display = 'block';
-      }
-    };
-
-    window.resetAccountStatementSearch = function() {
-      document.getElementById('stmtSupplierSearch').value = '';
-      document.getElementById('stmtFileCodeSearch').value = '';
-      document.getElementById('stmtCurrencySelect').value = 'ALL';
-      document.getElementById('horizontalSummaryResult').style.display = 'none';
-      document.getElementById('stmtNoResults').style.display = 'none';
-    };
 
     window.saveHotelBooking = async function() {
       const supplierType = document.getElementById('supplierType').value;
