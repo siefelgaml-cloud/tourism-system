@@ -47,6 +47,8 @@
     button.print-btn { background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
     button.search-btn { background: #2563eb; color: white; border: none; padding: 8px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
     button.search-btn:hover { background: #1d4ed8; }
+    button.reset-btn { background: #e2e8f0; color: #475569; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+    button.reset-btn:hover { background: #cbd5e1; }
     button.pdf-btn { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
     button.delete-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
     button.edit-btn { background: #eab308; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 4px; }
@@ -377,10 +379,21 @@
           </div>
         </div>
 
-        <!-- فرعي 4: كشف حساب (المعدل) -->
+        <!-- فرعي 4: كشف حساب (المعدل والمحدث بفلترة وتمرير كامل للبيانات) -->
         <div id="accountStatementSubTab" class="sub-tab-content">
-          <!-- أدوات البحث بدون زر طباعة كشف الحساب -->
-          <div class="form-row no-print" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; align-items: flex-end; justify-content: flex-end;">
+          <!-- أدوات البحث والتصفية -->
+          <div class="form-row no-print" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; align-items: flex-end; justify-content: flex-start; gap: 15px;">
+            
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>اسم المورد / الجهة:</label>
+              <input type="text" id="stmtSupplierSearch" placeholder="اسم المورد...">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>رقم الملف (File Code):</label>
+              <input type="text" id="stmtFileCodeSearch" placeholder="رقم الملف...">
+            </div>
+
             <div class="form-group" style="margin-bottom: 0;">
               <label>العملة:</label>
               <select id="stmtCurrencySelect">
@@ -390,39 +403,41 @@
                 <option value="EUR">EUR (€)</option>
               </select>
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>رقم الملف (File Code):</label>
-              <input type="text" id="stmtFileCodeSearch" placeholder="رقم الملف...">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label>اسم المورد / الجهة:</label>
-              <input type="text" id="stmtSupplierSearch" placeholder="اسم المورد...">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
+
+            <div class="form-group" style="margin-bottom: 0; display: flex; gap: 8px;">
               <button class="search-btn" onclick="executeHorizontalSearch()">🔍 بحث</button>
+              <button class="reset-btn" onclick="resetAccountStatementSearch()">إعادة ضبط</button>
             </div>
           </div>
 
           <hr style="margin: 20px 0; border: 0; border-top: 1px solid #cbd5e1;" />
 
-          <!-- الجدول الأفقي الذي يظهر عند البحث -->
+          <!-- جدول النتائج المباشرة يظهر فور النقر على زر "بحث" -->
           <div id="horizontalSummaryResult" style="display: none; margin-top: 20px;">
+            <h4 style="margin-bottom: 10px; color: #1e293b;">نتائج كشف الحساب والعمليات:</h4>
             <table>
               <thead>
                 <tr>
-                  <th style="text-align: center;">اسم المورد</th>
-                  <th style="text-align: center;">رقم الملف</th>
-                  <th style="text-align: center;">العملة</th>
+                  <th>#</th>
+                  <th>اسم المورد / الجهة</th>
+                  <th>رقم الملف</th>
+                  <th>تاريخ الوصول</th>
+                  <th>تاريخ المغادرة</th>
+                  <th>نوع الحركة</th>
+                  <th>المبلغ</th>
+                  <th>العملة</th>
+                  <th>البيان والتفاصيل</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td id="resSupplierName" style="text-align: center; font-weight: bold; color: #2563eb;">-</td>
-                  <td id="resFileCode" style="text-align: center; font-weight: bold;">-</td>
-                  <td id="resCurrency" style="text-align: center; font-weight: bold; color: #16a34a;">-</td>
-                </tr>
+              <tbody id="stmtSearchResultsBody">
+                <!-- سيتم ملؤها ديناميكياً بواسطة JavaScript -->
               </tbody>
             </table>
+          </div>
+
+          <!-- رسالة تنبيه عند عدم وجود بيانات -->
+          <div id="stmtNoResults" style="display: none; text-align: center; padding: 20px; color: #64748b; font-weight: bold;">
+            لا توجد حركات حقيقية تطابق معايير البحث المدخلة.
           </div>
         </div>
 
@@ -656,19 +671,6 @@
       window.print();
       title.style.display = 'none';
     }
-
-    /* دالة تنفيذ البحث والأظهار الأفقي */
-    function executeHorizontalSearch() {
-      const supplierName = document.getElementById('stmtSupplierSearch').value.trim();
-      const fileCode = document.getElementById('stmtFileCodeSearch').value.trim();
-      const currency = document.getElementById('stmtCurrencySelect').value;
-
-      document.getElementById('resSupplierName').textContent = supplierName || '-';
-      document.getElementById('resFileCode').textContent = fileCode || '-';
-      document.getElementById('resCurrency').textContent = currency === 'ALL' ? 'جميع العملات' : currency;
-
-      document.getElementById('horizontalSummaryResult').style.display = 'block';
-    }
   </script>
 
   <!-- Firebase Script & Logic -->
@@ -699,6 +701,64 @@
       }
       return dateString;
     }
+
+    /* تنفيذ البحث والأظهار الديناميكي لبيانات الكريديت بحسب المتطلبات */
+    window.executeHorizontalSearch = function() {
+      const supplierInput = document.getElementById('stmtSupplierSearch').value.trim().toLowerCase();
+      const fileCodeInput = document.getElementById('stmtFileCodeSearch').value.trim().toLowerCase();
+      const currencyInput = document.getElementById('stmtCurrencySelect').value;
+
+      const filtered = currentCreditList.filter(item => {
+        const matchesSupplier = (item.entity || '').toLowerCase().includes(supplierInput);
+        const matchesFileCode = (item.fileCode || '').toLowerCase().includes(fileCodeInput);
+        const matchesCurrency = currencyInput === 'ALL' || (item.currency || 'EGP').toUpperCase() === currencyInput.toUpperCase();
+
+        return matchesSupplier && matchesFileCode && matchesCurrency;
+      });
+
+      const tbody = document.getElementById('stmtSearchResultsBody');
+      const resultContainer = document.getElementById('horizontalSummaryResult');
+      const noResults = document.getElementById('stmtNoResults');
+
+      tbody.innerHTML = '';
+
+      if (filtered.length > 0) {
+        filtered.forEach((item, index) => {
+          const typeBadge = item.type === 'deposit' 
+            ? '<span class="badge badge-deposit">مدين (لنا)</span>' 
+            : '<span class="badge badge-deduction">دائن (علينا)</span>';
+
+          const row = `
+            <tr>
+              <td>${index + 1}</td>
+              <td><strong>${item.entity || '-'}</strong></td>
+              <td>${item.fileCode || '-'}</td>
+              <td>${formatDateToDMY(item.arrivalDate)}</td>
+              <td>${formatDateToDMY(item.departureDate)}</td>
+              <td>${typeBadge}</td>
+              <td><strong>${Number(item.amount || 0).toLocaleString()}</strong></td>
+              <td>${item.currency || 'EGP'}</td>
+              <td>${item.description || '-'}</td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+
+        resultContainer.style.display = 'block';
+        noResults.style.display = 'none';
+      } else {
+        resultContainer.style.display = 'none';
+        noResults.style.display = 'block';
+      }
+    };
+
+    window.resetAccountStatementSearch = function() {
+      document.getElementById('stmtSupplierSearch').value = '';
+      document.getElementById('stmtFileCodeSearch').value = '';
+      document.getElementById('stmtCurrencySelect').value = 'ALL';
+      document.getElementById('horizontalSummaryResult').style.display = 'none';
+      document.getElementById('stmtNoResults').style.display = 'none';
+    };
 
     window.saveHotelBooking = async function() {
       const supplierType = document.getElementById('supplierType').value;
