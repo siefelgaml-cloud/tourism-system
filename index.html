@@ -93,8 +93,8 @@
     /* قواعد طباعة الصفحة الخاصة بالـ Dashboard والطباعة العامة */
     @media print {
       body * { visibility: hidden; }
-      #printableArea, #printableArea *, #printableSuppliersArea, #printableSuppliersArea *, #printableStatementModal, #printableStatementModal * { visibility: visible; }
-      #printableArea, #printableSuppliersArea, #printableStatementModal { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
+      #printableArea, #printableArea *, #printableSuppliersArea, #printableSuppliersArea *, #printableStatementModal, #printableStatementModal *, #printableAccountStatement, #printableAccountStatement * { visibility: visible; }
+      #printableArea, #printableSuppliersArea, #printableStatementModal, #printableAccountStatement { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
       .no-print { display: none !important; }
     }
   </style>
@@ -129,6 +129,7 @@
         <button class="sub-tab-btn active" id="subTabBtnCredit1" onclick="openSubTab(event, 'addCreditSubTab')">1- تسجيل حركة كريديت</button>
         <button class="sub-tab-btn" id="subTabBtnCredit2" onclick="openSubTab(event, 'creditRecordsSubTab')">2- سجل كشف الحساب والعمليات</button>
         <button class="sub-tab-btn" id="subTabBtnCredit3" onclick="openSubTab(event, 'creditSummarySubTab')">3- ملخص الأرصدة والـ Dashboard</button>
+        <button class="sub-tab-btn" id="subTabBtnCredit4" onclick="openSubTab(event, 'accountStatementSubTab')">4- كشف حساب</button>
       </div>
 
       <button class="tab-btn" onclick="openTab(event, 'aviationTab')"><span>✈️ حجوزات الطيران</span></button>
@@ -374,6 +375,61 @@
           </div>
         </div>
 
+        <!-- فرعي 4: كشف حساب تفصيلي المورد والملفات -->
+        <div id="accountStatementSubTab" class="sub-tab-content">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">كشف حساب تفصيلي</h3>
+            <div class="btn-group no-print" style="margin-top: 0;">
+              <button class="print-btn" onclick="printAccountStatement()">𖥕 طباعة كشف الحساب</button>
+            </div>
+          </div>
+
+          <!-- أدوات البحث والفلترة -->
+          <div class="form-row no-print" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+            <div class="form-group">
+              <label>اسم المورد / الجهة:</label>
+              <input type="text" id="stmtSupplierSearch" placeholder="أدخل اسم المورد..." onkeyup="generateAccountStatement()">
+            </div>
+            <div class="form-group">
+              <label>رقم الملف (File Code):</label>
+              <input type="text" id="stmtFileCodeSearch" placeholder="أدخل رقم الملف..." onkeyup="generateAccountStatement()">
+            </div>
+            <div class="form-group">
+              <label>العملة:</label>
+              <select id="stmtCurrencySelect" onchange="generateAccountStatement()">
+                <option value="ALL">جميع العملات</option>
+                <option value="EGP">EGP (ج.م)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="printableAccountStatement">
+            <h3 id="stmtPrintHeader" style="margin-top: 0; color: #1e293b;">عرض كشف الحساب</h3>
+            <table id="accountStatementTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>التاريخ</th>
+                  <th>اسم المورد / الجهة</th>
+                  <th>رقم الملف</th>
+                  <th>البيان / التفاصيل</th>
+                  <th>العملة</th>
+                  <th>مدين (لنا)</th>
+                  <th>دائن (علينا)</th>
+                  <th>الرصيد التراكمي</th>
+                </tr>
+              </thead>
+              <tbody id="accountStatementTableBody">
+                <tr>
+                  <td colspan="9" style="text-align: center; color: #64748b;">يرجى ادخال اسم المورد أو رقم الملف للبحث...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
       <!-- 3. قسم الطيران -->
@@ -556,6 +612,10 @@
     }
 
     function printDashboard() {
+      window.print();
+    }
+
+    function printAccountStatement() {
       window.print();
     }
 
@@ -968,6 +1028,82 @@
       });
     }
 
+    /* دالة توليد كشف الحساب التفاعلي في تبويب كشف حساب جديد */
+    window.generateAccountStatement = function() {
+      const supplierFilter = document.getElementById('stmtSupplierSearch').value.toLowerCase().trim();
+      const fileCodeFilter = document.getElementById('stmtFileCodeSearch').value.toLowerCase().trim();
+      const currencyFilter = document.getElementById('stmtCurrencySelect').value;
+      const tbody = document.getElementById('accountStatementTableBody');
+      const header = document.getElementById('stmtPrintHeader');
+
+      let titleText = "كشف حساب تفصيلي";
+      if (supplierFilter) titleText += ` - المورد: ${supplierFilter}`;
+      if (fileCodeFilter) titleText += ` - رقم الملف: ${fileCodeFilter}`;
+      header.innerText = titleText;
+
+      tbody.innerHTML = '';
+
+      // تصفية السجلات حسب الخانات المحددة والبحث بالعملة ورقم الملف والمورد
+      const filtered = currentCreditList.filter(item => {
+        const matchesSupplier = !supplierFilter || (item.entity || '').toLowerCase().includes(supplierFilter);
+        const matchesFileCode = !fileCodeFilter || (item.fileCode || '').toLowerCase().includes(fileCodeFilter);
+        
+        let itemCurr = (item.currency || 'EGP').toUpperCase();
+        if (itemCurr === 'EIUR') itemCurr = 'EUR';
+        const matchesCurrency = (currencyFilter === 'ALL') || (itemCurr === currencyFilter);
+
+        return matchesSupplier && matchesFileCode && matchesCurrency;
+      }).sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt.seconds * 1000) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt.seconds * 1000) : new Date(0);
+        return dateA - dateB;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #64748b;">لا توجد نتائج مطابقة لخيارات البحث الحالية</td></tr>';
+        return;
+      }
+
+      let runningBalance = 0;
+      filtered.forEach((item, idx) => {
+        const amt = parseFloat(item.amount) || 0;
+        let debit = 0;
+        let credit = 0;
+
+        if (item.type === 'deposit') {
+          debit = amt;
+          runningBalance += amt;
+        } else if (item.type === 'deduction') {
+          credit = amt;
+          runningBalance -= amt;
+        }
+
+        let balanceStr = "0";
+        if (runningBalance > 0) {
+          balanceStr = `<span style="color:#15803d; font-weight:bold;">${runningBalance.toLocaleString()} (مدين)</span>`;
+        } else if (runningBalance < 0) {
+          balanceStr = `<span style="color:#b91c1c; font-weight:bold;">${Math.abs(runningBalance).toLocaleString()} (دائن)</span>`;
+        }
+
+        const dateStr = item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
+
+        const row = `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>${dateStr}</td>
+            <td><strong>${item.entity || '-'}</strong></td>
+            <td>${item.fileCode || '-'}</td>
+            <td>${item.description || '-'}</td>
+            <td>${item.currency || 'EGP'}</td>
+            <td style="color: #15803d; font-weight: bold;">${debit ? debit.toLocaleString() : '-'}</td>
+            <td style="color: #b91c1c; font-weight: bold;">${credit ? credit.toLocaleString() : '-'}</td>
+            <td>${balanceStr}</td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    };
+
     /* دالة فتح كشف الحساب بالتنسيق والترتيب المفضل عند النقر على المورد في الـ Dashboard */
     window.openSupplierStatementModal = function(entityName, currency) {
       const modal = document.getElementById('supplierStatementModal');
@@ -1042,6 +1178,7 @@
       if (snapshot.empty) {
         tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">لا توجد حركة أرصدة كريديت مسجلة حتى الآن</td></tr>';
         updateCreditDashboardAndSummary([]);
+        generateAccountStatement();
         return;
       }
 
@@ -1077,6 +1214,7 @@
       });
 
       updateCreditDashboardAndSummary(currentCreditList);
+      generateAccountStatement();
     });
 
     window.deleteCreditRecord = async function(docId) {
