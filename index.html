@@ -1,28 +1,1038 @@
-my-tourism-app/
-├── index.html
-├── package.json
-├── vite.config.js
-├── src/
-│   ├── main.js
-│   ├── App.vue
-│   ├── firebase/
-│   │   └── config.js
-│   ├── stores/
-│   │   ├── authStore.js
-│   │   ├── suppliersStore.js
-│   │   └── creditStore.js
-│   ├── components/
-│   │   ├── Auth/
-│   │   │   └── Login.vue
-│   │   ├── Dashboard/
-│   │   │   ├── Sidebar.vue
-│   │   │   └── StatsCards.vue
-│   │   ├── Suppliers/
-│   │   │   ├── AddSupplier.vue
-│   │   │   └── SuppliersList.vue
-│   │   └── Credit/
-│   │       ├── AddCredit.vue
-│   │       └── CreditSummary.vue
-│   └── composables/
-│       └── useToast.js
-└── .env (يحتوي على Firebase Config)
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منظومة الحسابات السياحية - النسخة الاحترافية</title>
+  <!-- مكتبة Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- مكتبة PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <style>
+    /* ===== خطوط احترافية ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #f1f5f9;
+      padding: 20px;
+      direction: rtl;
+    }
+    /* ===== الهيدر ===== */
+    .header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      padding: 16px 30px;
+      border-radius: 16px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .header h2 { font-weight: 800; letter-spacing: 1px; font-size: 22px; }
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+    .logout-btn {
+      background: #ef4444; border: none; color: white;
+      padding: 8px 20px; border-radius: 10px; font-weight: 700;
+      cursor: pointer; transition: 0.2s; font-size: 14px;
+    }
+    .logout-btn:hover { background: #dc2626; transform: scale(1.03); }
+    .user-email { color: #94a3b8; font-size: 14px; font-weight: 400; }
+
+    /* ===== شاشة تسجيل الدخول ===== */
+    #authScreen {
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh; background: #f1f5f9; flex-direction: column; gap: 20px;
+    }
+    .auth-box {
+      background: white; padding: 40px; border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08); width: 100%; max-width: 420px;
+    }
+    .auth-box h2 { text-align: center; color: #0f172a; margin-bottom: 25px; font-weight: 800; }
+    .auth-error {
+      color: #dc2626; background: #fef2f2; padding: 10px; border-radius: 8px;
+      margin-bottom: 15px; display: none; text-align: center; font-weight: 600;
+    }
+    .auth-box .form-group { margin-bottom: 18px; }
+    .auth-box input {
+      width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0;
+      border-radius: 12px; font-size: 15px; font-family: inherit;
+    }
+    .auth-box input:focus { border-color: #2563eb; outline: none; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+    .auth-box .submit-btn {
+      width: 100%; justify-content: center; padding: 14px; font-size: 16px;
+      background: #2563eb; color: white; border: none; border-radius: 12px;
+      font-weight: 700; cursor: pointer; transition: 0.2s;
+    }
+    .auth-box .submit-btn:hover { background: #1d4ed8; }
+    .toggle-auth { text-align: center; margin-top: 20px; color: #64748b; font-size: 14px; }
+    .toggle-auth span { color: #2563eb; font-weight: 700; cursor: pointer; }
+    .toggle-auth span:hover { text-decoration: underline; }
+
+    /* ===== تخطيط التطبيق الرئيسي ===== */
+    #appScreen { display: none; }
+    .app-layout { display: flex; gap: 24px; align-items: flex-start; }
+
+    /* ===== الشريط الجانبي العصري ===== */
+    .tabs-vertical {
+      width: 260px; flex-shrink: 0; background: #ffffff;
+      border-radius: 16px; padding: 12px 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;
+    }
+    .tab-btn {
+      background: transparent; border: none; padding: 12px 16px;
+      border-radius: 10px; font-weight: 700; color: #475569;
+      font-size: 15px; transition: 0.2s; width: 100%; text-align: right;
+      display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+    }
+    .tab-btn:hover { background: #f1f5f9; color: #0f172a; }
+    .tab-btn.active { background: #2563eb; color: white; box-shadow: 0 4px 8px rgba(37,99,235,0.25); }
+    .sub-tabs-container {
+      padding-right: 16px; margin: 4px 0 8px 0;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .sub-tab-btn {
+      background: transparent; border: none; padding: 10px 14px;
+      border-radius: 8px; font-weight: 600; color: #64748b;
+      font-size: 14px; text-align: right; cursor: pointer; transition: 0.2s;
+    }
+    .sub-tab-btn:hover { background: #f8fafc; color: #1e293b; }
+    .sub-tab-btn.active { background: #0d9488; color: white; font-weight: 700; }
+
+    /* ===== منطقة المحتوى ===== */
+    .main-content-area { flex: 1; min-width: 0; }
+    .tab-content {
+      display: none; background: white; padding: 28px;
+      border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+      border: 1px solid #e2e8f0; animation: fadeIn 0.3s ease;
+    }
+    .tab-content.active { display: block; }
+    .sub-tab-content { display: none; animation: fadeIn 0.25s ease; }
+    .sub-tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== الفورم ===== */
+    .form-row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 8px; }
+    .form-group { flex: 1; min-width: 200px; margin-bottom: 18px; }
+    label { display: block; margin-bottom: 6px; font-weight: 700; color: #1e293b; font-size: 14px; }
+    input, select, textarea {
+      width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0;
+      border-radius: 10px; font-family: inherit; font-size: 14px;
+      transition: 0.2s; background: #f8fafc;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #2563eb; outline: none; background: white;
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+    }
+    .amount-input-group { display: flex; gap: 8px; align-items: center; max-width: 400px; }
+    .amount-input-group input { flex: 2; }
+
+    /* ===== الأزرار ===== */
+    .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    button, .btn-label {
+      padding: 10px 24px; border: none; border-radius: 10px;
+      font-weight: 700; font-size: 14px; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .submit-btn { background: #16a34a; color: white; }
+    .submit-btn:hover { background: #15803d; transform: scale(1.02); }
+    .excel-btn { background: #0284c7; color: white; }
+    .excel-btn:hover { background: #0369a1; }
+    .print-btn { background: #64748b; color: white; }
+    .print-btn:hover { background: #475569; }
+    .pdf-btn { background: #dc2626; color: white; }
+    .pdf-btn:hover { background: #b91c1c; }
+    .delete-btn { background: #ef4444; color: white; padding: 4px 12px; border-radius: 6px; font-size: 12px; }
+    .edit-btn { background: #eab308; color: white; padding: 4px 12px; border-radius: 6px; font-size: 12px; }
+
+    /* ===== بطاقات Dashboard ===== */
+    .dashboard-grid { display: flex; gap: 18px; margin-bottom: 25px; flex-wrap: wrap; }
+    .dash-card {
+      flex: 1; min-width: 180px; padding: 18px 22px;
+      border-radius: 14px; border: 1px solid #e2e8f0;
+      background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .dash-card-title { font-size: 13px; font-weight: 700; display: block; margin-bottom: 6px; color: #64748b; }
+    .dash-card-value { font-size: 22px; font-weight: 800; direction: ltr; text-align: right; }
+
+    /* ===== الجداول ===== */
+    .table-wrapper { overflow-x: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background: #f1f5f9; color: #1e293b; font-weight: 700; padding: 12px 14px; text-align: right; border-bottom: 2px solid #e2e8f0; }
+    td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    tr:hover td { background: #f8fafc; }
+    .badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; }
+    .badge-hotel { background: #dbeafe; color: #1e40af; }
+    .badge-cruise { background: #fef3c7; color: #92400e; }
+    .badge-restaurant { background: #fce7f3; color: #9d174d; }
+    .badge-deposit { background: #dcfce7; color: #15803d; }
+    .badge-deduction { background: #fee2e2; color: #b91c1c; }
+    .badge-taxable { background: #dcfce7; color: #166534; }
+    .badge-advance { background: #e0e7ff; color: #3730a3; }
+    .clickable-supplier { color: #2563eb; cursor: pointer; text-decoration: underline; font-weight: 700; }
+    .clickable-supplier:hover { color: #1d4ed8; }
+
+    /* ===== المودال ===== */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15,23,42,0.6); backdrop-filter: blur(4px);
+      display: none; justify-content: center; align-items: center; z-index: 1000;
+    }
+    .modal-content {
+      background: white; padding: 30px; border-radius: 20px;
+      width: 90%; max-width: 700px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      max-height: 85vh; overflow-y: auto;
+    }
+
+    /* ===== نظام الإشعارات (Toast) ===== */
+    .toast-container {
+      position: fixed; top: 20px; left: 20px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .toast {
+      padding: 14px 24px; border-radius: 12px; color: white;
+      font-weight: 700; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      animation: slideIn 0.4s ease; min-width: 250px;
+      border-right: 6px solid rgba(255,255,255,0.3);
+    }
+    .toast.success { background: #16a34a; }
+    .toast.error { background: #dc2626; }
+    .toast.info { background: #2563eb; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+
+    /* ===== الطباعة ===== */
+    @media print {
+      body * { visibility: hidden; }
+      #printableArea, #printableArea *, #printableSuppliersArea, #printableSuppliersArea *,
+      #printableStatementModal, #printableStatementModal * { visibility: visible; }
+      #printableArea, #printableSuppliersArea, #printableStatementModal { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
+      .no-print { display: none !important; }
+    }
+    @media (max-width: 768px) {
+      .app-layout { flex-direction: column; }
+      .tabs-vertical { width: 100%; }
+      .dashboard-grid { flex-direction: column; }
+      .header { flex-direction: column; gap: 10px; align-items: stretch; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========================================================= -->
+<!-- 1. شاشة تسجيل الدخول (تظهر افتراضياً) -->
+<!-- ========================================================= -->
+<div id="authScreen">
+  <div class="auth-box">
+    <h2>🔐 تسجيل الدخول</h2>
+    <div id="authError" class="auth-error"></div>
+    
+    <div class="form-group">
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="loginEmail" placeholder="admin@example.com">
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور</label>
+      <input type="password" id="loginPassword" placeholder="********">
+    </div>
+    
+    <button class="submit-btn" onclick="handleLogin()">تسجيل الدخول</button>
+    
+    <div class="toggle-auth">
+      ليس لديك حساب؟ <span onclick="toggleAuthMode()">إنشاء حساب جديد</span>
+    </div>
+
+    <div id="signupMode" style="display: none; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+      <div class="form-group">
+        <label>البريد الإلكتروني الجديد</label>
+        <input type="email" id="signupEmail" placeholder="new@example.com">
+      </div>
+      <div class="form-group">
+        <label>كلمة المرور (6 أحرف على الأقل)</label>
+        <input type="password" id="signupPassword" placeholder="******">
+      </div>
+      <button class="submit-btn" style="background:#0d9488;" onclick="handleSignup()">إنشاء حساب</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- 2. التطبيق الرئيسي (مخفي حتى تسجيل الدخول) -->
+<!-- ========================================================= -->
+<div id="appScreen">
+  <div class="header">
+    <h2>📊 منظومة الحسابات والتصفية الشاملة</h2>
+    <div class="header-actions">
+      <span class="user-email" id="userEmailDisplay">user@email.com</span>
+      <button class="logout-btn" onclick="handleLogout()">🚪 خروج</button>
+    </div>
+  </div>
+
+  <div class="app-layout">
+    <!-- القائمة الجانبية -->
+    <div class="tabs-vertical">
+      <button class="tab-btn active" id="taxDiscountBtn" onclick="toggleTaxDiscountMenu(event)">
+        <span>📋 الخصم والإضافة</span>
+        <span id="taxArrowIcon" style="font-size:12px;">▲</span>
+      </button>
+      <div id="taxDiscountSubMenu" class="sub-tabs-container">
+        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSupplierSubTab')">1- إضافة مورد</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab')">2- قائمة الموردين</button>
+      </div>
+
+      <button class="tab-btn" id="creditBtn" onclick="toggleCreditMenu(event)">
+        <span>💳 أرصدة الكريديت</span>
+        <span id="creditArrowIcon" style="font-size:12px;">▼</span>
+      </button>
+      <div id="creditSubMenu" class="sub-tabs-container" style="display:none;">
+        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addCreditSubTab')">1- تسجيل حركة</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditRecordsSubTab')">2- سجل العمليات</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditSummarySubTab')">3- الملخص والـ Dashboard</button>
+      </div>
+
+      <button class="tab-btn" onclick="openTab(event, 'aviationTab')"><span>✈️ حجوزات الطيران</span></button>
+      <button class="tab-btn" onclick="openTab(event, 'ticketsTab')"><span>🎟️ مخزون التذاكر</span></button>
+      <button class="tab-btn" onclick="openTab(event, 'settlementTab')"><span>📄 تصفية الأوبريتور</span></button>
+    </div>
+
+    <!-- المحتوى -->
+    <div class="main-content-area">
+      
+      <!-- تبويب الخصم والإضافة -->
+      <div id="taxDiscountTab" class="tab-content active">
+        <div id="addSupplierSubTab" class="sub-tab-content active">
+          <h3>تسجيل مورد جديد</h3>
+          <div class="form-row">
+            <div class="form-group"><label>النوع</label><select id="supplierType"><option value="فندق">فندق</option><option value="كروز">كروز</option><option value="مطعم">مطعم</option></select></div>
+            <div class="form-group"><label>الاسم (فندق/كروز/مطعم)</label><input type="text" id="propertyName" placeholder="الاسم"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>اسم المورد</label><input type="text" id="supplierName" placeholder="اسم المورد"></div>
+            <div class="form-group"><label>رقم البطاقة الضريبية</label><input type="text" id="taxCardNumber" placeholder="رقم البطاقة"></div>
+          </div>
+          <div class="form-group"><label>حالة الضريبة</label><select id="taxType"><option value="0.03">خاضع لضريبة 3%</option><option value="advance_payment">دفعات مقدمة</option></select></div>
+          <div class="btn-group">
+            <button class="submit-btn" onclick="App.saveSupplier()">حفظ البيانات</button>
+            <button class="excel-btn" onclick="App.exportSupplierToExcel()">📊 تصدير الحقل</button>
+            <label class="excel-btn btn-label">📥 استيراد من Excel <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="App.importSuppliers(event)"></label>
+          </div>
+        </div>
+
+        <div id="suppliersListSubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h3>سجل الموردين</h3>
+            <div class="btn-group no-print" style="margin:0;">
+              <button class="print-btn" onclick="printSuppliersList()">𖥕 طباعة</button>
+              <button class="pdf-btn" onclick="downloadSuppliersPDF()">📄 PDF</button>
+              <button class="excel-btn" onclick="App.exportSuppliersList()">📊 Excel</button>
+              <input type="text" id="searchSupplier" placeholder="🔍 بحث..." onkeyup="filterSuppliersTable()" style="max-width:200px;">
+            </div>
+          </div>
+          <div id="printableSuppliersArea">
+            <div class="table-wrapper"><table id="suppliersTable"><thead><tr><th>#</th><th>النوع</th><th>الاسم</th><th>المورد</th><th>الرقم الضريبي</th><th>حالة الضريبة</th><th>التاريخ</th><th class="no-print">إجراءات</th></tr></thead><tbody id="suppliersTableBody"><tr><td colspan="8" style="text-align:center;color:#64748b;">جاري التحميل...</td></tr></tbody></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- تبويب الكريديت -->
+      <div id="creditTab" class="tab-content">
+        <div id="addCreditSubTab" class="sub-tab-content active">
+          <h3>تسجيل حركة كريديت</h3>
+          <div class="form-row">
+            <div class="form-group"><label>الجهة</label><input type="text" id="creditEntity" placeholder="اسم الفندق/العميل"></div>
+            <div class="form-group"><label>رقم الملف</label><input type="text" id="creditFileCode" placeholder="EG-2026-99"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>تاريخ الوصول</label><input type="date" id="creditArrivalDate"></div>
+            <div class="form-group"><label>تاريخ المغادرة</label><input type="date" id="creditDepartureDate"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>نوع الحركة</label><select id="creditType"><option value="deposit">مدين (لنا)</option><option value="deduction">دائن (علينا)</option></select></div>
+            <div class="form-group"><label>المبلغ والعملة</label><div class="amount-input-group"><input type="number" id="creditAmount" placeholder="0"><select id="creditCurrency"><option value="EGP">EGP</option><option value="USD">USD</option><option value="EUR">EUR</option></select></div></div>
+          </div>
+          <div class="form-group"><label>البيان</label><textarea id="creditDescription" placeholder="تفاصيل الحركة..."></textarea></div>
+          <div class="btn-group">
+            <button class="submit-btn" onclick="App.saveCredit()">تسجيل الحركة</button>
+            <label class="excel-btn btn-label">📥 استيراد من Excel <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="App.importCredit(event)"></label>
+          </div>
+        </div>
+
+        <div id="creditRecordsSubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h3>سجل الكريديت</h3>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="text" id="searchCredit" placeholder="🔍 بحث..." onkeyup="filterCreditTable()" style="max-width:200px;">
+              <button class="excel-btn" onclick="App.exportCreditList()">📊 Excel</button>
+            </div>
+          </div>
+          <div class="table-wrapper"><table id="creditTable"><thead><tr><th>#</th><th>الجهة</th><th>رقم الملف</th><th>الوصول</th><th>المغادرة</th><th>النوع</th><th>المبلغ</th><th>العملة</th><th>البيان</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody id="creditTableBody"><tr><td colspan="11" style="text-align:center;color:#64748b;">جاري التحميل...</td></tr></tbody></table></div>
+        </div>
+
+        <div id="creditSummarySubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+            <h3>ملخص الأرصدة</h3>
+            <div class="btn-group no-print" style="margin:0;"><button class="print-btn" onclick="printDashboard()">𖥕 طباعة</button><button class="pdf-btn" onclick="downloadDashboardPDF()">📄 PDF</button></div>
+          </div>
+          <div id="printableArea">
+            <div class="dashboard-grid">
+              <div class="dash-card" style="border-right:4px solid #16a34a;background:#f0fdf4;"><span class="dash-card-title" style="color:#166534;">إجمالي المدين (لنا)</span><div class="dash-card-value" id="dashTotalDeposits" style="color:#15803d;">0</div></div>
+              <div class="dash-card" style="border-right:4px solid #dc2626;background:#fef2f2;"><span class="dash-card-title" style="color:#991b1b;">إجمالي الدائن (علينا)</span><div class="dash-card-value" id="dashTotalDeductions" style="color:#b91c1c;">0</div></div>
+              <div class="dash-card" style="border-right:4px solid #0284c7;background:#f0f9ff;"><span class="dash-card-title" style="color:#075985;">صافي الرصيد</span><div class="dash-card-value" id="dashNetBalance" style="color:#0369a1;">0</div></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:25px; margin-bottom:10px;"><h4>ملخص رصيد كل جهة</h4><input type="text" id="searchEntitySummary" class="no-print" placeholder="🔍 بحث..." onkeyup="filterEntitySummaryTable()" style="max-width:200px;"></div>
+            <div class="table-wrapper"><table id="entitySummaryTable"><thead><tr><th>#</th><th>الجهة</th><th>العملة</th><th>إجمالي المدين</th><th>إجمالي الدائن</th><th>صافي الرصيد</th><th>الحالة</th></tr></thead><tbody id="entitySummaryTableBody"><tr><td colspan="7" style="text-align:center;color:#64748b;">جاري الحساب...</td></tr></tbody></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- تبويبات أخرى (مختصرة للاكتفاء) -->
+      <div id="aviationTab" class="tab-content"><h3>حجوزات الطيران</h3><div class="form-group"><label>خط الطيران</label><input type="text" id="airlineName"></div><div class="form-group"><label>PNR</label><input type="text" id="pnrNumber"></div><div class="form-group"><label>القيمة ($)</label><input type="number" id="ticketCost"></div><button class="submit-btn" onclick="App.saveAviation()">حفظ</button></div>
+      <div id="ticketsTab" class="tab-content"><h3>مخزون التذاكر</h3><div class="form-group"><label>اسم المزار</label><input type="text" id="ticketName"></div><div class="form-group"><label>الكمية</label><input type="number" id="ticketQty"></div><div class="form-group"><label>سعر الوحدة ($)</label><input type="number" id="ticketUnitPrice"></div><button class="submit-btn" onclick="App.saveTicket()">حفظ</button></div>
+      <div id="settlementTab" class="tab-content"><h3>تصفية الملف</h3><div class="form-group"><label>كود الملف</label><input type="text" id="fileCode"></div><div class="form-group"><label>اسم المرشد</label><input type="text" id="guideName"></div><button class="submit-btn" onclick="App.saveSettlement()">تصفية</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- 3. المودالات -->
+<!-- ========================================================= -->
+<div id="editSupplierModal" class="modal-overlay"><div class="modal-content"><h3>تعديل المورد</h3><input type="hidden" id="editSupplierId"><div class="form-group"><label>النوع</label><select id="editSupplierType"><option value="فندق">فندق</option><option value="كروز">كروز</option><option value="مطعم">مطعم</option></select></div><div class="form-group"><label>الاسم</label><input type="text" id="editPropertyName"></div><div class="form-group"><label>اسم المورد</label><input type="text" id="editSupplierName"></div><div class="form-group"><label>الرقم الضريبي</label><input type="text" id="editTaxCardNumber"></div><div class="form-group"><label>حالة الضريبة</label><select id="editTaxType"><option value="0.03">خاضع 3%</option><option value="advance_payment">دفعات مقدمة</option></select></div><div class="btn-group" style="justify-content:flex-end;"><button class="submit-btn" onclick="App.saveEditedSupplier()">حفظ</button><button class="print-btn" onclick="App.closeEditModal()">إلغاء</button></div></div></div>
+
+<div id="supplierStatementModal" class="modal-overlay"><div class="modal-content" style="max-width:900px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;" class="no-print"><h3 id="modalSupplierTitle">كشف الحساب</h3><div><button class="print-btn" onclick="printModalStatement()">𖥕 طباعة</button><button class="delete-btn" style="background:#64748b;padding:6px 12px;font-size:14px;" onclick="App.closeStatementModal()">إغلاق</button></div></div><div id="printableStatementModal"><h3 id="modalPrintTitle" style="display:none;">كشف حساب</h3><div class="table-wrapper"><table id="supplierStatementTable"><thead><tr><th>التاريخ</th><th>البيان</th><th>رقم الملف</th><th>المبلغ</th><th>مدين</th><th>دائن</th><th>الرصيد</th></tr></thead><tbody id="supplierStatementTableBody"><tr><td colspan="7" style="text-align:center;">جاري التحميل...</td></tr></tbody></table></div></div></div></div>
+
+<!-- ========================================================= -->
+<!-- 4. Firebase + JavaScript (Module) -->
+<!-- ========================================================= -->
+<script type="module">
+  // ===== Firebase Imports =====
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { 
+    getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, 
+    onSnapshot, query, orderBy, writeBatch 
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import {
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+    createUserWithEmailAndPassword, signOut
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  // ===== التهيئة =====
+  const firebaseConfig = {
+    apiKey: "AiZaSyBnVZaF4cbNqTM03tA3dWEfk2k3aWj0djs",
+    authDomain: "tourism-management-syste-b0c23.firebaseapp.com",
+    projectId: "tourism-management-syste-b0c23",
+    storageBucket: "tourism-management-syste-b0c23.firebasestorage.app",
+    messagingSenderId: "220547259810",
+    appId: "1:220547259810:web:0857978bcab6ea93ff26fb"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  // ===== دوال مساعدة =====
+  const $ = (id) => document.getElementById(id);
+  const showToast = (message, type = 'info', duration = 3500) => {
+    const container = document.getElementById('toastContainer') || (() => {
+      const div = document.createElement('div'); div.id = 'toastContainer'; div.className = 'toast-container';
+      document.body.appendChild(div); return div;
+    })();
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-30px)';
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  };
+
+  const formatDateDMY = (iso) => {
+    if (!iso) return '-';
+    const parts = iso.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return iso;
+  };
+
+  // ===== دوال المصادقة (متاحة عالمياً) =====
+  window.toggleAuthMode = () => {
+    const div = $('signupMode');
+    div.style.display = div.style.display === 'none' ? 'block' : 'none';
+  };
+
+  window.handleLogin = async () => {
+    const email = $('loginEmail').value;
+    const password = $('loginPassword').value;
+    const errorDiv = $('authError');
+    try {
+      errorDiv.style.display = 'none';
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (e) {
+      errorDiv.textContent = '❌ ' + e.message;
+      errorDiv.style.display = 'block';
+    }
+  };
+
+  window.handleSignup = async () => {
+    const email = $('signupEmail').value;
+    const password = $('signupPassword').value;
+    const errorDiv = $('authError');
+    try {
+      errorDiv.style.display = 'none';
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (e) {
+      errorDiv.textContent = '❌ ' + e.message;
+      errorDiv.style.display = 'block';
+    }
+  };
+
+  window.handleLogout = async () => {
+    await signOut(auth);
+  };
+
+  // ===== التطبيق الرئيسي =====
+  const App = {
+    currentSuppliers: [],
+    currentCredit: [],
+
+    // --- المراقبة المباشرة ---
+    listenToSuppliers() {
+      const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
+      onSnapshot(q, (snapshot) => {
+        const tbody = $('suppliersTableBody');
+        tbody.innerHTML = '';
+        this.currentSuppliers = [];
+
+        if (snapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا توجد بيانات</td></tr>';
+          return;
+        }
+        let idx = 1;
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data(); data.id = docSnap.id;
+          this.currentSuppliers.push(data);
+          const typeBadge = data.supplierType === 'كروز' ? '<span class="badge badge-cruise">كروز</span>' :
+                            data.supplierType === 'مطعم' ? '<span class="badge badge-restaurant">مطعم</span>' :
+                            '<span class="badge badge-hotel">فندق</span>';
+          const taxBadge = (data.taxRate === 0.03 || data.taxRate === "0.03") ? '<span class="badge badge-taxable">خاضع 3%</span>' :
+                           '<span class="badge badge-advance">دفعات مقدمة</span>';
+          const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
+          tbody.innerHTML += `
+            <tr>
+              <td>${idx++}</td>
+              <td>${typeBadge}</td>
+              <td><strong>${data.propertyName || '-'}</strong></td>
+              <td>${data.supplierName || '-'}</td>
+              <td>${data.taxCardNumber || '-'}</td>
+              <td>${taxBadge}</td>
+              <td>${dateStr}</td>
+              <td class="no-print">
+                <button class="edit-btn" onclick="App.openEditModal('${docSnap.id}')">تعديل</button>
+                <button class="delete-btn" onclick="App.deleteSupplier('${docSnap.id}')">حذف</button>
+              </td>
+            </tr>
+          `;
+        });
+      });
+    },
+
+    listenToCredit() {
+      const q = query(collection(db, "credit_balances"), orderBy("createdAt", "desc"));
+      onSnapshot(q, (snapshot) => {
+        const tbody = $('creditTableBody');
+        tbody.innerHTML = '';
+        this.currentCredit = [];
+
+        if (snapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">لا توجد حركات</td></tr>';
+          this.updateDashboard([]);
+          return;
+        }
+        let idx = 1;
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data(); data.id = docSnap.id;
+          this.currentCredit.push(data);
+          const typeBadge = data.type === 'deposit' ? '<span class="badge badge-deposit">مدين</span>' : '<span class="badge badge-deduction">دائن</span>';
+          tbody.innerHTML += `
+            <tr>
+              <td>${idx++}</td>
+              <td><strong>${data.entity || '-'}</strong></td>
+              <td>${data.fileCode || '-'}</td>
+              <td>${formatDateDMY(data.arrivalDate)}</td>
+              <td>${formatDateDMY(data.departureDate)}</td>
+              <td>${typeBadge}</td>
+              <td><strong>${Number(data.amount || 0).toLocaleString()}</strong></td>
+              <td>${data.currency || 'EGP'}</td>
+              <td>${data.description || '-'}</td>
+              <td>${data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'}</td>
+              <td><button class="delete-btn" onclick="App.deleteCredit('${docSnap.id}')">حذف</button></td>
+            </tr>
+          `;
+        });
+        this.updateDashboard(this.currentCredit);
+      });
+    },
+
+    // --- Dashboard ---
+    updateDashboard(records) {
+      let totals = { EGP: { deposit: 0, deduction: 0 }, USD: { deposit: 0, deduction: 0 }, EUR: { deposit: 0, deduction: 0 } };
+      let entityMap = {};
+
+      records.forEach(item => {
+        const curr = (item.currency || 'EGP').toUpperCase();
+        const amt = parseFloat(item.amount) || 0;
+        if (!totals[curr]) totals[curr] = { deposit: 0, deduction: 0 };
+        if (item.type === 'deposit') totals[curr].deposit += amt;
+        else totals[curr].deduction += amt;
+
+        const key = `${item.entity}___${curr}`;
+        if (!entityMap[key]) entityMap[key] = { entity: item.entity, currency: curr, deposit: 0, deduction: 0 };
+        if (item.type === 'deposit') entityMap[key].deposit += amt;
+        else entityMap[key].deduction += amt;
+      });
+
+      const formatCurr = (type) => {
+        return ['EGP', 'USD', 'EUR'].map(c => {
+          let val = type === 'deposit' ? totals[c].deposit : type === 'deduction' ? totals[c].deduction : totals[c].deposit - totals[c].deduction;
+          return `<span style="display:inline-block;dir:ltr;"><strong>${val.toLocaleString()}</strong> ${c}</span>`;
+        }).join(' &nbsp;|&nbsp; ');
+      };
+
+      $('dashTotalDeposits').innerHTML = formatCurr('deposit');
+      $('dashTotalDeductions').innerHTML = formatCurr('deduction');
+      $('dashNetBalance').innerHTML = formatCurr('net');
+
+      const tbody = $('entitySummaryTableBody');
+      tbody.innerHTML = '';
+      let idx = 1;
+      Object.keys(entityMap).forEach(k => {
+        const e = entityMap[k];
+        const net = e.deposit - e.deduction;
+        const status = net > 0 ? '<span class="badge badge-deposit">رصيد مدين</span>' : net < 0 ? '<span class="badge badge-deduction">رصيد دائن</span>' : '<span class="badge">متزن</span>';
+        tbody.innerHTML += `
+          <tr>
+            <td>${idx++}</td>
+            <td><span class="clickable-supplier" onclick="App.openStatement('${e.entity.replace(/'/g,"\\'")}', '${e.currency}')">${e.entity}</span></td>
+            <td>${e.currency}</td>
+            <td style="color:#15803d;">${e.deposit.toLocaleString()}</td>
+            <td style="color:#b91c1c;">${e.deduction.toLocaleString()}</td>
+            <td style="font-weight:700;">${net.toLocaleString()}</td>
+            <td>${status}</td>
+          </tr>
+        `;
+      });
+    },
+
+    // --- عمليات الموردين ---
+    async saveSupplier() {
+      const supplierType = $('supplierType').value;
+      const propertyName = $('propertyName').value.trim();
+      const supplierName = $('supplierName').value.trim();
+      const taxCardNumber = $('taxCardNumber').value.trim();
+      const taxTypeVal = $('taxType').value;
+      const taxRate = taxTypeVal === "0.03" ? 0.03 : taxTypeVal;
+
+      if(!propertyName || !supplierName || !taxCardNumber) {
+        showToast('يرجى ملء جميع الحقول', 'error');
+        return;
+      }
+      try {
+        await addDoc(collection(db, "tax_discount_records"), { supplierType, propertyName, supplierName, taxCardNumber, taxRate, createdAt: new Date() });
+        showToast('تم حفظ المورد بنجاح!', 'success');
+        $('propertyName').value = ''; $('supplierName').value = ''; $('taxCardNumber').value = '';
+      } catch (e) { showToast(e.message, 'error'); }
+    },
+
+    async deleteSupplier(id) {
+      if (!confirm('تأكيد الحذف؟')) return;
+      try { await deleteDoc(doc(db, "tax_discount_records", id)); showToast('تم الحذف', 'success'); } 
+      catch (e) { showToast(e.message, 'error'); }
+    },
+
+    openEditModal(id) {
+      const item = this.currentSuppliers.find(s => s.id === id);
+      if (!item) return;
+      $('editSupplierId').value = id;
+      $('editSupplierType').value = item.supplierType || 'فندق';
+      $('editPropertyName').value = item.propertyName || '';
+      $('editSupplierName').value = item.supplierName || '';
+      $('editTaxCardNumber').value = item.taxCardNumber || '';
+      $('editTaxType').value = (item.taxRate === 0.03 || item.taxRate === "0.03") ? "0.03" : "advance_payment";
+      $('editSupplierModal').style.display = 'flex';
+    },
+
+    closeEditModal() { $('editSupplierModal').style.display = 'none'; },
+
+    async saveEditedSupplier() {
+      const id = $('editSupplierId').value;
+      const supplierType = $('editSupplierType').value;
+      const propertyName = $('editPropertyName').value.trim();
+      const supplierName = $('editSupplierName').value.trim();
+      const taxCardNumber = $('editTaxCardNumber').value.trim();
+      const taxRate = $('editTaxType').value === "0.03" ? 0.03 : "advance_payment";
+      if (!propertyName || !supplierName || !taxCardNumber) return showToast('املأ الحقول', 'error');
+      try {
+        await updateDoc(doc(db, "tax_discount_records", id), { supplierType, propertyName, supplierName, taxCardNumber, taxRate });
+        showToast('تم التعديل!', 'success');
+        this.closeEditModal();
+      } catch (e) { showToast(e.message, 'error'); }
+    },
+
+    exportSuppliersList() {
+      if(this.currentSuppliers.length === 0) return showToast('لا توجد بيانات', 'error');
+      const data = this.currentSuppliers.map((item, idx) => ({
+        "م": idx+1, "النوع": item.supplierType || 'فندق', "الاسم": item.propertyName || '',
+        "المورد": item.supplierName || '', "الرقم الضريبي": item.taxCardNumber || '',
+        "حالة الضريبة": (item.taxRate === 0.03 || item.taxRate === "0.03") ? 'خاضع 3%' : 'دفعات مقدمة'
+      }));
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "الموردين");
+      XLSX.writeFile(wb, "Suppliers_List.xlsx");
+    },
+
+    exportSupplierToExcel() {
+      const data = [{ "النوع": $('supplierType').value, "الاسم": $('propertyName').value, "المورد": $('supplierName').value, "الرقم الضريبي": $('taxCardNumber').value }];
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "بيان");
+      XLSX.writeFile(wb, "Supplier_Entry.xlsx");
+    },
+
+    async importSuppliers(event) {
+      const file = event.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
+          if (rows.length === 0) return showToast('الملف فارغ', 'error');
+          const batch = writeBatch(db);
+          let count = 0;
+          rows.forEach(row => {
+            const getVal = (keys) => { for(let k of keys) if(row[k]) return String(row[k]).trim(); return ''; };
+            const typeRaw = getVal(['النوع', 'نوع']);
+            let supplierType = 'فندق';
+            if (typeRaw.includes('مطعم')) supplierType = 'مطعم';
+            else if (typeRaw.includes('كروز')) supplierType = 'كروز';
+            const propertyName = getVal(['الاسم', 'اسم الفندق', 'اسم الكروز', 'اسم المطعم']);
+            const supplierName = getVal(['اسم المورد', 'مورد']);
+            const taxCardNumber = getVal(['البطاقة الضريبية', 'رقم البطاقة']);
+            const rawTax = getVal(['حالة الضريبة', 'ضريبة']);
+            let taxRate = 'advance_payment';
+            if (rawTax.includes('3%') || rawTax.includes('0.03')) taxRate = 0.03;
+            if (propertyName || supplierName) {
+              const docRef = doc(collection(db, "tax_discount_records"));
+              batch.set(docRef, { supplierType, propertyName, supplierName, taxCardNumber, taxRate, createdAt: new Date() });
+              count++;
+            }
+          });
+          if (count > 0) { await batch.commit(); showToast(`تم استيراد ${count} مورد`, 'success'); }
+          else showToast('لم يتم العثور على بيانات', 'error');
+        } catch (err) { showToast(err.message, 'error'); }
+      };
+      reader.readAsArrayBuffer(file);
+    },
+
+    // --- عمليات الكريديت ---
+    async saveCredit() {
+      const entity = $('creditEntity').value.trim();
+      const fileCode = $('creditFileCode').value.trim();
+      const arrivalDate = $('creditArrivalDate').value;
+      const departureDate = $('creditDepartureDate').value;
+      const type = $('creditType').value;
+      const amount = parseFloat($('creditAmount').value) || 0;
+      const currency = $('creditCurrency').value;
+      const description = $('creditDescription').value.trim();
+      if (!entity || amount <= 0) return showToast('املأ الجهة والمبلغ', 'error');
+      try {
+        await addDoc(collection(db, "credit_balances"), { entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, createdAt: new Date() });
+        showToast('تم تسجيل الحركة!', 'success');
+        $('creditEntity').value = ''; $('creditFileCode').value = ''; $('creditArrivalDate').value = ''; $('creditDepartureDate').value = ''; $('creditAmount').value = ''; $('creditDescription').value = '';
+      } catch (e) { showToast(e.message, 'error'); }
+    },
+
+    async deleteCredit(id) {
+      if (!confirm('تأكيد الحذف؟')) return;
+      try { await deleteDoc(doc(db, "credit_balances", id)); showToast('تم الحذف', 'success'); } 
+      catch (e) { showToast(e.message, 'error'); }
+    },
+
+    exportCreditList() {
+      if(this.currentCredit.length === 0) return showToast('لا توجد بيانات', 'error');
+      const data = this.currentCredit.map((item, idx) => ({
+        "م": idx+1, "الجهة": item.entity || '', "رقم الملف": item.fileCode || '',
+        "تاريخ الوصول": formatDateDMY(item.arrivalDate), "تاريخ المغادرة": formatDateDMY(item.departureDate),
+        "نوع الحركة": item.type === 'deposit' ? 'مدين' : 'دائن', "المبلغ": item.amount || 0,
+        "العملة": item.currency || 'EGP', "البيان": item.description || ''
+      }));
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "الكريديت");
+      XLSX.writeFile(wb, "Credit_List.xlsx");
+    },
+
+    async importCredit(event) {
+      const file = event.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1, defval: "" });
+          if (rows.length < 2) return showToast('ملف فارغ', 'error');
+          const headers = rows[0].map(h => String(h).trim());
+          const idxEntity = headers.findIndex(h => ['الجهة','المورد','اسم الجهة'].some(k => h.includes(k)));
+          if (idxEntity === -1) return showToast('لم أجد عمود الجهة', 'error');
+          const idxFile = headers.findIndex(h => ['رقم الملف','كود الملف'].some(k => h.includes(k)));
+          const idxArrival = headers.findIndex(h => ['تاريخ الوصول','check in'].some(k => h.includes(k)));
+          const idxDeparture = headers.findIndex(h => ['تاريخ المغادرة','check out'].some(k => h.includes(k)));
+          const idxType = headers.findIndex(h => ['نوع الحركة','الحركة'].some(k => h.includes(k)));
+          const idxDesc = headers.findIndex(h => ['البيان','التفاصيل','الوصف'].some(k => h.includes(k)));
+          
+          let currencyCols = [];
+          headers.forEach((h, i) => {
+            const up = h.toUpperCase();
+            if (up.includes('EGP') || up.includes('جنيه')) currencyCols.push({ idx: i, currency: 'EGP' });
+            else if (up.includes('USD') || up.includes('دولار')) currencyCols.push({ idx: i, currency: 'USD' });
+            else if (up.includes('EUR') || up.includes('يورو')) currencyCols.push({ idx: i, currency: 'EUR' });
+          });
+          const idxStdAmount = headers.findIndex(h => ['المبلغ','القيمة','amount'].some(k => h.includes(k)));
+          const idxStdCurr = headers.findIndex(h => ['العملة','currency'].some(k => h.includes(k)));
+
+          const batch = writeBatch(db);
+          let count = 0;
+          for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const entity = String(row[idxEntity] || '').trim();
+            if (!entity || entity.includes('اجمالي')) continue;
+            const fileCode = idxFile !== -1 ? String(row[idxFile] || '').trim() : '';
+            let arrival = idxArrival !== -1 ? String(row[idxArrival] || '').trim() : '';
+            let departure = idxDeparture !== -1 ? String(row[idxDeparture] || '').trim() : '';
+            const typeStr = idxType !== -1 ? String(row[idxType] || '').toLowerCase() : '';
+            let type = 'deposit';
+            if (typeStr.includes('دائن') || typeStr.includes('خصم') || typeStr.includes('علينا')) type = 'deduction';
+            const description = idxDesc !== -1 ? String(row[idxDesc] || '').trim() : '';
+
+            if (currencyCols.length > 0) {
+              for (let c of currencyCols) {
+                const amt = parseFloat(row[c.idx]) || 0;
+                if (amt > 0) {
+                  const ref = doc(collection(db, "credit_balances"));
+                  batch.set(ref, { entity, fileCode, arrivalDate: arrival, departureDate: departure, type, amount: amt, currency: c.currency, description, createdAt: new Date() });
+                  count++;
+                }
+              }
+            } else if (idxStdAmount !== -1) {
+              const amt = parseFloat(row[idxStdAmount]) || 0;
+              if (amt > 0) {
+                let currency = 'EGP';
+                if (idxStdCurr !== -1) {
+                  const rawCurr = String(row[idxStdCurr] || '').toUpperCase();
+                  if (rawCurr.includes('USD')) currency = 'USD';
+                  else if (rawCurr.includes('EUR')) currency = 'EUR';
+                }
+                const ref = doc(collection(db, "credit_balances"));
+                batch.set(ref, { entity, fileCode, arrivalDate: arrival, departureDate: departure, type, amount: amt, currency, description, createdAt: new Date() });
+                count++;
+              }
+            }
+          }
+          if (count > 0) { await batch.commit(); showToast(`تم استيراد ${count} حركة`, 'success'); }
+          else showToast('لم يتم العثور على مبالغ صالحة', 'error');
+        } catch (err) { showToast(err.message, 'error'); }
+      };
+      reader.readAsArrayBuffer(file);
+    },
+
+    // --- كشف الحساب ---
+    openStatement(entityName, currency) {
+      const modal = $('supplierStatementModal');
+      $('modalSupplierTitle').innerHTML = `كشف حساب: <span style="color:#2563eb;">${entityName}</span> (${currency})`;
+      const tbody = $('supplierStatementTableBody');
+      tbody.innerHTML = '';
+
+      const filtered = this.currentCredit.filter(item => 
+        (item.entity || '').trim().toLowerCase() === entityName.trim().toLowerCase() &&
+        (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
+      ).sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">لا توجد حركات</td></tr>';
+      } else {
+        let balance = 0;
+        filtered.forEach(item => {
+          const amt = parseFloat(item.amount) || 0;
+          let debit = 0, credit = 0;
+          if (item.type === 'deposit') { debit = amt; balance += amt; }
+          else { credit = amt; balance -= amt; }
+          const balanceStr = balance > 0 ? `<span style="color:#15803d;">${balance.toLocaleString()} (مدين)</span>` :
+                             balance < 0 ? `<span style="color:#b91c1c;">${Math.abs(balance).toLocaleString()} (دائن)</span>` : '0';
+          tbody.innerHTML += `
+            <tr>
+              <td>${item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'}</td>
+              <td>${item.description || '-'}</td>
+              <td>${item.fileCode || '-'}</td>
+              <td><strong>${amt.toLocaleString()}</strong></td>
+              <td style="color:#15803d;">${debit ? debit.toLocaleString() : '-'}</td>
+              <td style="color:#b91c1c;">${credit ? credit.toLocaleString() : '-'}</td>
+              <td>${balanceStr}</td>
+            </tr>
+          `;
+        });
+      }
+      modal.style.display = 'flex';
+    },
+
+    closeStatementModal() { $('supplierStatementModal').style.display = 'none'; },
+
+    // --- عمليات أخرى (طيران، تذاكر، تصفية) ---
+    async saveAviation() {
+      const airline = $('airlineName').value.trim();
+      const pnr = $('pnrNumber').value.trim();
+      if (!airline || !pnr) return showToast('املأ البيانات', 'error');
+      const cost = parseFloat($('ticketCost').value) || 0;
+      try { await addDoc(collection(db, "aviation_bookings"), { airline, pnr, cost, createdAt: new Date() });
+      showToast('تم حفظ الطيران', 'success'); } catch (e) { showToast(e.message, 'error'); }
+    },
+
+    async saveTicket() {
+      const name = $('ticketName').value.trim();
+      const qty = parseInt($('ticketQty').value) || 0;
+      if (!name || qty <= 0) return showToast('املأ البيانات', 'error');
+      const price = parseFloat($('ticketUnitPrice').value) || 0;
+      try { await addDoc(collection(db, "attractions_tickets"), { ticketName: name, quantity: qty, unitPrice: price, createdAt: new Date() });
+      showToast('تم حفظ التذاكر', 'success'); } catch (e) { showToast(e.message, 'error'); }
+    },
+
+    async saveSettlement() {
+      const fileCode = $('fileCode').value.trim();
+      if (!fileCode) return showToast('أدخل كود الملف', 'error');
+      const guide = $('guideName').value.trim();
+      try { await addDoc(collection(db, "file_settlements"), { fileCode, guideName: guide, createdAt: new Date() });
+      showToast('تم حفظ التصفية', 'success'); } catch (e) { showToast(e.message, 'error'); }
+    }
+  };
+
+  // ===== مراقبة حالة المصادقة =====
+  onAuthStateChanged(auth, (user) => {
+    const authScreen = $('authScreen');
+    const appScreen = $('appScreen');
+    if (user) {
+      authScreen.style.display = 'none';
+      appScreen.style.display = 'block';
+      $('userEmailDisplay').textContent = user.email;
+      showToast(`مرحباً ${user.email} 👋`, 'success');
+      // بدء الاستماع للبيانات (مرة واحدة فقط)
+      if (!window._listenersStarted) {
+        App.listenToSuppliers();
+        App.listenToCredit();
+        window._listenersStarted = true;
+      }
+    } else {
+      authScreen.style.display = 'flex';
+      appScreen.style.display = 'none';
+      // لا نوقف الاستماع، لكن البيانات لن تظهر لأن القواعد تمنعها
+    }
+  });
+
+  // ===== الدوال العامة للـ UI (تبديل التبويبات) =====
+  window.openTab = function(evt, tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    $(tabName).classList.add('active');
+    if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
+    if (tabName !== 'taxDiscountTab') { $('taxDiscountSubMenu').style.display = 'none'; $('taxArrowIcon').textContent = '▼'; } 
+    else { $('taxDiscountBtn').classList.add('active'); }
+    if (tabName !== 'creditTab') { $('creditSubMenu').style.display = 'none'; $('creditArrowIcon').textContent = '▼'; } 
+    else { $('creditBtn').classList.add('active'); }
+  };
+
+  window.toggleTaxDiscountMenu = function(evt) {
+    const sub = $('taxDiscountSubMenu');
+    const icon = $('taxArrowIcon');
+    openTab(evt, 'taxDiscountTab');
+    if (sub.style.display === 'none') { sub.style.display = 'flex'; icon.textContent = '▲'; } 
+    else { sub.style.display = 'none'; icon.textContent = '▼'; }
+  };
+
+  window.toggleCreditMenu = function(evt) {
+    const sub = $('creditSubMenu');
+    const icon = $('creditArrowIcon');
+    openTab(evt, 'creditTab');
+    if (sub.style.display === 'none') { sub.style.display = 'flex'; icon.textContent = '▲'; } 
+    else { sub.style.display = 'none'; icon.textContent = '▼'; }
+  };
+
+  window.openSubTab = function(evt, subTabName) {
+    const target = $(subTabName);
+    if (!target) return;
+    const parent = target.closest('.tab-content');
+    parent.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
+    const container = parent.id === 'creditTab' ? $('creditSubMenu') : $('taxDiscountSubMenu');
+    container.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
+    target.classList.add('active');
+    if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
+  };
+
+  window.filterSuppliersTable = function() {
+    const filter = $('searchSupplier').value.toLowerCase();
+    document.querySelectorAll('#suppliersTable tbody tr').forEach(tr => {
+      const td1 = tr.querySelectorAll('td')[2];
+      const td2 = tr.querySelectorAll('td')[3];
+      if (td1 || td2) {
+        const txt = (td1?.textContent || '') + (td2?.textContent || '');
+        tr.style.display = txt.toLowerCase().includes(filter) ? '' : 'none';
+      }
+    });
+  };
+
+  window.filterCreditTable = function() {
+    const filter = $('searchCredit').value.toLowerCase();
+    document.querySelectorAll('#creditTable tbody tr').forEach(tr => {
+      const td1 = tr.querySelectorAll('td')[1];
+      const td2 = tr.querySelectorAll('td')[2];
+      if (td1 || td2) {
+        const txt = (td1?.textContent || '') + (td2?.textContent || '');
+        tr.style.display = txt.toLowerCase().includes(filter) ? '' : 'none';
+      }
+    });
+  };
+
+  window.filterEntitySummaryTable = function() {
+    const filter = $('searchEntitySummary').value.toLowerCase();
+    document.querySelectorAll('#entitySummaryTable tbody tr').forEach(tr => {
+      const td = tr.querySelectorAll('td')[1];
+      if (td) tr.style.display = td.textContent.toLowerCase().includes(filter) ? '' : 'none';
+    });
+  };
+
+  // دوال الطباعة والـ PDF
+  window.printDashboard = () => window.print();
+  window.printSuppliersList = () => window.print();
+  window.printModalStatement = () => {
+    const title = $('modalPrintTitle');
+    title.style.display = 'block';
+    title.innerText = $('modalSupplierTitle').innerText;
+    window.print();
+    title.style.display = 'none';
+  };
+
+  window.downloadDashboardPDF = () => {
+    const el = $('printableArea');
+    const search = $('searchEntitySummary');
+    if (search) search.style.display = 'none';
+    const opt = { margin: 10, filename: `Dashboard_${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
+    html2pdf().set(opt).from(el).save().then(() => { if (search) search.style.display = ''; });
+  };
+
+  window.downloadSuppliersPDF = () => {
+    const el = $('printableSuppliersArea');
+    const opt = { margin: 10, filename: `Suppliers_${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
+    html2pdf().set(opt).from(el).save();
+  };
+
+  console.log('✅ النظام الاحترافي جاهز! انتظر تسجيل الدخول.');
+</script>
+
+</body>
+</html>
