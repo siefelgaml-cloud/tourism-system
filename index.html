@@ -7,23 +7,20 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- مكتبة تحويل HTML إلى PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <!-- مكتبة الأيقونات FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f6f9; margin: 0; }
     .header { background: #1e293b; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
     
-    /* تخطيط الصفحة الرئيسي */
+    /* تخطيط الصفحة الرئيسي: قائمة جانبية + محتوى */
     .app-layout { display: flex; gap: 20px; align-items: flex-start; }
     
-    /* القائمة الرئيسية الجانبية */
+    /* القائمة الرئيسية الرأسية (الجانبية) */
     .tabs-vertical { display: flex; flex-direction: column; gap: 8px; width: 270px; flex-shrink: 0; }
     .tab-btn { background: #e2e8f0; border: none; padding: 14px 18px; cursor: pointer; border-radius: 8px; font-weight: bold; color: #334155; text-align: right; font-size: 15px; transition: all 0.2s ease; width: 100%; display: flex; justify-content: space-between; align-items: center; }
     .tab-btn:hover { background: #cbd5e1; }
     .tab-btn.active { background: #2563eb; color: white; }
 
-    /* القائمة الفرعية */
+    /* القائمة الفرعية المنسدلة */
     .sub-tabs-container { display: flex; flex-direction: column; gap: 6px; padding-right: 15px; margin-top: 4px; margin-bottom: 4px; }
     .sub-tab-btn { background: #ffffff; border: 1px solid #cbd5e1; padding: 10px 14px; cursor: pointer; border-radius: 6px; font-weight: 600; color: #475569; text-align: right; font-size: 14px; transition: all 0.2s ease; }
     .sub-tab-btn:hover { background: #f1f5f9; }
@@ -48,17 +45,18 @@
     button.submit-btn { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
     button.excel-btn, label.excel-btn { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; font-size: 14px; line-height: 1.2; }
     button.print-btn { background: #475569; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+    button.search-btn { background: #2563eb; color: white; border: none; padding: 8px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+    button.search-btn:hover { background: #1d4ed8; }
     button.pdf-btn { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
     button.delete-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
     button.edit-btn { background: #eab308; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 4px; }
     
-    /* تصميم زر البحث المماثل للصورة */
-    button.search-btn { background-color: #007bff; color: white; border: none; padding: 7px 18px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-    button.search-btn:hover { background-color: #0056b3; }
-
-    /* شريط البحث المخصص المطابق للصورة */
-    .statement-filter-bar { display: flex; justify-content: flex-start; align-items: center; padding: 12px 15px; background-color: #ffffff; margin-bottom: 0px; }
-    .statement-divider { border: none; border-top: 1px solid #ccc; margin: 0 0 20px 0; }
+    button.submit-btn:hover { background: #15803d; }
+    button.excel-btn:hover, label.excel-btn:hover { background: #0369a1; }
+    button.print-btn:hover { background: #334155; }
+    button.pdf-btn:hover { background: #b91c1c; }
+    button.delete-btn:hover { background: #dc2626; }
+    button.edit-btn:hover { background: #ca8a04; }
 
     /* تنسيق حقل المبلغ مع العملة */
     .amount-input-group { display: flex; gap: 8px; align-items: center; max-width: 400px; }
@@ -94,10 +92,11 @@
     .clickable-supplier { color: #2563eb; cursor: pointer; text-decoration: underline; font-weight: bold; }
     .clickable-supplier:hover { color: #1d4ed8; }
 
+    /* قواعد طباعة الصفحة */
     @media print {
       body * { visibility: hidden; }
-      #printableArea, #printableArea *, #printableSuppliersArea, #printableSuppliersArea *, #printableStatementModal, #printableStatementModal *, #printableAccountStatement, #printableAccountStatement * { visibility: visible; }
-      #printableArea, #printableSuppliersArea, #printableStatementModal, #printableAccountStatement { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
+      #printableArea, #printableArea *, #printableSuppliersArea, #printableSuppliersArea *, #printableStatementModal, #printableStatementModal * { visibility: visible; }
+      #printableArea, #printableSuppliersArea, #printableStatementModal { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
       .no-print { display: none !important; }
     }
   </style>
@@ -110,10 +109,10 @@
 
   <div class="app-layout">
     
-    <!-- القائمة الرئيسية الرأسية -->
+    <!-- القائمة الرئيسية الرأسية (الجانبية) -->
     <div class="tabs-vertical">
       
-      <!-- الخصم والإضافة -->
+      <!-- 1. زر الخصم والإضافة -->
       <button class="tab-btn active" id="taxDiscountBtn" onclick="toggleTaxDiscountMenu(event)">
         <span>📋 الخصم والإضافة</span>
         <span id="taxArrowIcon" style="font-size: 12px;">▲</span>
@@ -123,7 +122,7 @@
         <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab')">2- قائمة الفنادق والكروزات والمطاعم</button>
       </div>
 
-      <!-- أرصدة الكريديت -->
+      <!-- 2. زر أرصدة الكريديت -->
       <button class="tab-btn" id="creditBtn" onclick="toggleCreditMenu(event)">
         <span>💳 أرصدة الكريديت</span>
         <span id="creditArrowIcon" style="font-size: 12px;">▼</span>
@@ -378,52 +377,49 @@
           </div>
         </div>
 
-        <!-- فرعي 4: كشف حساب (تم تعديل التصميم بالكامل ليطابق الصورة تماماً) -->
+        <!-- فرعي 4: كشف حساب (المعدل) -->
         <div id="accountStatementSubTab" class="sub-tab-content">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div class="btn-group no-print" style="margin-top: 0;">
-              <button class="print-btn" onclick="printAccountStatement()">𖥕 طباعة كشف الحساب</button>
-            </div>
-          </div>
-
-          <!-- شريط الفلترة المطبق كما في الصورة بالظبط مع زر بحث أزرق بخط فاصل -->
-          <div class="statement-filter-bar no-print">
-            <button class="search-btn" onclick="generateAccountStatement()">
-              <i class="fa-solid fa-magnifying-glass"></i> بحث
-            </button>
-            
-            <div style="display: flex; gap: 10px; margin-right: 15px; flex-wrap: wrap; align-items: center;">
-              <input type="text" id="stmtSupplierSearch" placeholder="اسم المورد..." style="width: 160px;" onkeyup="generateAccountStatement()">
-              <input type="text" id="stmtFileCodeSearch" placeholder="رقم الملف..." style="width: 140px;" onkeyup="generateAccountStatement()">
-              <select id="stmtCurrencySelect" style="width: 130px;" onchange="generateAccountStatement()">
+          <!-- أدوات البحث بدون زر طباعة كشف الحساب -->
+          <div class="form-row no-print" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; align-items: flex-end; justify-content: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>العملة:</label>
+              <select id="stmtCurrencySelect">
                 <option value="ALL">جميع العملات</option>
                 <option value="EGP">EGP (ج.م)</option>
                 <option value="USD">USD ($)</option>
                 <option value="EUR">EUR (€)</option>
               </select>
             </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>رقم الملف (File Code):</label>
+              <input type="text" id="stmtFileCodeSearch" placeholder="رقم الملف...">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>اسم المورد / الجهة:</label>
+              <input type="text" id="stmtSupplierSearch" placeholder="اسم المورد...">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <button class="search-btn" onclick="executeHorizontalSearch()">🔍 بحث</button>
+            </div>
           </div>
-          <hr class="statement-divider no-print">
 
-          <div id="printableAccountStatement">
-            <h3 id="stmtPrintHeader" style="margin-top: 0; color: #1e293b; display: none;">عرض كشف الحساب</h3>
-            <table id="accountStatementTable">
+          <hr style="margin: 20px 0; border: 0; border-top: 1px solid #cbd5e1;" />
+
+          <!-- الجدول الأفقي الذي يظهر عند البحث -->
+          <div id="horizontalSummaryResult" style="display: none; margin-top: 20px;">
+            <table>
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>التاريخ</th>
-                  <th>اسم المورد / الجهة</th>
-                  <th>رقم الملف</th>
-                  <th>البيان / التفاصيل</th>
-                  <th>العملة</th>
-                  <th>مدين (لنا)</th>
-                  <th>دائن (علينا)</th>
-                  <th>الرصيد التراكمي</th>
+                  <th style="text-align: center;">اسم المورد</th>
+                  <th style="text-align: center;">رقم الملف</th>
+                  <th style="text-align: center;">العملة</th>
                 </tr>
               </thead>
-              <tbody id="accountStatementTableBody">
+              <tbody>
                 <tr>
-                  <td colspan="9" style="text-align: center; color: #64748b;">يرجى ادخال اسم المورد أو رقم الملف والضغط على بحث...</td>
+                  <td id="resSupplierName" style="text-align: center; font-weight: bold; color: #2563eb;">-</td>
+                  <td id="resFileCode" style="text-align: center; font-weight: bold;">-</td>
+                  <td id="resCurrency" style="text-align: center; font-weight: bold; color: #16a34a;">-</td>
                 </tr>
               </tbody>
             </table>
@@ -501,7 +497,7 @@
     </div>
   </div>
 
-  <!-- النافذة المنبثقة لتعديل المورد -->
+  <!-- النافذة المنبثقة لتعديل المورد بالكامل -->
   <div id="editSupplierModal" class="modal-overlay">
     <div class="modal-content">
       <h3 style="margin-top: 0; color: #1e293b;">تعديل بيانات المورد</h3>
@@ -611,20 +607,22 @@
       return dmyString;
     }
 
-    function printDashboard() { window.print(); }
-    function printAccountStatement() { window.print(); }
+    function printDashboard() {
+      window.print();
+    }
 
     function downloadDashboardPDF() {
       const element = document.getElementById('printableArea');
       const searchBox = document.getElementById('searchEntitySummary');
+      
       if (searchBox) searchBox.style.display = 'none';
 
       const opt = {
-        margin: 10,
-        filename: `Credit_Summary_Report_${new Date().toISOString().slice(0,10)}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        margin:       10,
+        filename:     `Credit_Summary_Report_${new Date().toISOString().slice(0,10)}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
       };
 
       html2pdf().set(opt).from(element).save().then(() => {
@@ -632,21 +630,25 @@
       });
     }
 
-    function printSuppliersList() { window.print(); }
+    /* طباعة وتنزيل قائمة الفنادق والكروزات والمطاعم */
+    function printSuppliersList() {
+      window.print();
+    }
 
     function downloadSuppliersPDF() {
       const element = document.getElementById('printableSuppliersArea');
       const opt = {
-        margin: 10,
-        filename: `Suppliers_List_${new Date().toISOString().slice(0,10)}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        margin:       10,
+        filename:     `Suppliers_List_${new Date().toISOString().slice(0,10)}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
       };
 
       html2pdf().set(opt).from(element).save();
     }
 
+    /* طباعة كشف حساب المورد من الـ Modal */
     function printModalStatement() {
       const title = document.getElementById('modalPrintTitle');
       title.style.display = 'block';
@@ -654,9 +656,22 @@
       window.print();
       title.style.display = 'none';
     }
+
+    /* دالة تنفيذ البحث والأظهار الأفقي */
+    function executeHorizontalSearch() {
+      const supplierName = document.getElementById('stmtSupplierSearch').value.trim();
+      const fileCode = document.getElementById('stmtFileCodeSearch').value.trim();
+      const currency = document.getElementById('stmtCurrencySelect').value;
+
+      document.getElementById('resSupplierName').textContent = supplierName || '-';
+      document.getElementById('resFileCode').textContent = fileCode || '-';
+      document.getElementById('resCurrency').textContent = currency === 'ALL' ? 'جميع العملات' : currency;
+
+      document.getElementById('horizontalSummaryResult').style.display = 'block';
+    }
   </script>
 
-  <!-- Firebase Logic -->
+  <!-- Firebase Script & Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -699,7 +714,12 @@
 
       try {
         await addDoc(collection(db, "tax_discount_records"), { 
-          supplierType, propertyName, supplierName, taxCardNumber, taxRate, createdAt: new Date() 
+          supplierType,
+          propertyName,
+          supplierName, 
+          taxCardNumber, 
+          taxRate, 
+          createdAt: new Date() 
         });
         alert(`تم حفظ البيانات بنجاح!`);
         document.getElementById('propertyName').value = '';
@@ -726,14 +746,22 @@
         currentSuppliersList.push(data);
 
         const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
+        
         let typeBadge = '<span class="badge badge-hotel">فندق</span>';
-        if (data.supplierType === 'كروز') typeBadge = '<span class="badge badge-cruise">كروز</span>';
-        else if (data.supplierType === 'مطعم') typeBadge = '<span class="badge badge-restaurant">مطعم</span>';
+        if (data.supplierType === 'كروز') {
+          typeBadge = '<span class="badge badge-cruise">كروز</span>';
+        } else if (data.supplierType === 'مطعم') {
+          typeBadge = '<span class="badge badge-restaurant">مطعم</span>';
+        }
         
         let taxBadge = '<span class="badge badge-exempt">غير محدد</span>';
-        if (data.taxRate === 0.03 || data.taxRate === "0.03") taxBadge = '<span class="badge badge-taxable">خاضع لضريبة 3%</span>';
-        else if (data.taxRate === 'advance_payment' || data.taxRate === 'دفعات مقدمة') taxBadge = '<span class="badge badge-advance">دفعات مقدمة</span>';
-        else if (data.taxRate === 0 || data.taxRate === "0") taxBadge = '<span class="badge badge-exempt">معفى من الضريبة</span>';
+        if (data.taxRate === 0.03 || data.taxRate === "0.03") {
+          taxBadge = '<span class="badge badge-taxable">خاضع لضريبة 3%</span>';
+        } else if (data.taxRate === 'advance_payment' || data.taxRate === 'دفعات مقدمة') {
+          taxBadge = '<span class="badge badge-advance">دفعات مقدمة</span>';
+        } else if (data.taxRate === 0 || data.taxRate === "0") {
+          taxBadge = '<span class="badge badge-exempt">معفى من الضريبة</span>';
+        }
 
         const row = `
           <tr>
@@ -801,11 +829,17 @@
 
       try {
         await updateDoc(doc(db, "tax_discount_records", docId), {
-          supplierType, propertyName, supplierName, taxCardNumber, taxRate
+          supplierType,
+          propertyName,
+          supplierName,
+          taxCardNumber,
+          taxRate
         });
         alert("تم تعديل بيانات المورد بنجاح!");
         closeEditSupplierModal();
-      } catch (e) { alert("خطأ أثناء حفظ التعديل: " + e.message); }
+      } catch (e) {
+        alert("خطأ أثناء حفظ التعديل: " + e.message);
+      }
     };
 
     window.exportSuppliersToExcel = function() {
@@ -845,19 +879,26 @@
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
 
-          if (jsonData.length === 0) return alert('الملف فارغ أو لا يحتوي على بيانات مقبولة');
+          if (jsonData.length === 0) {
+            alert('الملف فارغ أو لا يحتوي على بيانات مقبولة');
+            return;
+          }
 
           let addedCount = 0;
           const batch = writeBatch(db);
 
           jsonData.forEach(row => {
             const cleanRow = {};
-            Object.keys(row).forEach(key => { cleanRow[String(key).trim()] = String(row[key]).trim(); });
+            Object.keys(row).forEach(key => {
+              cleanRow[String(key).trim()] = String(row[key]).trim();
+            });
 
             const getValue = (...possibleKeywords) => {
               for (let kw of possibleKeywords) {
                 for (let k in cleanRow) {
-                  if (k.toLowerCase().includes(kw.toLowerCase())) return cleanRow[k];
+                  if (k.toLowerCase().includes(kw.toLowerCase())) {
+                    return cleanRow[k];
+                  }
                 }
               }
               return "";
@@ -865,8 +906,11 @@
 
             let supplierTypeRaw = getValue("نوع", "النوع", "type");
             let supplierType = "فندق";
-            if (supplierTypeRaw.includes("مطعم") || supplierTypeRaw.toLowerCase().includes("restaurant")) supplierType = "مطعم";
-            else if (supplierTypeRaw.includes("كروز") || supplierTypeRaw.toLowerCase().includes("cruise")) supplierType = "كروز";
+            if (supplierTypeRaw.includes("مطعم") || supplierTypeRaw.toLowerCase().includes("restaurant")) {
+              supplierType = "مطعم";
+            } else if (supplierTypeRaw.includes("كروز") || supplierTypeRaw.toLowerCase().includes("cruise")) {
+              supplierType = "كروز";
+            }
 
             const propertyName = getValue("الاسم", "اسم الفندق", "اسم الكروز", "اسم المطعم", "name");
             const supplierName = getValue("اسم المورد", "مورد", "supplier");
@@ -874,21 +918,34 @@
             const rawTax = getValue("حالة الضريبة", "ضريبة", "tax status");
 
             let taxRate = "advance_payment";
-            if (rawTax.includes("3%") || rawTax.includes("0.03") || rawTax.includes("خاضع")) taxRate = 0.03;
+            if (rawTax.includes("3%") || rawTax.includes("0.03") || rawTax.includes("خاضع")) {
+              taxRate = 0.03;
+            }
 
             if (propertyName || supplierName) {
               const docRef = doc(collection(db, "tax_discount_records"));
-              batch.set(docRef, { supplierType, propertyName, supplierName, taxCardNumber, taxRate, createdAt: new Date() });
+              batch.set(docRef, {
+                supplierType,
+                propertyName,
+                supplierName,
+                taxCardNumber,
+                taxRate,
+                createdAt: new Date()
+              });
               addedCount++;
             }
           });
 
           if (addedCount > 0) {
             await batch.commit();
-            alert(`تم استيراد وحفظ ${addedCount} مورد بنجاح!`);
+            alert(`تم استيراد وحفظ ${addedCount} مورد بنجاح وتسميعهم في الجدول تلقائياً!`);
             event.target.value = '';
-          } else { alert('لم يتم العثور على أعمدة متطابقة في الملف.'); }
-        } catch (err) { alert("حدث خطأ أثناء معالجة ملف Excel: " + err.message); }
+          } else {
+            alert('لم يتم العثور على أعمدة متطابقة في الملف.');
+          }
+        } catch (err) {
+          alert("حدث خطأ أثناء معالجة ملف Excel: " + err.message);
+        }
       };
       reader.readAsArrayBuffer(file);
     };
@@ -904,15 +961,21 @@
       records.forEach(item => {
         let curr = (item.currency || 'EGP').toUpperCase();
         if (curr === 'EIUR') curr = 'EUR';
+        
         const entity = (item.entity || 'غير محدد').trim();
         const amt = parseFloat(item.amount) || 0;
 
-        if (!totalsByCurrency[curr]) totalsByCurrency[curr] = { deposit: 0, deduction: 0 };
+        if (!totalsByCurrency[curr]) {
+          totalsByCurrency[curr] = { deposit: 0, deduction: 0 };
+        }
+        
         if (item.type === 'deposit') totalsByCurrency[curr].deposit += amt;
         else if (item.type === 'deduction') totalsByCurrency[curr].deduction += amt;
 
         const key = `${entity}___${curr}`;
-        if (!entityBalances[key]) entityBalances[key] = { entity, currency: curr, deposit: 0, deduction: 0 };
+        if (!entityBalances[key]) {
+          entityBalances[key] = { entity, currency: curr, deposit: 0, deduction: 0 };
+        }
         if (item.type === 'deposit') entityBalances[key].deposit += amt;
         else if (item.type === 'deduction') entityBalances[key].deduction += amt;
       });
@@ -969,81 +1032,7 @@
       });
     }
 
-    /* دالة توليد كشف الحساب التفاعلي */
-    window.generateAccountStatement = function() {
-      const supplierFilter = document.getElementById('stmtSupplierSearch').value.toLowerCase().trim();
-      const fileCodeFilter = document.getElementById('stmtFileCodeSearch').value.toLowerCase().trim();
-      const currencyFilter = document.getElementById('stmtCurrencySelect').value;
-      const tbody = document.getElementById('accountStatementTableBody');
-      const header = document.getElementById('stmtPrintHeader');
-
-      let titleText = "كشف حساب تفصيلي";
-      if (supplierFilter) titleText += ` - المورد: ${supplierFilter}`;
-      if (fileCodeFilter) titleText += ` - رقم الملف: ${fileCodeFilter}`;
-      header.innerText = titleText;
-
-      tbody.innerHTML = '';
-
-      const filtered = currentCreditList.filter(item => {
-        const matchesSupplier = !supplierFilter || (item.entity || '').toLowerCase().includes(supplierFilter);
-        const matchesFileCode = !fileCodeFilter || (item.fileCode || '').toLowerCase().includes(fileCodeFilter);
-        
-        let itemCurr = (item.currency || 'EGP').toUpperCase();
-        if (itemCurr === 'EIUR') itemCurr = 'EUR';
-        const matchesCurrency = (currencyFilter === 'ALL') || (itemCurr === currencyFilter);
-
-        return matchesSupplier && matchesFileCode && matchesCurrency;
-      }).sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt.seconds * 1000) : new Date(0);
-        const dateB = b.createdAt ? new Date(b.createdAt.seconds * 1000) : new Date(0);
-        return dateA - dateB;
-      });
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #64748b;">لا توجد نتائج مطابقة لخيارات البحث الحالية</td></tr>';
-        return;
-      }
-
-      let runningBalance = 0;
-      filtered.forEach((item, idx) => {
-        const amt = parseFloat(item.amount) || 0;
-        let debit = 0;
-        let credit = 0;
-
-        if (item.type === 'deposit') {
-          debit = amt;
-          runningBalance += amt;
-        } else if (item.type === 'deduction') {
-          credit = amt;
-          runningBalance -= amt;
-        }
-
-        let balanceStr = "0";
-        if (runningBalance > 0) {
-          balanceStr = `<span style="color:#15803d; font-weight:bold;">${runningBalance.toLocaleString()} (مدين)</span>`;
-        } else if (runningBalance < 0) {
-          balanceStr = `<span style="color:#b91c1c; font-weight:bold;">${Math.abs(runningBalance).toLocaleString()} (دائن)</span>`;
-        }
-
-        const dateStr = item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
-
-        const row = `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${dateStr}</td>
-            <td><strong>${item.entity || '-'}</strong></td>
-            <td>${item.fileCode || '-'}</td>
-            <td>${item.description || '-'}</td>
-            <td>${item.currency || 'EGP'}</td>
-            <td style="color: #15803d; font-weight: bold;">${debit ? debit.toLocaleString() : '-'}</td>
-            <td style="color: #b91c1c; font-weight: bold;">${credit ? credit.toLocaleString() : '-'}</td>
-            <td>${balanceStr}</td>
-          </tr>
-        `;
-        tbody.innerHTML += row;
-      });
-    };
-
+    /* دالة فتح كشف الحساب بالتنسيق والترتيب المفضل عند النقر على المورد في الـ Dashboard */
     window.openSupplierStatementModal = function(entityName, currency) {
       const modal = document.getElementById('supplierStatementModal');
       const title = document.getElementById('modalSupplierTitle');
@@ -1115,7 +1104,6 @@
       if (snapshot.empty) {
         tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">لا توجد حركة أرصدة كريديت مسجلة حتى الآن</td></tr>';
         updateCreditDashboardAndSummary([]);
-        generateAccountStatement();
         return;
       }
 
@@ -1151,7 +1139,6 @@
       });
 
       updateCreditDashboardAndSummary(currentCreditList);
-      generateAccountStatement();
     });
 
     window.deleteCreditRecord = async function(docId) {
@@ -1182,8 +1169,10 @@
     window.saveCreditTransaction = async function() {
       const entity = document.getElementById('creditEntity').value;
       const fileCode = document.getElementById('creditFileCode').value;
+      
       const rawArrival = document.getElementById('creditArrivalDate').value;
       const rawDeparture = document.getElementById('creditDepartureDate').value;
+      
       const arrivalDate = rawArrival.includes('/') ? parseDMYToISO(rawArrival) : rawArrival;
       const departureDate = rawDeparture.includes('/') ? parseDMYToISO(rawDeparture) : rawDeparture;
 
@@ -1196,7 +1185,15 @@
 
       try {
         await addDoc(collection(db, "credit_balances"), { 
-          entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, createdAt: new Date() 
+          entity, 
+          fileCode,
+          arrivalDate,
+          departureDate,
+          type, 
+          amount, 
+          currency,
+          description,
+          createdAt: new Date() 
         });
         alert('تم تسجيل الحركة المالية بنجاح!');
         document.getElementById('creditEntity').value = '';
@@ -1221,7 +1218,10 @@
 
           const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "" });
 
-          if (rows.length === 0) return alert('الملف فارغ أو لا يحتوي على بيانات مقبولة');
+          if (rows.length === 0) {
+            alert('الملف فارغ أو لا يحتوي على بيانات مقبولة');
+            return;
+          }
 
           let headerIndex = -1;
           let entityColIdx = -1;
@@ -1239,7 +1239,10 @@
             if (headerIndex !== -1) break;
           }
 
-          if (headerIndex === -1) return alert('لم يتم العثور على عمود باسم "الجهة" أو "المورد" في ملف Excel');
+          if (headerIndex === -1) {
+            alert('لم يتم العثور على عمود باسم "الجهة" أو "المورد" في ملف Excel');
+            return;
+          }
 
           const headers = rows[headerIndex].map(h => String(h).trim());
           
@@ -1252,9 +1255,13 @@
           let currencyCols = [];
           headers.forEach((h, idx) => {
             const hUpper = h.toUpperCase();
-            if (hUpper.includes("EGP") || hUpper.includes("جنيه") || hUpper.includes("ج.م")) currencyCols.push({ idx, currency: "EGP" });
-            else if (hUpper.includes("USD") || hUpper.includes("دولار") || hUpper.includes("$")) currencyCols.push({ idx, currency: "USD" });
-            else if (hUpper.includes("EUR") || hUpper.includes("EIUR") || hUpper.includes("يورو") || hUpper.includes("€")) currencyCols.push({ idx, currency: "EUR" });
+            if (hUpper.includes("EGP") || hUpper.includes("جنيه") || hUpper.includes("ج.م")) {
+              currencyCols.push({ idx, currency: "EGP" });
+            } else if (hUpper.includes("USD") || hUpper.includes("دولار") || hUpper.includes("$")) {
+              currencyCols.push({ idx, currency: "USD" });
+            } else if (hUpper.includes("EUR") || hUpper.includes("EIUR") || hUpper.includes("يورو") || hUpper.includes("€")) {
+              currencyCols.push({ idx, currency: "EUR" });
+            }
           });
 
           let standardAmountColIdx = headers.findIndex(h => ["المبلغ", "القيمة", "amount"].includes(h.toLowerCase()));
@@ -1267,7 +1274,9 @@
             const row = rows[i];
             const entity = String(row[entityColIdx] || "").trim();
 
-            if (!entity || entity.toLowerCase().includes("اجمال") || entity.toLowerCase().includes("total")) continue;
+            if (!entity || entity.toLowerCase().includes("اجمال") || entity.toLowerCase().includes("total")) {
+              continue;
+            }
 
             const fileCode = fileCodeColIdx !== -1 ? String(row[fileCodeColIdx] || "").trim() : "";
             let arrivalDate = arrivalColIdx !== -1 ? String(row[arrivalColIdx] || "").trim() : "";
@@ -1278,7 +1287,9 @@
 
             const typeStr = typeColIdx !== -1 ? String(row[typeColIdx] || "").toLowerCase() : "";
             let type = "deposit";
-            if (typeStr.includes("دائن") || typeStr.includes("خصم") || typeStr.includes("علينا") || typeStr.includes("deduction") || typeStr.includes("debit")) type = "deduction";
+            if (typeStr.includes("دائن") || typeStr.includes("خصم") || typeStr.includes("علينا") || typeStr.includes("deduction") || typeStr.includes("debit")) {
+              type = "deduction";
+            }
 
             const description = descColIdx !== -1 ? String(row[descColIdx] || "").trim() : "";
 
@@ -1287,11 +1298,22 @@
                 const amount = parseFloat(row[cCol.idx]) || 0;
                 if (amount > 0) {
                   const docRef = doc(collection(db, "credit_balances"));
-                  batch.set(docRef, { entity, fileCode, arrivalDate, departureDate, type, amount, currency: cCol.currency, description, createdAt: new Date() });
+                  batch.set(docRef, {
+                    entity,
+                    fileCode,
+                    arrivalDate,
+                    departureDate,
+                    type,
+                    amount,
+                    currency: cCol.currency,
+                    description,
+                    createdAt: new Date()
+                  });
                   addedCount++;
                 }
               }
-            } else if (standardAmountColIdx !== -1) {
+            } 
+            else if (standardAmountColIdx !== -1) {
               const amount = parseFloat(row[standardAmountColIdx]) || 0;
               if (amount > 0) {
                 let currency = "EGP";
@@ -1302,7 +1324,17 @@
                 }
 
                 const docRef = doc(collection(db, "credit_balances"));
-                batch.set(docRef, { entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, createdAt: new Date() });
+                batch.set(docRef, {
+                  entity,
+                  fileCode,
+                  arrivalDate,
+                  departureDate,
+                  type,
+                  amount,
+                  currency,
+                  description,
+                  createdAt: new Date()
+                });
                 addedCount++;
               }
             }
@@ -1310,10 +1342,15 @@
 
           if (addedCount > 0) {
             await batch.commit();
-            alert(`تم رفع وحفظ ${addedCount} حركة كريديت بنجاح!`);
+            alert(`تم رفع وتسميع ${addedCount} حركة كريديت بنجاح إلى السيستم والقوائم التجميعية!`);
             event.target.value = '';
-          } else { alert('لم يتم العثور على مبالغ صالحة للإدخال في الملف.'); }
-        } catch (err) { alert("حدث خطأ أثناء معالجة ملف Excel: " + err.message); }
+          } else {
+            alert('لم يتم العثور على مبالغ أو أرصدة صالحة للإدخال في الملف.');
+          }
+
+        } catch (err) {
+          alert("حدث خطأ أثناء معالجة ملف Excel: " + err.message);
+        }
       };
       reader.readAsArrayBuffer(file);
     };
@@ -1380,6 +1417,7 @@
     function toggleTaxDiscountMenu(evt) {
       const subMenu = document.getElementById('taxDiscountSubMenu');
       const arrowIcon = document.getElementById('taxArrowIcon');
+
       openTab(evt, 'taxDiscountTab');
 
       if (subMenu.style.display === 'none') {
@@ -1394,6 +1432,7 @@
     function toggleCreditMenu(evt) {
       const subMenu = document.getElementById('creditSubMenu');
       const arrowIcon = document.getElementById('creditArrowIcon');
+
       openTab(evt, 'creditTab');
 
       if (subMenu.style.display === 'none') {
@@ -1438,15 +1477,22 @@
       if (!targetSubContent) return;
 
       const parentTab = targetSubContent.closest('.tab-content');
+      
       const subContents = parentTab.getElementsByClassName("sub-tab-content");
-      for (let i = 0; i < subContents.length; i++) subContents[i].classList.remove("active");
+      for (let i = 0; i < subContents.length; i++) {
+        subContents[i].classList.remove("active");
+      }
       
       const subMenuContainer = parentTab.id === 'creditTab' ? document.getElementById('creditSubMenu') : document.getElementById('taxDiscountSubMenu');
       const subButtons = subMenuContainer.getElementsByClassName("sub-tab-btn");
-      for (let i = 0; i < subButtons.length; i++) subButtons[i].classList.remove("active");
+      for (let i = 0; i < subButtons.length; i++) {
+        subButtons[i].classList.remove("active");
+      }
       
       targetSubContent.classList.add("active");
-      if(evt && evt.currentTarget) evt.currentTarget.classList.add("active");
+      if(evt && evt.currentTarget) {
+        evt.currentTarget.classList.add("active");
+      }
     }
 
     function filterSuppliersTable() {
@@ -1461,8 +1507,11 @@
         if (tdName || tdSupplier) {
           let nameTxt = tdName.textContent || tdName.innerText;
           let supplierTxt = tdSupplier.textContent || tdSupplier.innerText;
-          if (nameTxt.toLowerCase().indexOf(filter) > -1 || supplierTxt.toLowerCase().indexOf(filter) > -1) tr[i].style.display = "";
-          else tr[i].style.display = "none";
+          if (nameTxt.toLowerCase().indexOf(filter) > -1 || supplierTxt.toLowerCase().indexOf(filter) > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
         }
       }
     }
@@ -1479,8 +1528,11 @@
         if (tdEntity || tdFile) {
           let entityTxt = tdEntity.textContent || tdEntity.innerText;
           let fileTxt = tdFile.textContent || tdFile.innerText;
-          if (entityTxt.toLowerCase().indexOf(filter) > -1 || fileTxt.toLowerCase().indexOf(filter) > -1) tr[i].style.display = "";
-          else tr[i].style.display = "none";
+          if (entityTxt.toLowerCase().indexOf(filter) > -1 || fileTxt.toLowerCase().indexOf(filter) > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
         }
       }
     }
@@ -1495,8 +1547,11 @@
         let tdEntity = tr[i].getElementsByTagName("td")[1];
         if (tdEntity) {
           let entityTxt = tdEntity.textContent || tdEntity.innerText;
-          if (entityTxt.toLowerCase().indexOf(filter) > -1) tr[i].style.display = "";
-          else tr[i].style.display = "none";
+          if (entityTxt.toLowerCase().indexOf(filter) > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
         }
       }
     }
