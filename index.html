@@ -506,13 +506,13 @@
         <table id="supplierStatementTable">
           <thead>
             <tr>
-              <th>1- التاريخ</th>
-              <th>2- البيان</th>
-              <th>3- رقم الملف</th>
-              <th>4- المبلغ</th>
-              <th>5- مدين</th>
-              <th>6- دائن</th>
-              <th>7- الرصيد (مدين/دائن)</th>
+              <th>التاريخ</th>
+              <th>البيان</th>
+              <th>رقم الملف</th>
+              <th>المبلغ</th>
+              <th>مدين</th>
+              <th>دائن</th>
+              <th>الرصيد (مدين/دائن)</th>
             </tr>
           </thead>
           <tbody id="supplierStatementTableBody">
@@ -1010,7 +1010,7 @@
 
           const dateFormatted = item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
-          // 1- التاريخ | 2- البيان | 3- رقم الملف | 4- المبلغ | 5- مدين | 6- دائن | 7- الرصيد مدين أو دائن
+          // التاريخ | البيان | رقم الملف | المبلغ | مدين | دائن | الرصيد مدين أو دائن
           const row = `
             <tr>
               <td>${dateFormatted}</td>
