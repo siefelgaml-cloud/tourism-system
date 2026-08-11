@@ -416,9 +416,9 @@
     createUserWithEmailAndPassword, signOut
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-  // ===== التهيئة =====
+  // ===== التهيئة (تم التعديل بالمفتاح الحقيقي) =====
   const firebaseConfig = {
-    apiKey: "AiZaSyBnVZaF4cbNqTM03tA3dWEfk2k3aWj0djs",
+    apiKey: "AIzaSyBnVZaF4cbNqTM03tA3dWEFk2k3aWj0djs",
     authDomain: "tourism-management-syste-b0c23.firebaseapp.com",
     projectId: "tourism-management-syste-b0c23",
     storageBucket: "tourism-management-syste-b0c23.firebasestorage.app",
@@ -931,7 +931,6 @@
     } else {
       authScreen.style.display = 'flex';
       appScreen.style.display = 'none';
-      // لا نوقف الاستماع، لكن البيانات لن تظهر لأن القواعد تمنعها
     }
   });
 
