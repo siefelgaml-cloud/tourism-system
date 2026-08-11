@@ -185,13 +185,13 @@
 <body>
 
 <!-- ========================================================= -->
-<!-- 1. التطبيق الرئيسي (يظهر فوراً بدون تسجيل دخول) -->
+<!-- 1. التطبيق الرئيسي -->
 <!-- ========================================================= -->
 <div id="appScreen">
   <div class="header">
     <h2>📊 منظومة الحسابات والتصفية الشاملة</h2>
     <div class="header-actions">
-      <span class="user-email">🔓 وضع الضيف (بدون تسجيل دخول)</span>
+      <span class="user-email">🔓 وضع الضيف</span>
     </div>
   </div>
 
@@ -215,6 +215,8 @@
         <button class="sub-tab-btn active" onclick="openSubTab(event, 'addCreditSubTab')">1- تسجيل حركة</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'creditRecordsSubTab')">2- سجل العمليات</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'creditSummarySubTab')">3- الملخص والـ Dashboard</button>
+        <!-- التبويب الجديد: كشف الحساب -->
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditStatementSubTab')">4- كشف الحساب</button>
       </div>
 
       <button class="tab-btn" onclick="openTab(event, 'aviationTab')"><span>✈️ حجوزات الطيران</span></button>
@@ -310,6 +312,38 @@
             <div class="table-wrapper"><table id="entitySummaryTable"><thead><tr><th>#</th><th>الجهة</th><th>العملة</th><th>إجمالي المدين</th><th>إجمالي الدائن</th><th>صافي الرصيد</th><th>الحالة</th></tr></thead><tbody id="entitySummaryTableBody"><tr><td colspan="7" style="text-align:center;color:#64748b;">جاري الحساب...</td></tr></tbody></table></div>
           </div>
         </div>
+
+        <!-- التبويب الجديد: كشف الحساب -->
+        <div id="creditStatementSubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h3>🔍 كشف الحساب</h3>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="text" id="searchStatement" placeholder="🔍 بحث بالجهة أو رقم الملف..." onkeyup="filterStatementTable()" style="max-width:300px;">
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="statementTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>الجهة</th>
+                  <th>رقم الملف</th>
+                  <th>الوصول</th>
+                  <th>المغادرة</th>
+                  <th>النوع</th>
+                  <th>المبلغ</th>
+                  <th>العملة</th>
+                  <th>البيان</th>
+                  <th>التاريخ</th>
+                </tr>
+              </thead>
+              <tbody id="statementTableBody">
+                <tr><td colspan="10" style="text-align:center;color:#64748b;">جاري تحميل البيانات...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
       <!-- تبويبات أخرى -->
@@ -381,7 +415,7 @@
     currentSuppliers: [],
     currentCredit: [],
 
-    // --- المراقبة المباشرة ---
+    // --- المراقبة المباشرة للموردين ---
     listenToSuppliers() {
       const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -422,6 +456,7 @@
       });
     },
 
+    // --- المراقبة المباشرة للكريديت (وتحديث كشف الحساب) ---
     listenToCredit() {
       const q = query(collection(db, "credit_balances"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -432,6 +467,7 @@
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">لا توجد حركات</td></tr>';
           this.updateDashboard([]);
+          this.updateStatementTable([]);
           return;
         }
         let idx = 1;
@@ -456,6 +492,35 @@
           `;
         });
         this.updateDashboard(this.currentCredit);
+        this.updateStatementTable(this.currentCredit);
+      });
+    },
+
+    // --- تحديث جدول كشف الحساب ---
+    updateStatementTable(records) {
+      const tbody = $('statementTableBody');
+      tbody.innerHTML = '';
+      if (records.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#64748b;">لا توجد حركات مسجلة</td></tr>';
+        return;
+      }
+      let idx = 1;
+      records.forEach(item => {
+        const typeBadge = item.type === 'deposit' ? '<span class="badge badge-deposit">مدين</span>' : '<span class="badge badge-deduction">دائن</span>';
+        tbody.innerHTML += `
+          <tr>
+            <td>${idx++}</td>
+            <td><strong>${item.entity || '-'}</strong></td>
+            <td>${item.fileCode || '-'}</td>
+            <td>${formatDateDMY(item.arrivalDate)}</td>
+            <td>${formatDateDMY(item.departureDate)}</td>
+            <td>${typeBadge}</td>
+            <td><strong>${Number(item.amount || 0).toLocaleString()}</strong></td>
+            <td>${item.currency || 'EGP'}</td>
+            <td>${item.description || '-'}</td>
+            <td>${item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'}</td>
+          </tr>
+        `;
       });
     },
 
@@ -729,7 +794,7 @@
       reader.readAsArrayBuffer(file);
     },
 
-    // --- كشف الحساب ---
+    // --- كشف الحساب التفصيلي (للمورد الواحد) ---
     openStatement(entityName, currency) {
       const modal = $('supplierStatementModal');
       $('modalSupplierTitle').innerHTML = `كشف حساب: <span style="color:#2563eb;">${entityName}</span> (${currency})`;
@@ -770,7 +835,7 @@
 
     closeStatementModal() { $('supplierStatementModal').style.display = 'none'; },
 
-    // --- عمليات أخرى (طيران، تذاكر، تصفية) ---
+    // --- عمليات أخرى ---
     async saveAviation() {
       const airline = $('airlineName').value.trim();
       const pnr = $('pnrNumber').value.trim();
@@ -798,9 +863,24 @@
     }
   };
 
-  // ===== بدء الاستماع للبيانات فوراً (بدون انتظار تسجيل دخول) =====
+  // ===== بدء الاستماع للبيانات =====
   App.listenToSuppliers();
   App.listenToCredit();
+
+  // ===== دوال البحث في كشف الحساب =====
+  window.filterStatementTable = function() {
+    const filter = $('searchStatement').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#statementTable tbody tr');
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length < 2) return;
+      // نأخذ عمود الجهة (index 1) ورقم الملف (index 2)
+      const entityText = cells[1]?.textContent?.toLowerCase() || '';
+      const fileText = cells[2]?.textContent?.toLowerCase() || '';
+      const match = entityText.includes(filter) || fileText.includes(filter);
+      row.style.display = match ? '' : 'none';
+    });
+  };
 
   // ===== الدوال العامة للـ UI (تبديل التبويبات) =====
   window.openTab = function(evt, tabName) {
@@ -898,7 +978,7 @@
     html2pdf().set(opt).from(el).save();
   };
 
-  console.log('✅ النظام جاهز للعمل (بدون تسجيل دخول)!');
+  console.log('✅ النظام جاهز للعمل مع صفحة كشف الحساب والبحث.');
 </script>
 
 </body>
