@@ -379,29 +379,46 @@
         <div id="accountStatementSubTab" class="sub-tab-content">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <h3 style="margin: 0;">كشف حساب تفصيلي</h3>
-            <div class="btn-group no-print" style="margin-top: 0;">
+            <div style="display: flex; gap: 10px; align-items: center;" class="no-print">
+              <!-- زر البحث بنفس الشكل الأزرق المطلوب -->
+              <button id="searchBtn" style="background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+                🔍 بحث
+              </button>
               <button class="print-btn" onclick="printAccountStatement()">𖥕 طباعة كشف الحساب</button>
             </div>
           </div>
 
-          <!-- أدوات البحث والفلترة -->
-          <div class="form-row no-print" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
-            <div class="form-group">
-              <label>اسم المورد / الجهة:</label>
-              <input type="text" id="stmtSupplierSearch" placeholder="أدخل اسم المورد..." onkeyup="generateAccountStatement()">
-            </div>
-            <div class="form-group">
-              <label>رقم الملف (File Code):</label>
-              <input type="text" id="stmtFileCodeSearch" placeholder="أدخل رقم الملف..." onkeyup="generateAccountStatement()">
-            </div>
-            <div class="form-group">
-              <label>العملة:</label>
-              <select id="stmtCurrencySelect" onchange="generateAccountStatement()">
-                <option value="ALL">جميع العملات</option>
-                <option value="EGP">EGP (ج.م)</option>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-              </select>
+          <!-- النافذة المنبثقة لفلاتر البحث (Modal) -->
+          <div id="searchModal" class="modal-overlay">
+            <div style="background: white; padding: 20px; border-radius: 8px; width: 350px; direction: rtl; box-shadow: 0 4px 10px rgba(0,0,0,0.1); box-sizing: border-box;">
+              <h3 style="margin-top: 0; margin-bottom: 15px; color: #1e293b;">فلترة كشف الحساب</h3>
+              
+              <div class="form-group">
+                <label style="display: block; margin-bottom: 5px;">اسم المورد:</label>
+                <select id="supplierSelect" style="width: 100%; padding: 8px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 4px;">
+                  <option value="">اختر المورد...</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label style="display: block; margin-bottom: 5px;">رقم الملف:</label>
+                <input type="text" id="fileNumberInput" placeholder="أدخل رقم الملف" style="width: 100%; padding: 8px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+              </div>
+
+              <div class="form-group">
+                <label style="display: block; margin-bottom: 5px;">العملة:</label>
+                <select id="currencySelect" style="width: 100%; padding: 8px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px;">
+                  <option value="">اختر العملة...</option>
+                  <option value="EGP">EGP</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </div>
+
+              <div style="display: flex; justify-content: space-between;">
+                <button id="applySearch" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">تطبيق</button>
+                <button id="closeModal" style="background-color: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">إلغاء</button>
+              </div>
             </div>
           </div>
 
@@ -423,7 +440,7 @@
               </thead>
               <tbody id="accountStatementTableBody">
                 <tr>
-                  <td colspan="9" style="text-align: center; color: #64748b;">يرجى ادخال اسم المورد أو رقم الملف للبحث...</td>
+                  <td colspan="9" style="text-align: center; color: #64748b;">اضغط على زر البحث واختر المورد أو رقم الملف لعرض كشف الحساب...</td>
                 </tr>
               </tbody>
             </table>
@@ -946,6 +963,23 @@
       reader.readAsArrayBuffer(file);
     };
 
+    function populateSupplierSelect(records) {
+      const supplierSelect = document.getElementById('supplierSelect');
+      if (!supplierSelect) return;
+      
+      const currentSelected = supplierSelect.value;
+      const uniqueSuppliers = [...new Set(records.map(r => (r.entity || '').trim()).filter(Boolean))].sort();
+      
+      supplierSelect.innerHTML = '<option value="">اختر المورد...</option>';
+      uniqueSuppliers.forEach(supp => {
+        const option = document.createElement('option');
+        option.value = supp;
+        option.textContent = supp;
+        if (supp === currentSelected) option.selected = true;
+        supplierSelect.appendChild(option);
+      });
+    }
+
     function updateCreditDashboardAndSummary(records) {
       let totalsByCurrency = {
         'EGP': { deposit: 0, deduction: 0 },
@@ -1028,29 +1062,35 @@
       });
     }
 
-    /* دالة توليد كشف الحساب التفاعلي في تبويب كشف حساب جديد */
-    window.generateAccountStatement = function() {
-      const supplierFilter = document.getElementById('stmtSupplierSearch').value.toLowerCase().trim();
-      const fileCodeFilter = document.getElementById('stmtFileCodeSearch').value.toLowerCase().trim();
-      const currencyFilter = document.getElementById('stmtCurrencySelect').value;
+    /* دالة توليد كشف الحساب التفاعلي بحسب قيم البحث المسحوبة من الـ Modal */
+    window.filterStatementData = function(filters) {
+      const supplierFilter = (filters.supplier || '').toLowerCase().trim();
+      const fileCodeFilter = (filters.fileNum || '').toLowerCase().trim();
+      const currencyFilter = (filters.currency || '').toUpperCase().trim();
+      
       const tbody = document.getElementById('accountStatementTableBody');
       const header = document.getElementById('stmtPrintHeader');
 
       let titleText = "كشف حساب تفصيلي";
       if (supplierFilter) titleText += ` - المورد: ${supplierFilter}`;
       if (fileCodeFilter) titleText += ` - رقم الملف: ${fileCodeFilter}`;
+      if (currencyFilter) titleText += ` - العملة: ${currencyFilter}`;
       header.innerText = titleText;
 
       tbody.innerHTML = '';
 
-      // تصفية السجلات حسب الخانات المحددة والبحث بالعملة ورقم الملف والمورد
+      if (!supplierFilter && !fileCodeFilter && !currencyFilter) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #64748b;">يرجى اختيار مورد أو تحديد رقم ملف أو عملة لعرض كشف الحساب...</td></tr>';
+        return;
+      }
+
       const filtered = currentCreditList.filter(item => {
         const matchesSupplier = !supplierFilter || (item.entity || '').toLowerCase().includes(supplierFilter);
         const matchesFileCode = !fileCodeFilter || (item.fileCode || '').toLowerCase().includes(fileCodeFilter);
         
         let itemCurr = (item.currency || 'EGP').toUpperCase();
         if (itemCurr === 'EIUR') itemCurr = 'EUR';
-        const matchesCurrency = (currencyFilter === 'ALL') || (itemCurr === currencyFilter);
+        const matchesCurrency = !currencyFilter || (itemCurr === currencyFilter);
 
         return matchesSupplier && matchesFileCode && matchesCurrency;
       }).sort((a, b) => {
@@ -1178,7 +1218,7 @@
       if (snapshot.empty) {
         tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">لا توجد حركة أرصدة كريديت مسجلة حتى الآن</td></tr>';
         updateCreditDashboardAndSummary([]);
-        generateAccountStatement();
+        populateSupplierSelect([]);
         return;
       }
 
@@ -1214,7 +1254,7 @@
       });
 
       updateCreditDashboardAndSummary(currentCreditList);
-      generateAccountStatement();
+      populateSupplierSelect(currentCreditList);
     });
 
     window.deleteCreditRecord = async function(docId) {
@@ -1487,6 +1527,36 @@
         alert('تم حفظ تصفية الملف بنجاح!');
       } catch (e) { alert("خطأ: " + e.message); }
     };
+
+    // إعداد تفاعلات زر ونافذة البحث
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchBtn = document.getElementById('searchBtn');
+      const searchModal = document.getElementById('searchModal');
+      const closeModal = document.getElementById('closeModal');
+      const applySearch = document.getElementById('applySearch');
+
+      if (searchBtn && searchModal && closeModal && applySearch) {
+        // فتح النافذة المنبثقة
+        searchBtn.addEventListener('click', () => {
+          searchModal.style.display = 'flex';
+        });
+
+        // إغلاق النافذة
+        closeModal.addEventListener('click', () => {
+          searchModal.style.display = 'none';
+        });
+
+        // تطبيق الفلترة عند الضغط على تطبيق
+        applySearch.addEventListener('click', () => {
+          const supplier = document.getElementById('supplierSelect').value;
+          const fileNum = document.getElementById('fileNumberInput').value;
+          const currency = document.getElementById('currencySelect').value;
+
+          filterStatementData({ supplier, fileNum, currency });
+          searchModal.style.display = 'none';
+        });
+      }
+    });
   </script>
 
   <script>
