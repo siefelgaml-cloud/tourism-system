@@ -130,8 +130,8 @@
     /* ===== الجداول ===== */
     .table-wrapper { overflow-x: auto; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th { background: #f1f5f9; color: #1e293b; font-weight: 700; padding: 12px 14px; text-align: center; border-bottom: 2px solid #e2e8f0; }
-    td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; text-align: center; }
+    th { background: #f1f5f9; color: #1e293b; font-weight: 700; padding: 12px 14px; text-align: right; border-bottom: 2px solid #e2e8f0; }
+    td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
     tr:hover td { background: #f8fafc; }
     .badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; }
     .badge-hotel { background: #dbeafe; color: #1e40af; }
@@ -189,9 +189,6 @@
 
     /* إخفاء جدول النتائج في البداية */
     #statementResultTable { display: none; }
-    .balance-positive { color: #15803d; font-weight: 700; }
-    .balance-negative { color: #b91c1c; font-weight: 700; }
-    .balance-zero { color: #64748b; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -338,11 +335,16 @@
             <table id="statementResult">
               <thead>
                 <tr>
-                  <th>التاريخ</th>
+                  <th>#</th>
+                  <th>الجهة</th>
+                  <th>رقم الملف</th>
+                  <th>الوصول</th>
+                  <th>المغادرة</th>
+                  <th>النوع</th>
+                  <th>المبلغ</th>
+                  <th>العملة</th>
                   <th>البيان</th>
-                  <th>مدين</th>
-                  <th>دائن</th>
-                  <th>الرصيد</th>
+                  <th>التاريخ</th>
                 </tr>
               </thead>
               <tbody id="statementResultBody">
@@ -439,12 +441,6 @@
     const parts = iso.split('-');
     if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
     return iso;
-  };
-
-  const formatDateForDisplay = (timestamp) => {
-    if (!timestamp) return '-';
-    const date = new Date(timestamp.seconds * 1000);
-    return date.toLocaleDateString('en-GB'); // DD/MM/YYYY
   };
 
   // ===== التطبيق الرئيسي =====
@@ -897,48 +893,29 @@
       filtered = filtered.filter(item => (item.currency || '') === currencyFilter);
     }
 
-    // ترتيب الحركات حسب التاريخ (الأقدم أولاً)
-    filtered.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
-
-    // عرض النتائج في الجدول مع حساب الرصيد التراكمي
+    // عرض النتائج في الجدول
     const tbody = $('statementResultBody');
     const tableDiv = $('statementResultTable');
     tbody.innerHTML = '';
 
     if (filtered.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">لا توجد نتائج مطابقة</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#64748b;">لا توجد نتائج مطابقة</td></tr>';
     } else {
-      let runningBalance = 0;
+      let idx = 1;
       filtered.forEach(item => {
-        const amt = parseFloat(item.amount) || 0;
-        const dateFormatted = formatDateForDisplay(item.createdAt);
-        const description = item.description || '-';
-        let debit = 0, credit = 0;
-        if (item.type === 'deposit') {
-          debit = amt;
-          runningBalance += amt;
-        } else {
-          credit = amt;
-          runningBalance -= amt;
-        }
-
-        // تنسيق الرصيد
-        let balanceHtml = '';
-        if (runningBalance > 0) {
-          balanceHtml = `<span class="balance-positive">${runningBalance.toLocaleString()} (مدين)</span>`;
-        } else if (runningBalance < 0) {
-          balanceHtml = `<span class="balance-negative">${Math.abs(runningBalance).toLocaleString()} (دائن)</span>`;
-        } else {
-          balanceHtml = `<span class="balance-zero">0 (متزن)</span>`;
-        }
-
+        const typeBadge = item.type === 'deposit' ? '<span class="badge badge-deposit">مدين</span>' : '<span class="badge badge-deduction">دائن</span>';
         tbody.innerHTML += `
           <tr>
-            <td>${dateFormatted}</td>
-            <td>${description}</td>
-            <td style="color:#15803d; font-weight:bold;">${debit ? debit.toLocaleString() : '-'}</td>
-            <td style="color:#b91c1c; font-weight:bold;">${credit ? credit.toLocaleString() : '-'}</td>
-            <td>${balanceHtml}</td>
+            <td>${idx++}</td>
+            <td><strong>${item.entity || '-'}</strong></td>
+            <td>${item.fileCode || '-'}</td>
+            <td>${formatDateDMY(item.arrivalDate)}</td>
+            <td>${formatDateDMY(item.departureDate)}</td>
+            <td>${typeBadge}</td>
+            <td><strong>${Number(item.amount || 0).toLocaleString()}</strong></td>
+            <td>${item.currency || 'EGP'}</td>
+            <td>${item.description || '-'}</td>
+            <td>${item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'}</td>
           </tr>
         `;
       });
@@ -1050,7 +1027,7 @@
     html2pdf().set(opt).from(el).save();
   };
 
-  console.log('✅ النظام جاهز للعمل مع تقرير كشف الحساب المطلوب.');
+  console.log('✅ النظام جاهز للعمل مع زر البحث المتقدم.');
 </script>
 
 </body>
