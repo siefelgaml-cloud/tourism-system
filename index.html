@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة الحسابات السياحية - النسخة الاحترافية</title>
+  <title>منظومة الحسابات السياحية</title>
   <!-- مكتبة Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- مكتبة PDF -->
@@ -33,46 +33,10 @@
     }
     .header h2 { font-weight: 800; letter-spacing: 1px; font-size: 22px; }
     .header-actions { display: flex; gap: 12px; align-items: center; }
-    .logout-btn {
-      background: #ef4444; border: none; color: white;
-      padding: 8px 20px; border-radius: 10px; font-weight: 700;
-      cursor: pointer; transition: 0.2s; font-size: 14px;
-    }
-    .logout-btn:hover { background: #dc2626; transform: scale(1.03); }
     .user-email { color: #94a3b8; font-size: 14px; font-weight: 400; }
 
-    /* ===== شاشة تسجيل الدخول ===== */
-    #authScreen {
-      display: flex; justify-content: center; align-items: center;
-      min-height: 100vh; background: #f1f5f9; flex-direction: column; gap: 20px;
-    }
-    .auth-box {
-      background: white; padding: 40px; border-radius: 24px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.08); width: 100%; max-width: 420px;
-    }
-    .auth-box h2 { text-align: center; color: #0f172a; margin-bottom: 25px; font-weight: 800; }
-    .auth-error {
-      color: #dc2626; background: #fef2f2; padding: 10px; border-radius: 8px;
-      margin-bottom: 15px; display: none; text-align: center; font-weight: 600;
-    }
-    .auth-box .form-group { margin-bottom: 18px; }
-    .auth-box input {
-      width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0;
-      border-radius: 12px; font-size: 15px; font-family: inherit;
-    }
-    .auth-box input:focus { border-color: #2563eb; outline: none; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
-    .auth-box .submit-btn {
-      width: 100%; justify-content: center; padding: 14px; font-size: 16px;
-      background: #2563eb; color: white; border: none; border-radius: 12px;
-      font-weight: 700; cursor: pointer; transition: 0.2s;
-    }
-    .auth-box .submit-btn:hover { background: #1d4ed8; }
-    .toggle-auth { text-align: center; margin-top: 20px; color: #64748b; font-size: 14px; }
-    .toggle-auth span { color: #2563eb; font-weight: 700; cursor: pointer; }
-    .toggle-auth span:hover { text-decoration: underline; }
-
     /* ===== تخطيط التطبيق الرئيسي ===== */
-    #appScreen { display: none; }
+    #appScreen { display: block; }
     .app-layout { display: flex; gap: 24px; align-items: flex-start; }
 
     /* ===== الشريط الجانبي العصري ===== */
@@ -221,51 +185,13 @@
 <body>
 
 <!-- ========================================================= -->
-<!-- 1. شاشة تسجيل الدخول (تظهر افتراضياً) -->
-<!-- ========================================================= -->
-<div id="authScreen">
-  <div class="auth-box">
-    <h2>🔐 تسجيل الدخول</h2>
-    <div id="authError" class="auth-error"></div>
-    
-    <div class="form-group">
-      <label>البريد الإلكتروني</label>
-      <input type="email" id="loginEmail" placeholder="admin@example.com">
-    </div>
-    <div class="form-group">
-      <label>كلمة المرور</label>
-      <input type="password" id="loginPassword" placeholder="********">
-    </div>
-    
-    <button class="submit-btn" onclick="handleLogin()">تسجيل الدخول</button>
-    
-    <div class="toggle-auth">
-      ليس لديك حساب؟ <span onclick="toggleAuthMode()">إنشاء حساب جديد</span>
-    </div>
-
-    <div id="signupMode" style="display: none; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-      <div class="form-group">
-        <label>البريد الإلكتروني الجديد</label>
-        <input type="email" id="signupEmail" placeholder="new@example.com">
-      </div>
-      <div class="form-group">
-        <label>كلمة المرور (6 أحرف على الأقل)</label>
-        <input type="password" id="signupPassword" placeholder="******">
-      </div>
-      <button class="submit-btn" style="background:#0d9488;" onclick="handleSignup()">إنشاء حساب</button>
-    </div>
-  </div>
-</div>
-
-<!-- ========================================================= -->
-<!-- 2. التطبيق الرئيسي (مخفي حتى تسجيل الدخول) -->
+<!-- 1. التطبيق الرئيسي (يظهر فوراً بدون تسجيل دخول) -->
 <!-- ========================================================= -->
 <div id="appScreen">
   <div class="header">
     <h2>📊 منظومة الحسابات والتصفية الشاملة</h2>
     <div class="header-actions">
-      <span class="user-email" id="userEmailDisplay">user@email.com</span>
-      <button class="logout-btn" onclick="handleLogout()">🚪 خروج</button>
+      <span class="user-email">🔓 وضع الضيف (بدون تسجيل دخول)</span>
     </div>
   </div>
 
@@ -386,7 +312,7 @@
         </div>
       </div>
 
-      <!-- تبويبات أخرى (مختصرة للاكتفاء) -->
+      <!-- تبويبات أخرى -->
       <div id="aviationTab" class="tab-content"><h3>حجوزات الطيران</h3><div class="form-group"><label>خط الطيران</label><input type="text" id="airlineName"></div><div class="form-group"><label>PNR</label><input type="text" id="pnrNumber"></div><div class="form-group"><label>القيمة ($)</label><input type="number" id="ticketCost"></div><button class="submit-btn" onclick="App.saveAviation()">حفظ</button></div>
       <div id="ticketsTab" class="tab-content"><h3>مخزون التذاكر</h3><div class="form-group"><label>اسم المزار</label><input type="text" id="ticketName"></div><div class="form-group"><label>الكمية</label><input type="number" id="ticketQty"></div><div class="form-group"><label>سعر الوحدة ($)</label><input type="number" id="ticketUnitPrice"></div><button class="submit-btn" onclick="App.saveTicket()">حفظ</button></div>
       <div id="settlementTab" class="tab-content"><h3>تصفية الملف</h3><div class="form-group"><label>كود الملف</label><input type="text" id="fileCode"></div><div class="form-group"><label>اسم المرشد</label><input type="text" id="guideName"></div><button class="submit-btn" onclick="App.saveSettlement()">تصفية</button></div>
@@ -395,14 +321,14 @@
 </div>
 
 <!-- ========================================================= -->
-<!-- 3. المودالات -->
+<!-- 2. المودالات -->
 <!-- ========================================================= -->
 <div id="editSupplierModal" class="modal-overlay"><div class="modal-content"><h3>تعديل المورد</h3><input type="hidden" id="editSupplierId"><div class="form-group"><label>النوع</label><select id="editSupplierType"><option value="فندق">فندق</option><option value="كروز">كروز</option><option value="مطعم">مطعم</option></select></div><div class="form-group"><label>الاسم</label><input type="text" id="editPropertyName"></div><div class="form-group"><label>اسم المورد</label><input type="text" id="editSupplierName"></div><div class="form-group"><label>الرقم الضريبي</label><input type="text" id="editTaxCardNumber"></div><div class="form-group"><label>حالة الضريبة</label><select id="editTaxType"><option value="0.03">خاضع 3%</option><option value="advance_payment">دفعات مقدمة</option></select></div><div class="btn-group" style="justify-content:flex-end;"><button class="submit-btn" onclick="App.saveEditedSupplier()">حفظ</button><button class="print-btn" onclick="App.closeEditModal()">إلغاء</button></div></div></div>
 
 <div id="supplierStatementModal" class="modal-overlay"><div class="modal-content" style="max-width:900px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;" class="no-print"><h3 id="modalSupplierTitle">كشف الحساب</h3><div><button class="print-btn" onclick="printModalStatement()">𖥕 طباعة</button><button class="delete-btn" style="background:#64748b;padding:6px 12px;font-size:14px;" onclick="App.closeStatementModal()">إغلاق</button></div></div><div id="printableStatementModal"><h3 id="modalPrintTitle" style="display:none;">كشف حساب</h3><div class="table-wrapper"><table id="supplierStatementTable"><thead><tr><th>التاريخ</th><th>البيان</th><th>رقم الملف</th><th>المبلغ</th><th>مدين</th><th>دائن</th><th>الرصيد</th></tr></thead><tbody id="supplierStatementTableBody"><tr><td colspan="7" style="text-align:center;">جاري التحميل...</td></tr></tbody></table></div></div></div></div>
 
 <!-- ========================================================= -->
-<!-- 4. Firebase + JavaScript (Module) -->
+<!-- 3. Firebase + JavaScript -->
 <!-- ========================================================= -->
 <script type="module">
   // ===== Firebase Imports =====
@@ -411,12 +337,8 @@
     getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, 
     onSnapshot, query, orderBy, writeBatch 
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-  import {
-    getAuth, onAuthStateChanged, signInWithEmailAndPassword,
-    createUserWithEmailAndPassword, signOut
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-  // ===== التهيئة (تم التعديل بالمفتاح الحقيقي) =====
+  // ===== التهيئة =====
   const firebaseConfig = {
     apiKey: "AIzaSyBnVZaF4cbNqTM03tA3dWEFk2k3aWj0djs",
     authDomain: "tourism-management-syste-b0c23.firebaseapp.com",
@@ -428,7 +350,6 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const auth = getAuth(app);
 
   // ===== دوال مساعدة =====
   const $ = (id) => document.getElementById(id);
@@ -453,42 +374,6 @@
     const parts = iso.split('-');
     if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
     return iso;
-  };
-
-  // ===== دوال المصادقة (متاحة عالمياً) =====
-  window.toggleAuthMode = () => {
-    const div = $('signupMode');
-    div.style.display = div.style.display === 'none' ? 'block' : 'none';
-  };
-
-  window.handleLogin = async () => {
-    const email = $('loginEmail').value;
-    const password = $('loginPassword').value;
-    const errorDiv = $('authError');
-    try {
-      errorDiv.style.display = 'none';
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (e) {
-      errorDiv.textContent = '❌ ' + e.message;
-      errorDiv.style.display = 'block';
-    }
-  };
-
-  window.handleSignup = async () => {
-    const email = $('signupEmail').value;
-    const password = $('signupPassword').value;
-    const errorDiv = $('authError');
-    try {
-      errorDiv.style.display = 'none';
-      await createUserWithEmailAndPassword(auth, email, password);
-    } catch (e) {
-      errorDiv.textContent = '❌ ' + e.message;
-      errorDiv.style.display = 'block';
-    }
-  };
-
-  window.handleLogout = async () => {
-    await signOut(auth);
   };
 
   // ===== التطبيق الرئيسي =====
@@ -913,26 +798,9 @@
     }
   };
 
-  // ===== مراقبة حالة المصادقة =====
-  onAuthStateChanged(auth, (user) => {
-    const authScreen = $('authScreen');
-    const appScreen = $('appScreen');
-    if (user) {
-      authScreen.style.display = 'none';
-      appScreen.style.display = 'block';
-      $('userEmailDisplay').textContent = user.email;
-      showToast(`مرحباً ${user.email} 👋`, 'success');
-      // بدء الاستماع للبيانات (مرة واحدة فقط)
-      if (!window._listenersStarted) {
-        App.listenToSuppliers();
-        App.listenToCredit();
-        window._listenersStarted = true;
-      }
-    } else {
-      authScreen.style.display = 'flex';
-      appScreen.style.display = 'none';
-    }
-  });
+  // ===== بدء الاستماع للبيانات فوراً (بدون انتظار تسجيل دخول) =====
+  App.listenToSuppliers();
+  App.listenToCredit();
 
   // ===== الدوال العامة للـ UI (تبديل التبويبات) =====
   window.openTab = function(evt, tabName) {
@@ -1030,7 +898,7 @@
     html2pdf().set(opt).from(el).save();
   };
 
-  console.log('✅ النظام الاحترافي جاهز! انتظر تسجيل الدخول.');
+  console.log('✅ النظام جاهز للعمل (بدون تسجيل دخول)!');
 </script>
 
 </body>
