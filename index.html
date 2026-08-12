@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة الحسابات السياحية</title>
+  <title>منظومة الحسابات السياحية الشاملة</title>
   <!-- مكتبة Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- مكتبة PDF -->
@@ -17,6 +17,7 @@
       background: #f1f5f9;
       padding: 20px;
       direction: rtl;
+      color: #0f172a;
     }
     
     .header {
@@ -30,8 +31,8 @@
       align-items: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .header h2 { font-weight: 800; letter-spacing: 1px; font-size: 22px; }
-    .user-email { color: #94a3b8; font-size: 14px; font-weight: 400; }
+    .header h2 { font-weight: 800; letter-spacing: 0.5px; font-size: 22px; }
+    .user-email { color: #94a3b8; font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.08); padding: 6px 14px; border-radius: 20px; }
 
     .app-layout { display: flex; gap: 24px; align-items: flex-start; }
 
@@ -44,12 +45,13 @@
       background: transparent; border: none; padding: 12px 16px;
       border-radius: 10px; font-weight: 700; color: #475569;
       font-size: 15px; transition: 0.2s; width: 100%; text-align: right;
-      display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 4px;
     }
     .tab-btn:hover { background: #f1f5f9; color: #0f172a; }
     .tab-btn.active { background: #2563eb; color: white; box-shadow: 0 4px 8px rgba(37,99,235,0.25); }
+    
     .sub-tabs-container {
-      padding-right: 16px; margin: 4px 0 8px 0;
+      padding-right: 12px; margin: 4px 0 8px 0;
       display: flex; flex-direction: column; gap: 4px;
     }
     .sub-tab-btn {
@@ -84,19 +86,9 @@
       box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
     }
     
-    .amount-input-group {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      width: 100%;
-    }
-    .amount-input-group input[type="number"] {
-      flex: 1 1 auto;
-      min-width: 0;
-    }
-    .amount-input-group select {
-      flex: 0 0 110px;
-    }
+    .amount-input-group { display: flex; gap: 8px; align-items: center; width: 100%; }
+    .amount-input-group input[type="number"] { flex: 1 1 auto; min-width: 0; }
+    .amount-input-group select { flex: 0 0 110px; }
 
     .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     button, .btn-label {
@@ -104,53 +96,34 @@
       font-weight: 700; font-size: 14px; cursor: pointer;
       transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
     .submit-btn { background: #16a34a; color: white; }
-    .submit-btn:hover { background: #15803d; transform: scale(1.02); }
+    .submit-btn:hover:not(:disabled) { background: #15803d; transform: translateY(-1px); }
     .excel-btn { background: #107c41; color: white; }
-    .excel-btn:hover { background: #0b5c30; }
+    .excel-btn:hover:not(:disabled) { background: #0b5c30; }
     .print-btn { background: #64748b; color: white; }
-    .print-btn:hover { background: #475569; }
+    .print-btn:hover:not(:disabled) { background: #475569; }
     .pdf-btn { background: #ef4444; color: white; }
-    .pdf-btn:hover { background: #dc2626; }
-    .delete-btn { background: #ef4444; color: white; padding: 4px 12px; border-radius: 6px; font-size: 12px; }
-    .edit-btn { background: #eab308; color: white; padding: 4px 12px; border-radius: 6px; font-size: 12px; }
+    .pdf-btn:hover:not(:disabled) { background: #dc2626; }
+    .delete-btn { background: #ef4444; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; }
+    .delete-btn:hover { background: #b91c1c; }
+    .edit-btn { background: #eab308; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; }
+    .edit-btn:hover { background: #ca8a04; }
     .search-btn { background: #2563eb; color: white; }
-    .search-btn:hover { background: #1d4ed8; transform: scale(1.02); }
+    .search-btn:hover:not(:disabled) { background: #1d4ed8; }
 
-    .statement-container {
-      background: #f8fafc;
-      border-radius: 16px;
-      padding: 20px;
-      border: 1px solid #e2e8f0;
-    }
-    
+    .statement-container { background: #f8fafc; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; }
     .statement-header-banner {
       background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-      color: white;
-      padding: 20px 25px;
-      border-radius: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
+      color: white; padding: 20px 25px; border-radius: 14px;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
     }
     
-    .statement-cards-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-    
+    .statement-cards-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
     .st-card {
-      background: white;
-      border-radius: 12px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border: 1px solid #e2e8f0;
+      background: white; border-radius: 12px; padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;
     }
     .st-card.debit { border-right: 5px solid #16a34a; background: #f0fdf4; }
     .st-card.credit { border-right: 5px solid #dc2626; background: #fef2f2; }
@@ -159,36 +132,18 @@
     .st-card-info { display: flex; flex-direction: column; }
     .st-card-title { font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 4px; }
     .st-card-val { font-size: 20px; font-weight: 800; }
-    .st-card-icon {
-      width: 42px; height: 42px; border-radius: 50%; display: flex;
-      align-items: center; justify-content: center; font-size: 18px; font-weight: bold;
-    }
+    .st-card-icon { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; }
     .debit .st-card-icon { background: #dcfce7; color: #16a34a; }
     .credit .st-card-icon { background: #fee2e2; color: #dc2626; }
     .balance .st-card-icon { background: #dbeafe; color: #2563eb; }
 
     .statement-info-bar {
-      background: #eff6ff;
-      border: 1px dashed #93c5fd;
-      padding: 12px 20px;
-      border-radius: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
-      font-weight: 700;
-      color: #1e3a8a;
-      margin-bottom: 20px;
+      background: #eff6ff; border: 1px dashed #93c5fd; padding: 12px 20px;
+      border-radius: 12px; display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 15px; font-weight: 700; color: #1e3a8a; margin-bottom: 20px;
     }
 
-    .filter-panel {
-      background: white;
-      padding: 16px;
-      border-radius: 12px;
-      border: 1px solid #e2e8f0;
-      margin-bottom: 20px;
-    }
+    .filter-panel { background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
 
     .running-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; }
     .running-table th { background: #1e293b; color: white; font-weight: 700; padding: 14px; text-align: center; font-size: 14px; }
@@ -196,15 +151,14 @@
     .running-table tr:hover td { background: #f8fafc; }
     .running-table .total-row td { background: #f1f5f9; font-weight: 800; font-size: 15px; border-top: 2px solid #cbd5e1; }
 
-    /* Dashboard UI */
     .dashboard-grid { display: flex; gap: 18px; margin-bottom: 25px; flex-wrap: wrap; }
     .dash-card {
-      flex: 1; min-width: 180px; padding: 18px 22px;
+      flex: 1; min-width: 200px; padding: 18px 22px;
       border-radius: 14px; border: 1px solid #e2e8f0;
       background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
     }
     .dash-card-title { font-size: 13px; font-weight: 700; display: block; margin-bottom: 6px; color: #64748b; }
-    .dash-card-value { font-size: 22px; font-weight: 800; direction: ltr; text-align: right; }
+    .dash-card-value { font-size: 20px; font-weight: 800; direction: ltr; text-align: right; }
 
     .table-wrapper { overflow-x: auto; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -231,10 +185,7 @@
       max-height: 85vh; overflow-y: auto;
     }
 
-    .toast-container {
-      position: fixed; top: 20px; left: 20px; z-index: 9999;
-      display: flex; flex-direction: column; gap: 10px;
-    }
+    .toast-container { position: fixed; top: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
     .toast {
       padding: 14px 24px; border-radius: 12px; color: white;
       font-weight: 700; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
@@ -245,6 +196,11 @@
     .toast.error { background: #dc2626; }
     .toast.info { background: #2563eb; }
     @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+
+    @media (max-width: 768px) {
+      .app-layout { flex-direction: column; }
+      .tabs-vertical { width: 100%; }
+    }
 
     @media print {
       body * { visibility: hidden; }
@@ -291,6 +247,7 @@
     </div>
 
     <div class="main-content-area">
+      <!-- قسم الخصم والإضافة -->
       <div id="taxDiscountTab" class="tab-content active">
         <div id="addSupplierSubTab" class="sub-tab-content active">
           <h3>تسجيل مورد جديد</h3>
@@ -304,13 +261,12 @@
           </div>
           <div class="form-group"><label>حالة الضريبة</label><select id="taxType"><option value="0.03">خاضع لضريبة 3%</option><option value="advance_payment">دفعات مقدمة</option></select></div>
           <div class="btn-group">
-            <button class="submit-btn" onclick="App.saveSupplier()">حفظ البيانات</button>
-            <button class="excel-btn" onclick="App.exportSupplierToExcel()">📊 تصدير الحقل</button>
+            <button class="submit-btn" id="btnSaveSupplier" onclick="App.saveSupplier()">حفظ البيانات</button>
           </div>
         </div>
 
         <div id="suppliersListSubTab" class="sub-tab-content">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h3>سجل الموردين</h3>
             <div class="btn-group no-print" style="margin:0;">
               <button class="print-btn" onclick="printSuppliersList()">𖥕 طباعة</button>
@@ -325,11 +281,11 @@
         </div>
       </div>
 
+      <!-- قسم أرصدة الكريديت -->
       <div id="creditTab" class="tab-content">
         <div id="addCreditSubTab" class="sub-tab-content active">
           <h3>تسجيل حركة كريديت</h3>
           <div class="form-row">
-            <!-- حقل نصي عادي بديل القائمة المنسدلة -->
             <div class="form-group"><label>الجهة / المورد</label><input type="text" id="creditEntity" placeholder="أدخل اسم المورد أو الجهة..." autocomplete="off"></div>
             <div class="form-group"><label>رقم الملف</label><input type="text" id="creditFileCode" placeholder="EG-2026-99"></div>
           </div>
@@ -353,12 +309,12 @@
           </div>
           <div class="form-group"><label>البيان</label><textarea id="creditDescription" placeholder="تفاصيل الحركة..."></textarea></div>
           <div class="btn-group">
-            <button class="submit-btn" onclick="App.saveCredit()">تسجيل الحركة</button>
+            <button class="submit-btn" id="btnSaveCredit" onclick="App.saveCredit()">تسجيل الحركة</button>
           </div>
         </div>
 
         <div id="creditRecordsSubTab" class="sub-tab-content">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h3>سجل العمليات</h3>
             <div style="display:flex; gap:10px; align-items:center;">
               <input type="text" id="searchCredit" placeholder="🔍 بحث..." onkeyup="filterCreditTable()" style="max-width:200px;">
@@ -397,7 +353,6 @@
               <div class="form-row">
                 <div class="form-group">
                   <label>اسم المورد / الجهة (الكريديت)</label>
-                  <!-- حقل بحث نصي بدون قائمة منسدلة -->
                   <input type="text" id="stEntityName" placeholder="أدخل اسم الجهة المسجلة بالكريديت..." autocomplete="off">
                 </div>
                 <div class="form-group">
@@ -493,17 +448,57 @@
 
           </div>
         </div>
-
       </div>
 
-      <div id="aviationTab" class="tab-content"><h3>حجوزات الطيران</h3><div class="form-group"><label>خط الطيران</label><input type="text" id="airlineName"></div><div class="form-group"><label>PNR</label><input type="text" id="pnrNumber"></div><div class="form-group"><label>القيمة ($)</label><input type="number" id="ticketCost"></div><button class="submit-btn" onclick="App.saveAviation()">حفظ</button></div>
-      <div id="ticketsTab" class="tab-content"><h3>مخزون التذاكر</h3><div class="form-group"><label>اسم المزار</label><input type="text" id="ticketName"></div><div class="form-group"><label>الكمية</label><input type="number" id="ticketQty"></div><div class="form-group"><label>سعر الوحدة ($)</label><input type="number" id="ticketUnitPrice"></div><button class="submit-btn" onclick="App.saveTicket()">حفظ</button></div>
-      <div id="settlementTab" class="tab-content"><h3>تصفية الملف</h3><div class="form-group"><label>كود الملف</label><input type="text" id="fileCode"></div><div class="form-group"><label>اسم المرشد</label><input type="text" id="guideName"></div><button class="submit-btn" onclick="App.saveSettlement()">تصفية</button></div>
+      <!-- باقي الأقسام -->
+      <div id="aviationTab" class="tab-content">
+        <h3>حجوزات الطيران</h3>
+        <div class="form-row">
+          <div class="form-group"><label>خط الطيران</label><input type="text" id="airlineName"></div>
+          <div class="form-group"><label>PNR</label><input type="text" id="pnrNumber"></div>
+          <div class="form-group"><label>القيمة ($)</label><input type="number" id="ticketCost"></div>
+        </div>
+        <button class="submit-btn" onclick="App.saveAviation()">حفظ</button>
+      </div>
+
+      <div id="ticketsTab" class="tab-content">
+        <h3>مخزون التذاكر</h3>
+        <div class="form-row">
+          <div class="form-group"><label>اسم المزار</label><input type="text" id="ticketName"></div>
+          <div class="form-group"><label>الكمية</label><input type="number" id="ticketQty"></div>
+          <div class="form-group"><label>سعر الوحدة ($)</label><input type="number" id="ticketUnitPrice"></div>
+        </div>
+        <button class="submit-btn" onclick="App.saveTicket()">حفظ</button>
+      </div>
+
+      <div id="settlementTab" class="tab-content">
+        <h3>تصفية الملف</h3>
+        <div class="form-row">
+          <div class="form-group"><label>كود الملف</label><input type="text" id="fileCode"></div>
+          <div class="form-group"><label>اسم المرشد</label><input type="text" id="guideName"></div>
+        </div>
+        <button class="submit-btn" onclick="App.saveSettlement()">تصفية</button>
+      </div>
     </div>
   </div>
 </div>
 
-<div id="editSupplierModal" class="modal-overlay"><div class="modal-content"><h3>تعديل المورد</h3><input type="hidden" id="editSupplierId"><div class="form-group"><label>النوع</label><select id="editSupplierType"><option value="فندق">فندق</option><option value="كروز">كروز</option><option value="مطعم">مطعم</option></select></div><div class="form-group"><label>الاسم</label><input type="text" id="editPropertyName"></div><div class="form-group"><label>اسم المورد</label><input type="text" id="editSupplierName"></div><div class="form-group"><label>الرقم الضريبي</label><input type="text" id="editTaxCardNumber"></div><div class="form-group"><label>حالة الضريبة</label><select id="editTaxType"><option value="0.03">خاضع 3%</option><option value="advance_payment">دفعات مقدمة</option></select></div><div class="btn-group" style="justify-content:flex-end;"><button class="submit-btn" onclick="App.saveEditedSupplier()">حفظ</button><button class="print-btn" onclick="App.closeEditModal()">إلغاء</button></div></div></div>
+<!-- Modal التعديل -->
+<div id="editSupplierModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3>تعديل المورد</h3>
+    <input type="hidden" id="editSupplierId">
+    <div class="form-group"><label>النوع</label><select id="editSupplierType"><option value="فندق">فندق</option><option value="كروز">كروز</option><option value="مطعم">مطعم</option></select></div>
+    <div class="form-group"><label>الاسم</label><input type="text" id="editPropertyName"></div>
+    <div class="form-group"><label>اسم المورد</label><input type="text" id="editSupplierName"></div>
+    <div class="form-group"><label>الرقم الضريبي</label><input type="text" id="editTaxCardNumber"></div>
+    <div class="form-group"><label>حالة الضريبة</label><select id="editTaxType"><option value="0.03">خاضع 3%</option><option value="advance_payment">دفعات مقدمة</option></select></div>
+    <div class="btn-group" style="justify-flex-end;">
+      <button class="submit-btn" onclick="App.saveEditedSupplier()">حفظ التعديلات</button>
+      <button class="print-btn" onclick="App.closeEditModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -525,6 +520,15 @@
   const db = getFirestore(app);
 
   const $ = (id) => document.getElementById(id);
+
+  // دالة الحماية ضد ثغرة XSS
+  const escapeHTML = (str) => {
+    if (typeof str !== 'string') return str ?? '';
+    return str.replace(/[&<>'"]/g, 
+      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    );
+  };
+
   const showToast = (message, type = 'info', duration = 3500) => {
     const container = document.getElementById('toastContainer') || (() => {
       const div = document.createElement('div'); div.id = 'toastContainer'; div.className = 'toast-container';
@@ -556,30 +560,34 @@
       const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
         const tbody = $('suppliersTableBody');
-        tbody.innerHTML = '';
         this.currentSuppliers = [];
 
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا توجد بيانات</td></tr>';
           return;
         }
+
         let idx = 1;
+        let htmlBuffer = ''; // تجميع الكود لرفع كفاءة الأداء
         snapshot.forEach(docSnap => {
-          const data = docSnap.data(); data.id = docSnap.id;
+          const data = docSnap.data(); 
+          data.id = docSnap.id;
           this.currentSuppliers.push(data);
+
           const typeBadge = data.supplierType === 'كروز' ? '<span class="badge badge-cruise">كروز</span>' :
                             data.supplierType === 'مطعم' ? '<span class="badge badge-restaurant">مطعم</span>' :
                             '<span class="badge badge-hotel">فندق</span>';
           const taxBadge = (data.taxRate === 0.03 || data.taxRate === "0.03") ? '<span class="badge badge-taxable">خاضع 3%</span>' :
                            '<span class="badge badge-advance">دفعات مقدمة</span>';
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
-          tbody.innerHTML += `
+
+          htmlBuffer += `
             <tr>
               <td>${idx++}</td>
               <td>${typeBadge}</td>
-              <td><strong>${data.propertyName || '-'}</strong></td>
-              <td>${data.supplierName || '-'}</td>
-              <td>${data.taxCardNumber || '-'}</td>
+              <td><strong>${escapeHTML(data.propertyName)}</strong></td>
+              <td>${escapeHTML(data.supplierName)}</td>
+              <td>${escapeHTML(data.taxCardNumber)}</td>
               <td>${taxBadge}</td>
               <td>${dateStr}</td>
               <td class="no-print">
@@ -589,6 +597,7 @@
             </tr>
           `;
         });
+        tbody.innerHTML = htmlBuffer;
       });
     },
 
@@ -596,7 +605,6 @@
       const q = query(collection(db, "credit_balances"), orderBy("createdAt", "asc"));
       onSnapshot(q, (snapshot) => {
         const tbody = $('creditTableBody');
-        tbody.innerHTML = '';
         this.currentCredit = [];
 
         if (snapshot.empty) {
@@ -604,28 +612,33 @@
           this.updateDashboard([]);
           return;
         }
+
         let idx = 1;
+        let htmlBuffer = '';
         snapshot.forEach(docSnap => {
-          const data = docSnap.data(); data.id = docSnap.id;
+          const data = docSnap.data(); 
+          data.id = docSnap.id;
           this.currentCredit.push(data);
+
           const typeBadge = data.type === 'deposit' ? '<span class="badge badge-deposit">مدين (لنا)</span>' : '<span class="badge badge-deduction">دائن (المستخدم)</span>';
-          tbody.innerHTML += `
+          
+          htmlBuffer += `
             <tr>
               <td>${idx++}</td>
-              <td><strong>${data.entity || '-'}</strong></td>
-              <td>${data.fileCode || '-'}</td>
+              <td><strong>${escapeHTML(data.entity)}</strong></td>
+              <td>${escapeHTML(data.fileCode)}</td>
               <td>${formatDateDMY(data.arrivalDate)}</td>
               <td>${formatDateDMY(data.departureDate)}</td>
               <td>${typeBadge}</td>
               <td><strong>${Number(data.amount || 0).toLocaleString()}</strong></td>
-              <td>${data.currency || 'EGP'}</td>
-              <td>${data.description || '-'}</td>
+              <td>${escapeHTML(data.currency || 'EGP')}</td>
+              <td>${escapeHTML(data.description)}</td>
               <td>${data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'}</td>
               <td><button class="delete-btn" onclick="App.deleteCredit('${docSnap.id}')">حذف</button></td>
             </tr>
           `;
         });
-        
+        tbody.innerHTML = htmlBuffer;
         this.updateDashboard(this.currentCredit);
       });
     },
@@ -650,7 +663,7 @@
       const formatCurr = (type) => {
         return ['EGP', 'USD', 'EUR'].map(c => {
           let val = type === 'deposit' ? totals[c].deposit : type === 'deduction' ? totals[c].deduction : totals[c].deposit - totals[c].deduction;
-          return `<span style="display:inline-block;dir:ltr;"><strong>${val.toLocaleString()}</strong> ${c}</span>`;
+          return `<span style="display:inline-block;direction:ltr;"><strong>${val.toLocaleString()}</strong> ${c}</span>`;
         }).join(' &nbsp;|&nbsp; ');
       };
 
@@ -659,17 +672,17 @@
       $('dashNetBalance').innerHTML = formatCurr('net');
 
       const tbody = $('entitySummaryTableBody');
-      tbody.innerHTML = '';
       let idx = 1;
+      let htmlBuffer = '';
       Object.keys(entityMap).forEach(k => {
         const e = entityMap[k];
         const net = e.deposit - e.deduction;
         const status = net > 0 ? '<span class="badge badge-deposit">رصيد مدين</span>' : net < 0 ? '<span class="badge badge-deduction">رصيد دائن</span>' : '<span class="badge">متزن</span>';
-        tbody.innerHTML += `
+        htmlBuffer += `
           <tr>
             <td>${idx++}</td>
-            <td><strong>${e.entity}</strong></td>
-            <td>${e.currency}</td>
+            <td><strong>${escapeHTML(e.entity)}</strong></td>
+            <td>${escapeHTML(e.currency)}</td>
             <td style="color:#15803d;">${e.deposit.toLocaleString()}</td>
             <td style="color:#b91c1c;">${e.deduction.toLocaleString()}</td>
             <td style="font-weight:700;">${net.toLocaleString()}</td>
@@ -677,6 +690,7 @@
           </tr>
         `;
       });
+      tbody.innerHTML = htmlBuffer || '<tr><td colspan="7" style="text-align:center;">لا توجد بيانات</td></tr>';
     },
 
     async saveSupplier() {
@@ -687,17 +701,25 @@
       const taxTypeVal = $('taxType').value;
       const taxRate = taxTypeVal === "0.03" ? 0.03 : taxTypeVal;
 
-      if(!propertyName || !supplierName || !taxCardNumber) return showToast('يرجى ملء كافة البيانات', 'error');
+      if (!propertyName || !supplierName || !taxCardNumber) return showToast('يرجى ملء كافة البيانات', 'error');
+
+      const btn = $('btnSaveSupplier');
+      btn.disabled = true; btn.innerText = 'جاري الحفظ...';
+
       try {
         await addDoc(collection(db, "tax_discount_records"), { supplierType, propertyName, supplierName, taxCardNumber, taxRate, createdAt: new Date() });
         showToast('تم الحفظ بنجاح!', 'success');
         $('propertyName').value = ''; $('supplierName').value = ''; $('taxCardNumber').value = '';
-      } catch (e) { showToast(e.message, 'error'); }
+      } catch (e) { 
+        showToast(e.message, 'error'); 
+      } finally {
+        btn.disabled = false; btn.innerText = 'حفظ البيانات';
+      }
     },
 
     async deleteSupplier(id) {
-      if (!confirm('تأكيد الحذف؟')) return;
-      try { await deleteDoc(doc(db, "tax_discount_records", id)); showToast('تم الحذف', 'success'); } 
+      if (!confirm('هل أنت تأكد من الحذف؟')) return;
+      try { await deleteDoc(doc(db, "tax_discount_records", id)); showToast('تم الحذف بنجاح', 'success'); } 
       catch (e) { showToast(e.message, 'error'); }
     },
 
@@ -722,31 +744,30 @@
       const supplierName = $('editSupplierName').value.trim();
       const taxCardNumber = $('editTaxCardNumber').value.trim();
       const taxRate = $('editTaxType').value === "0.03" ? 0.03 : "advance_payment";
-      if (!propertyName || !supplierName || !taxCardNumber) return showToast('املأ الحقول', 'error');
+      
+      if (!propertyName || !supplierName || !taxCardNumber) return showToast('يرجى ملء الحقول المطلوبة', 'error');
+      
       try {
         await updateDoc(doc(db, "tax_discount_records", id), { supplierType, propertyName, supplierName, taxCardNumber, taxRate });
-        showToast('تم التعديل!', 'success');
+        showToast('تم التعديل بنجاح!', 'success');
         this.closeEditModal();
       } catch (e) { showToast(e.message, 'error'); }
     },
 
     exportSuppliersList() {
-      if(this.currentSuppliers.length === 0) return showToast('لا توجد بيانات', 'error');
+      if (this.currentSuppliers.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
       const data = this.currentSuppliers.map((item, idx) => ({
-        "م": idx+1, "النوع": item.supplierType || 'فندق', "الاسم": item.propertyName || '',
-        "المورد": item.supplierName || '', "الرقم الضريبي": item.taxCardNumber || '',
+        "م": idx+1, 
+        "النوع": item.supplierType || 'فندق', 
+        "الاسم": item.propertyName || '',
+        "المورد": item.supplierName || '', 
+        "الرقم الضريبي": item.taxCardNumber || '',
         "حالة الضريبة": (item.taxRate === 0.03 || item.taxRate === "0.03") ? 'خاضع 3%' : 'دفعات مقدمة'
       }));
       const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "الموردين");
+      const wb = XLSX.utils.book_new(); 
+      XLSX.utils.book_append_sheet(wb, ws, "الموردين");
       XLSX.writeFile(wb, "Suppliers_List.xlsx");
-    },
-
-    exportSupplierToExcel() {
-      const data = [{ "النوع": $('supplierType').value, "الاسم": $('propertyName').value, "المورد": $('supplierName').value, "الرقم الضريبي": $('taxCardNumber').value }];
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "بيان");
-      XLSX.writeFile(wb, "Supplier_Entry.xlsx");
     },
 
     async saveCredit() {
@@ -755,17 +776,29 @@
       const arrivalDate = $('creditArrivalDate').value;
       const departureDate = $('creditDepartureDate').value;
       const type = $('creditType').value;
-      const rawAmount = $('creditAmount').value;
-      const amount = parseFloat(rawAmount) || 0;
+      const amount = parseFloat($('creditAmount').value) || 0;
       const currency = $('creditCurrency').value;
       const description = $('creditDescription').value.trim();
 
-      if (!entity || amount <= 0 || isNaN(amount)) return showToast('يرجى إدخال مبلغ صحيح والجهة', 'error');
+      if (!entity || amount <= 0) return showToast('يرجى إدخال مبلغ صحيح واسم الجهة', 'error');
+      
+      // التحقق من تاريخ الوصول والمغادرة
+      if (arrivalDate && departureDate && new Date(departureDate) < new Date(arrivalDate)) {
+        return showToast('تاريخ المغادرة لا يمكن أن يكون قبل تاريخ الوصول!', 'error');
+      }
+
+      const btn = $('btnSaveCredit');
+      btn.disabled = true; btn.innerText = 'جاري التسجيل...';
+
       try {
         await addDoc(collection(db, "credit_balances"), { entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, createdAt: new Date() });
         showToast('تم تسجيل الحركة بنجاح!', 'success');
         $('creditEntity').value = ''; $('creditFileCode').value = ''; $('creditAmount').value = ''; $('creditDescription').value = '';
-      } catch (e) { showToast(e.message, 'error'); }
+      } catch (e) { 
+        showToast(e.message, 'error'); 
+      } finally {
+        btn.disabled = false; btn.innerText = 'تسجيل الحركة';
+      }
     },
 
     async deleteCredit(id) {
@@ -775,39 +808,57 @@
     },
 
     exportCreditList() {
-      if(this.currentCredit.length === 0) return showToast('لا توجد بيانات', 'error');
+      if (this.currentCredit.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
       const data = this.currentCredit.map((item, idx) => ({
-        "م": idx+1, "الجهة": item.entity || '', "رقم الملف": item.fileCode || '',
-        "تاريخ الوصول": formatDateDMY(item.arrivalDate), "تاريخ المغادرة": formatDateDMY(item.departureDate),
-        "نوع الحركة": item.type === 'deposit' ? 'مدين (لنا)' : 'دائن (المستخدم)', "المبلغ": item.amount || 0,
-        "العملة": item.currency || 'EGP', "البيان": item.description || ''
+        "م": idx+1, 
+        "الجهة": item.entity || '', 
+        "رقم الملف": item.fileCode || '',
+        "تاريخ الوصول": formatDateDMY(item.arrivalDate), 
+        "تاريخ المغادرة": formatDateDMY(item.departureDate),
+        "نوع الحركة": item.type === 'deposit' ? 'مدين (لنا)' : 'دائن (المستخدم)', 
+        "المبلغ": item.amount || 0,
+        "العملة": item.currency || 'EGP', 
+        "البيان": item.description || ''
       }));
       const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "الكريديت");
+      const wb = XLSX.utils.book_new(); 
+      XLSX.utils.book_append_sheet(wb, ws, "الكريديت");
       XLSX.writeFile(wb, "Credit_List.xlsx");
     },
 
     async saveAviation() {
       const airline = $('airlineName').value.trim();
       const pnr = $('pnrNumber').value.trim();
-      if (!airline || !pnr) return showToast('املأ البيانات', 'error');
       const cost = parseFloat($('ticketCost').value) || 0;
-      try { await addDoc(collection(db, "aviation_bookings"), { airline, pnr, cost, createdAt: new Date() }); showToast('تم الحفظ', 'success'); } catch (e) { showToast(e.message, 'error'); }
+      if (!airline || !pnr) return showToast('املأ البيانات الحقول المطلوب', 'error');
+      try { 
+        await addDoc(collection(db, "aviation_bookings"), { airline, pnr, cost, createdAt: new Date() }); 
+        showToast('تم حفظ حجز الطيران بنجاح', 'success'); 
+        $('airlineName').value = ''; $('pnrNumber').value = ''; $('ticketCost').value = '';
+      } catch (e) { showToast(e.message, 'error'); }
     },
 
     async saveTicket() {
       const name = $('ticketName').value.trim();
       const qty = parseInt($('ticketQty').value) || 0;
-      if (!name || qty <= 0) return showToast('املأ البيانات', 'error');
       const price = parseFloat($('ticketUnitPrice').value) || 0;
-      try { await addDoc(collection(db, "attractions_tickets"), { ticketName: name, quantity: qty, unitPrice: price, createdAt: new Date() }); showToast('تم الحفظ', 'success'); } catch (e) { showToast(e.message, 'error'); }
+      if (!name || qty <= 0) return showToast('يرجى كتابة اسم المزار والكمية', 'error');
+      try { 
+        await addDoc(collection(db, "attractions_tickets"), { ticketName: name, quantity: qty, unitPrice: price, createdAt: new Date() }); 
+        showToast('تم حفظ التذاكر بنجاح', 'success'); 
+        $('ticketName').value = ''; $('ticketQty').value = ''; $('ticketUnitPrice').value = '';
+      } catch (e) { showToast(e.message, 'error'); }
     },
 
     async saveSettlement() {
       const fileCode = $('fileCode').value.trim();
-      if (!fileCode) return showToast('أدخل كود الملف', 'error');
       const guide = $('guideName').value.trim();
-      try { await addDoc(collection(db, "file_settlements"), { fileCode, guideName: guide, createdAt: new Date() }); showToast('تم الحفظ', 'success'); } catch (e) { showToast(e.message, 'error'); }
+      if (!fileCode) return showToast('أدخل كود الملف', 'error');
+      try { 
+        await addDoc(collection(db, "file_settlements"), { fileCode, guideName: guide, createdAt: new Date() }); 
+        showToast('تم تسجيل التصفية بنجاح', 'success'); 
+        $('fileCode').value = ''; $('guideName').value = '';
+      } catch (e) { showToast(e.message, 'error'); }
     }
   };
 
@@ -835,7 +886,6 @@
     $('stInfoFromDate').innerText = fromDate ? formatDateDMY(fromDate) : 'البداية';
     $('stInfoToDate').innerText = toDate ? formatDateDMY(toDate) : 'الآن';
 
-    // فلترة الحركات من سجّلات الكريديت فقط
     let records = App.currentCredit.filter(item => 
       (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
       (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
@@ -858,7 +908,6 @@
     }
 
     const tbody = $('statementRunningTbody');
-    tbody.innerHTML = '';
 
     if (records.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات كريديت مطابقة للجهة المحددة</td></tr>';
@@ -873,29 +922,26 @@
     let totalDebit = 0;
     let totalCredit = 0;
     let idx = 1;
+    let htmlBuffer = '';
 
     records.forEach(item => {
       const amt = parseFloat(item.amount) || 0;
       let debit = 0, credit = 0;
 
       if (item.type === 'deposit') {
-        debit = amt;
-        totalDebit += amt;
-        runningBalance += amt;
+        debit = amt; totalDebit += amt; runningBalance += amt;
       } else {
-        credit = amt;
-        totalCredit += amt;
-        runningBalance -= amt;
+        credit = amt; totalCredit += amt; runningBalance -= amt;
       }
 
       const dateStr = item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
-      tbody.innerHTML += `
+      htmlBuffer += `
         <tr>
           <td>${idx++}</td>
           <td>${dateStr}</td>
-          <td><strong style="color:#2563eb;">${item.fileCode || '-'}</strong></td>
-          <td style="text-align:right;">${item.description || '-'}</td>
+          <td><strong style="color:#2563eb;">${escapeHTML(item.fileCode)}</strong></td>
+          <td style="text-align:right;">${escapeHTML(item.description)}</td>
           <td style="color:#16a34a; font-weight:700;">${debit ? debit.toLocaleString() : '-'}</td>
           <td style="color:#dc2626; font-weight:700;">${credit ? credit.toLocaleString() : '-'}</td>
           <td style="color:#2563eb; font-weight:800; background:#f8fafc;">${runningBalance.toLocaleString()}</td>
@@ -903,7 +949,7 @@
       `;
     });
 
-    tbody.innerHTML += `
+    htmlBuffer += `
       <tr class="total-row">
         <td colspan="4" style="text-align:right;">📊 صافي الإجمالي للحساب المستقل</td>
         <td style="color:#16a34a;">${totalDebit.toLocaleString()}</td>
@@ -911,6 +957,8 @@
         <td style="color:#2563eb; background:#e0e7ff;">${runningBalance.toLocaleString()} ${currency}</td>
       </tr>
     `;
+
+    tbody.innerHTML = htmlBuffer;
 
     $('stCardDebit').innerText = `${totalDebit.toLocaleString()} ${currency}`;
     $('stCardCredit').innerText = `${totalCredit.toLocaleString()} ${currency}`;
@@ -927,9 +975,37 @@
   };
 
   window.exportStatementToExcel = function() {
-    const table = document.getElementById("statementRunningTable");
-    const wb = XLSX.utils.table_to_book(table, { sheet: "كشف حساب مستقل" });
-    XLSX.writeFile(wb, `Statement_${$('stEntityName').value || 'Unlinked'}.xlsx`);
+    const entity = $('stEntityName').value.trim();
+    if (!entity) return showToast('يرجى تحديد جهة وعرض الكشف أولاً', 'error');
+    
+    // بناء الملف نظيفاً من البيانات مباشرة بدلاً من الجدول المطبوع بالرموز
+    const currency = $('stCurrency').value;
+    let records = App.currentCredit.filter(item => 
+      (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
+      (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
+    );
+
+    let running = 0;
+    const cleanData = records.map((item, idx) => {
+      const amt = parseFloat(item.amount) || 0;
+      const debit = item.type === 'deposit' ? amt : 0;
+      const credit = item.type === 'deduction' ? amt : 0;
+      running += (debit - credit);
+      return {
+        "م": idx + 1,
+        "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-',
+        "رقم الملف": item.fileCode || '',
+        "البيان": item.description || '',
+        "مدين": debit,
+        "دائن": credit,
+        "الرصيد التراكمي": running
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(cleanData);
+    const wb = XLSX.utils.book_new(); 
+    XLSX.utils.book_append_sheet(wb, ws, "كشف حساب");
+    XLSX.writeFile(wb, `Statement_${entity}.xlsx`);
   };
 
   window.downloadStatementPDF = function() {
