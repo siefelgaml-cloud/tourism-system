@@ -479,7 +479,7 @@
 
             <div class="filter-panel no-print">
               <h4 style="margin-bottom:14px; color:#0f172a; display:flex; align-items:center; gap:8px; font-size:16px;">
-                🔍 البحث واختيار حساب الفندق / الجهة
+                🔍 البحث وااختيار حساب الفندق / الجهة
               </h4>
               <div class="form-row">
                 <div class="form-group" style="position:relative;">
@@ -516,43 +516,44 @@
               </div>
             </div>
 
-            <div class="statement-cards-row">
-              <div class="st-card debit">
-                <div class="st-card-info">
-                  <span class="st-card-title">إجمالي مدين (الكشف)</span>
-                  <span class="st-card-val" id="stCardDebit" style="color:#16a34a;">0</span>
-                </div>
-                <div class="st-card-icon">↑</div>
-              </div>
-
-              <div class="st-card credit">
-                <div class="st-card-info">
-                  <span class="st-card-title">إجمالي دائن (الكشف)</span>
-                  <span class="st-card-val" id="stCardCredit" style="color:#dc2626;">0</span>
-                </div>
-                <div class="st-card-icon">↓</div>
-              </div>
-
-              <div class="st-card balance">
-                <div class="st-card-info">
-                  <span class="st-card-title">رصيد الكشف التراكمي</span>
-                  <span class="st-card-val" id="stCardBalance" style="color:#2563eb;">0</span>
-                </div>
-                <div class="st-card-icon">⚖</div>
-              </div>
-            </div>
-
-            <div class="statement-info-bar">
-              <div>🏢 الجهة الحالية: <span id="stInfoEntity" style="font-weight:800;">-</span></div>
-              <div>💲 العملة: <span id="stInfoCurrency" style="font-weight:800;">-</span></div>
-              <div>📅 النطاق: <span id="stInfoFromDate">الكل</span> إلى <span id="stInfoToDate">الآن</span></div>
-            </div>
-
             <div id="printableStatementArea">
               <div class="pdf-report-header">
                 <h2>كشف حساب تفصيلي مستقل</h2>
                 <p id="pdfStatementSub">اسم الجهة: -</p>
               </div>
+
+              <div class="statement-cards-row">
+                <div class="st-card debit">
+                  <div class="st-card-info">
+                    <span class="st-card-title">إجمالي مدين (الكشف)</span>
+                    <span class="st-card-val" id="stCardDebit" style="color:#16a34a;">0</span>
+                  </div>
+                  <div class="st-card-icon">↑</div>
+                </div>
+
+                <div class="st-card credit">
+                  <div class="st-card-info">
+                    <span class="st-card-title">إجمالي دائن (الكشف)</span>
+                    <span class="st-card-val" id="stCardCredit" style="color:#dc2626;">0</span>
+                  </div>
+                  <div class="st-card-icon">↓</div>
+                </div>
+
+                <div class="st-card balance">
+                  <div class="st-card-info">
+                    <span class="st-card-title">رصيد الكشف التراكمي</span>
+                    <span class="st-card-val" id="stCardBalance" style="color:#2563eb;">0</span>
+                  </div>
+                  <div class="st-card-icon">⚖</div>
+                </div>
+              </div>
+
+              <div class="statement-info-bar">
+                <div>🏢 الجهة الحالية: <span id="stInfoEntity" style="font-weight:800;">-</span></div>
+                <div>💲 العملة: <span id="stInfoCurrency" style="font-weight:800;">-</span></div>
+                <div>📅 النطاق: <span id="stInfoFromDate">الكل</span> إلى <span id="stInfoToDate">الآن</span></div>
+              </div>
+
               <div class="table-wrapper">
                 <table class="running-table" id="statementRunningTable">
                   <thead>
@@ -1450,7 +1451,7 @@
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
           htmlBuffer += `
-            <tr data-guide="${escapeHTML(data.guideName || '')}" data-commission="${commissionAmount}">
+            <tr data-guide="${escapeHTML((data.guideName || '').trim())}" data-commission="${commissionAmount}">
               <td>${idx++}</td>
               <td><strong style="color:#2563eb;">${escapeHTML(data.fileCode)}</strong></td>
               <td>${escapeHTML(data.guideName || '-')}</td>
@@ -1563,11 +1564,11 @@
 
     exportSettlementsList() {
       if (this.currentSettlements.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase() : '';
-      const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase() : '';
+      const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase().trim() : '';
+      const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase().trim() : '';
 
       const filtered = this.currentSettlements.filter(item => {
-        const guide = (item.guideName || '').toLowerCase();
+        const guide = (item.guideName || '').toLowerCase().trim();
         const matchesOp = !selectedOperator || guide === selectedOperator;
         const matchesText = !filterText || JSON.stringify(item).toLowerCase().includes(filterText);
         return matchesOp && matchesText;
@@ -1677,7 +1678,6 @@
   // SEARCH AUTOCOMPLETE IN STATEMENT TAB
   window.searchStatementEntities = function() {
     const queryText = $('stEntityName').value.trim().toLowerCase();
-    const selectedCurrency = $('stCurrency').value.toUpperCase();
     const container = $('stEntitySuggestions');
 
     if (!queryText) {
@@ -1829,10 +1829,20 @@
     const entity = $('stEntityName').value.trim();
     if (!entity) return showToast('يرجى تحديد جهة وعرض الكشف أولاً', 'error');
     const currency = $('stCurrency').value;
+    const filterFileCode = $('stFileCode').value.trim().toLowerCase();
+    const fromDate = $('stFromDate').value;
+    const toDate = $('stToDate').value;
+
     let records = App.currentCredit.filter(item => 
       (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
       (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
     );
+
+    if (filterFileCode) records = records.filter(r => (r.fileCode || '').toLowerCase().includes(filterFileCode));
+    if (fromDate) records = records.filter(r => (r.createdAt ? new Date(r.createdAt.seconds * 1000).toISOString().slice(0,10) : '') >= fromDate);
+    if (toDate) records = records.filter(r => (r.createdAt ? new Date(r.createdAt.seconds * 1000).toISOString().slice(0,10) : '') <= toDate);
+
+    if (records.length === 0) return showToast('لا توجد بيانات مطابقة للتصدير', 'error');
 
     let running = 0;
     const cleanData = records.map((item) => {
@@ -1914,6 +1924,11 @@
     const target = $(subTabName);
     if (!target) return;
     const parent = target.closest('.tab-content');
+    
+    // Ensure parent tab is active
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    parent.classList.add('active');
+
     parent.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
     
     const container = target.parentElement;
@@ -1939,11 +1954,11 @@
   window.filterTicketsTable = () => createTableFilter('searchTickets', 'ticketsTable');
 
   window.filterSettlementsTable = () => {
-    const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase() : '';
-    const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase() : '';
+    const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase().trim() : '';
+    const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase().trim() : '';
 
     document.querySelectorAll('#settlementsTable tbody tr').forEach(tr => {
-      const guideAttr = (tr.getAttribute('data-guide') || '').toLowerCase();
+      const guideAttr = (tr.getAttribute('data-guide') || '').toLowerCase().trim();
       const txt = tr.textContent.toLowerCase();
 
       const matchesOperator = !selectedOperator || guideAttr === selectedOperator;
