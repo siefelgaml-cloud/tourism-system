@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>منظومة الحسابات السياحية الشاملة المتطورة</title>
-  <!-- مكتبة Excel -->
+  <!-- Excel Library -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- مكتبة PDF -->
+  <!-- PDF Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
   <style>
@@ -153,7 +153,7 @@
     .running-table tr:hover td { background: #f8fafc; }
     .running-table .total-row td { background: #f1f5f9; font-weight: 800; font-size: 15px; border-top: 2px solid #cbd5e1; }
 
-    /* Master Dashboard styles */
+    /* Dashboard Grid Styles */
     .dashboard-grid { display: flex; gap: 18px; margin-bottom: 25px; flex-wrap: wrap; }
     .dash-card {
       flex: 1; min-width: 210px; padding: 20px;
@@ -744,7 +744,7 @@
             </div>
           </div>
 
-          <!-- شريط التصفية والملخص بالعمولات -->
+          <!-- Operator Filter Panel -->
           <div class="filter-panel no-print" style="margin-bottom:15px;">
             <div class="form-row" style="margin-bottom:0; align-items:center;">
               <div class="form-group" style="margin-bottom:0;">
@@ -756,14 +756,14 @@
             </div>
           </div>
 
-          <!-- تضمين منطقة الطباعة لكي تحتوي كارت الإجمالي -->
+          <!-- Printable Area Container -->
           <div id="printableSettlementArea">
             <div class="pdf-report-header">
               <h2>تقرير تصفيات الأوبريتور والملفات</h2>
               <p>منظومة الحسابات السياحية</p>
             </div>
 
-            <!-- بطاقة إجمالي مبلغ العمولة -->
+            <!-- Total Commission Summary Card -->
             <div class="statement-cards-row" style="margin-bottom:15px;">
               <div class="st-card commission">
                 <div class="st-card-info">
@@ -806,7 +806,7 @@
 </div>
 
 <!-- ================= MODALS ================= -->
-<!-- Modal تعديل المورد -->
+<!-- Modal Edit Supplier -->
 <div id="editSupplierModal" class="modal-overlay">
   <div class="modal-content">
     <h3>تعديل المورد</h3>
@@ -823,7 +823,7 @@
   </div>
 </div>
 
-<!-- Modal تعديل الطيران -->
+<!-- Modal Edit Aviation -->
 <div id="editAviationModal" class="modal-overlay">
   <div class="modal-content">
     <h3>تعديل حجز الطيران</h3>
@@ -850,7 +850,7 @@
   </div>
 </div>
 
-<!-- Modal تعديل التذاكر -->
+<!-- Modal Edit Ticket -->
 <div id="editTicketModal" class="modal-overlay">
   <div class="modal-content">
     <h3>تعديل تذكرة المزار</h3>
@@ -875,7 +875,7 @@
   </div>
 </div>
 
-<!-- Modal تعديل التصفية -->
+<!-- Modal Edit Settlement -->
 <div id="editSettlementModal" class="modal-overlay">
   <div class="modal-content">
     <h3>تعديل تصفية الملف</h3>
@@ -951,7 +951,7 @@
     currentTickets: [],
     currentSettlements: [],
 
-    // 1. SUPPLIERS (الخصم والإضافة)
+    // 1. SUPPLIERS
     listenToSuppliers() {
       const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -1063,7 +1063,7 @@
       XLSX.writeFile(wb, "Suppliers_List.xlsx");
     },
 
-    // 2. CREDIT BALANCES (أرصدة الكريديت)
+    // 2. CREDIT BALANCES
     listenToCredit() {
       const q = query(collection(db, "credit_balances"), orderBy("createdAt", "asc"));
       onSnapshot(q, (snapshot) => {
@@ -1198,7 +1198,7 @@
       tbody.innerHTML = htmlBuffer || '<tr><td colspan="7" style="text-align:center;">لا توجد بيانات</td></tr>';
     },
 
-    // 3. AVIATION (حجوزات الطيران)
+    // 3. AVIATION
     listenToAviation() {
       const q = query(collection(db, "aviation_bookings"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -1308,7 +1308,7 @@
       XLSX.writeFile(wb, "Aviation_Bookings.xlsx");
     },
 
-    // 4. TICKETS INVENTORY (مخزون التذاكر)
+    // 4. TICKETS INVENTORY
     listenToTickets() {
       const q = query(collection(db, "attractions_tickets"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -1438,7 +1438,7 @@
           const revenue = parseFloat(data.revenue) || 0;
           const expenses = parseFloat(data.expenses) || 0;
           
-          // الحسابات المطلوبة
+          // Calculation formulas
           const profit = revenue - expenses;
           const netAfterTax = profit / 1.14;
           const commissionRate = 0.10; // 10%
@@ -1953,18 +1953,18 @@
   window.filterAviationTable = () => createTableFilter('searchAviation', 'aviationTable');
   window.filterTicketsTable = () => createTableFilter('searchTickets', 'ticketsTable');
 
-  window.filterSettlementsTable = function() {
-    const filter = $('searchSettlements').value.toLowerCase().trim();
+  window.filterSettlementsTable = () => {
     const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase().trim() : '';
+    const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase().trim() : '';
 
     document.querySelectorAll('#settlementsTable tbody tr').forEach(tr => {
-      const txt = tr.textContent.toLowerCase();
-      const guide = (tr.getAttribute('data-guide') || '').toLowerCase().trim();
+      const guideName = (tr.getAttribute('data-guide') || '').toLowerCase().trim();
+      const trText = tr.textContent.toLowerCase();
 
-      const matchesText = txt.includes(filter);
-      const matchesOperator = !selectedOperator || guide === selectedOperator;
+      const matchesOperator = !selectedOperator || guideName === selectedOperator;
+      const matchesSearch = !filterText || trText.includes(filterText);
 
-      if (matchesText && matchesOperator) {
+      if (matchesOperator && matchesSearch) {
         tr.style.display = '';
       } else {
         tr.style.display = 'none';
@@ -1973,9 +1973,6 @@
 
     App.updateSettlementTotalCommission();
   };
-
-  window.printSuppliersList = () => window.print();
-  window.printDashboard = () => window.print();
 </script>
 </body>
 </html>
