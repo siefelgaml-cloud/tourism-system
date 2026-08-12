@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>منظومة الحسابات السياحية الشاملة المتطورة</title>
-  <!-- Excel Library -->
+  <!-- مكتبة Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- PDF Library -->
+  <!-- مكتبة PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
   <style>
@@ -153,7 +153,7 @@
     .running-table tr:hover td { background: #f8fafc; }
     .running-table .total-row td { background: #f1f5f9; font-weight: 800; font-size: 15px; border-top: 2px solid #cbd5e1; }
 
-    /* Dashboard Grid Styles */
+    /* Master Dashboard styles */
     .dashboard-grid { display: flex; gap: 18px; margin-bottom: 25px; flex-wrap: wrap; }
     .dash-card {
       flex: 1; min-width: 210px; padding: 20px;
@@ -744,7 +744,7 @@
             </div>
           </div>
 
-          <!-- Operator Filter Panel -->
+          <!-- شريط التصفية والملخص بالعمولات -->
           <div class="filter-panel no-print" style="margin-bottom:15px;">
             <div class="form-row" style="margin-bottom:0; align-items:center;">
               <div class="form-group" style="margin-bottom:0;">
@@ -756,14 +756,14 @@
             </div>
           </div>
 
-          <!-- Printable Area Container -->
+          <!-- تضمين منطقة الطباعة لكي تحتوي كارت الإجمالي -->
           <div id="printableSettlementArea">
             <div class="pdf-report-header">
               <h2>تقرير تصفيات الأوبريتور والملفات</h2>
               <p>منظومة الحسابات السياحية</p>
             </div>
 
-            <!-- Total Commission Summary Card -->
+            <!-- بطاقة إجمالي مبلغ العمولة -->
             <div class="statement-cards-row" style="margin-bottom:15px;">
               <div class="st-card commission">
                 <div class="st-card-info">
@@ -806,7 +806,7 @@
 </div>
 
 <!-- ================= MODALS ================= -->
-<!-- Modal Edit Supplier -->
+<!-- Modal تعديل المورد -->
 <div id="editSupplierModal" class="modal-overlay">
   <div class="modal-content">
     <h3>تعديل المورد</h3>
@@ -823,7 +823,7 @@
   </div>
 </div>
 
-<!-- Modal Edit Aviation -->
+<!-- Modal تعديل الطيران -->
 <div id="editAviationModal" class="modal-overlay">
   <div class="modal-content">
     <h3>تعديل حجز الطيران</h3>
@@ -850,7 +850,7 @@
   </div>
 </div>
 
-<!-- Modal Edit Ticket -->
+<!-- Modal تعديل التذاكر -->
 <div id="editTicketModal" class="modal-overlay">
   <div class="modal-content">
     <h3>تعديل تذكرة المزار</h3>
@@ -875,7 +875,7 @@
   </div>
 </div>
 
-<!-- Modal Edit Settlement -->
+<!-- Modal تعديل التصفية -->
 <div id="editSettlementModal" class="modal-overlay">
   <div class="modal-content">
     <h3>تعديل تصفية الملف</h3>
@@ -951,7 +951,7 @@
     currentTickets: [],
     currentSettlements: [],
 
-    // 1. SUPPLIERS
+    // 1. SUPPLIERS (الخصم والإضافة)
     listenToSuppliers() {
       const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -1063,7 +1063,7 @@
       XLSX.writeFile(wb, "Suppliers_List.xlsx");
     },
 
-    // 2. CREDIT BALANCES
+    // 2. CREDIT BALANCES (أرصدة الكريديت)
     listenToCredit() {
       const q = query(collection(db, "credit_balances"), orderBy("createdAt", "asc"));
       onSnapshot(q, (snapshot) => {
@@ -1198,7 +1198,7 @@
       tbody.innerHTML = htmlBuffer || '<tr><td colspan="7" style="text-align:center;">لا توجد بيانات</td></tr>';
     },
 
-    // 3. AVIATION
+    // 3. AVIATION (حجوزات الطيران)
     listenToAviation() {
       const q = query(collection(db, "aviation_bookings"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -1308,7 +1308,7 @@
       XLSX.writeFile(wb, "Aviation_Bookings.xlsx");
     },
 
-    // 4. TICKETS INVENTORY
+    // 4. TICKETS INVENTORY (مخزون التذاكر)
     listenToTickets() {
       const q = query(collection(db, "attractions_tickets"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -1438,7 +1438,7 @@
           const revenue = parseFloat(data.revenue) || 0;
           const expenses = parseFloat(data.expenses) || 0;
           
-          // Calculation formulas
+          // الحسابات المطلوبة
           const profit = revenue - expenses;
           const netAfterTax = profit / 1.14;
           const commissionRate = 0.10; // 10%
@@ -1863,17 +1863,42 @@
     XLSX.writeFile(wb, `Statement_${entity}.xlsx`);
   };
 
-  // ENHANCED PDF EXPORTS FOR ALL MODULES
-  const generatePDFReport = (elementId, filename) => {
+  // ENHANCED PDF EXPORTS FOR ALL MODULES (FIXED FOR ARABIC & RENDERING)
+  const generatePDFReport = async (elementId, filename) => {
     const el = $(elementId);
+    if (!el) return showToast('العنصر المراد طباعته غير موجود', 'error');
+
+    showToast('جاري تحضير ملف الـ PDF...', 'info', 2000);
+
+    // إظهار الترويسة المسؤولة عن عنوان التقرير مؤقتاً لتدخل ضمن تصدير ה-PDF
+    const headerEl = el.querySelector('.pdf-report-header');
+    if (headerEl) headerEl.style.display = 'block';
+
     const opt = {
-      margin: 10,
+      margin: [10, 10, 10, 10],
       filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+        letterRendering: true
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
-    html2pdf().set(opt).from(el).save();
+
+    try {
+      await html2pdf().set(opt).from(el).save();
+      showToast('تم إخراج ملف الـ PDF بنجاح!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('حدث خطأ أثناء استخراج الـ PDF', 'error');
+    } finally {
+      // إعادة إخفاء الترويسة بعد توليد الملف لتنسيق الشاشة العادي
+      if (headerEl) headerEl.style.display = 'none';
+    }
   };
 
   window.downloadMasterDashboardPDF = () => generatePDFReport('printableMasterDashboard', `Master_Dashboard_${new Date().toISOString().slice(0,10)}.pdf`);
@@ -1883,6 +1908,10 @@
   window.downloadAviationPDF = () => generatePDFReport('printableAviationArea', `Aviation_Report_${new Date().toISOString().slice(0,10)}.pdf`);
   window.downloadTicketsPDF = () => generatePDFReport('printableTicketsArea', `Tickets_Inventory_Report_${new Date().toISOString().slice(0,10)}.pdf`);
   window.downloadSettlementsPDF = () => generatePDFReport('printableSettlementArea', `Settlements_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+
+  // PRINT HELPERS
+  window.printSuppliersList = () => window.print();
+  window.printDashboard = () => window.print();
 
   // INITIALIZATION AND MENU NAVIGATION
   App.listenToSuppliers();
@@ -1974,5 +2003,6 @@
     App.updateSettlementTotalCommission();
   };
 </script>
+
 </body>
 </html>
