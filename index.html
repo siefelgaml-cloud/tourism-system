@@ -396,12 +396,10 @@
               <div class="form-row">
                 <div class="form-group">
                   <label>اسم المورد / الجهة</label>
-                  <!-- تم حذف oninput لتتم المعالجة فقط عند الضغط على زر البحث -->
                   <input type="text" id="stEntityName" placeholder="أدخل اسم الجهة كلياً...">
                 </div>
                 <div class="form-group">
                   <label>العملة</label>
-                  <!-- تم حذف onchange لتتم المعالجة فقط عند الضغط على زر البحث -->
                   <select id="stCurrency">
                     <option value="USD">USD</option>
                     <option value="EGP">EGP</option>
@@ -410,23 +408,19 @@
                 </div>
                 <div class="form-group">
                   <label>رقم الملف</label>
-                  <!-- تم حذف oninput لتتم المعالجة فقط عند الضغط على زر البحث -->
                   <input type="text" id="stFileCode" placeholder="بحث برقم الملف...">
                 </div>
               </div>
               <div class="form-row" style="margin-bottom:0;">
                 <div class="form-group" style="margin-bottom:0;">
                   <label>من تاريخ</label>
-                  <!-- تم حذف onchange لتتم المعالجة فقط عند الضغط على زر البحث -->
                   <input type="date" id="stFromDate">
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
                   <label>إلى تاريخ</label>
-                  <!-- تم حذف onchange لتتم المعالجة فقط عند الضغط على زر البحث -->
                   <input type="date" id="stToDate">
                 </div>
                 <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end; gap:10px;">
-                  <!-- عند الضغط على البحث يتم تحديث الشاشة بناءً على التواريخ والبيانات -->
                   <button class="search-btn" style="width:100%; height:42px;" onclick="renderRunningStatement()">🔍 تحديث الكشف</button>
                   <button class="print-btn" style="height:42px;" onclick="resetStatementFilters()">🔄 إعادة ضبط</button>
                 </div>
@@ -815,7 +809,6 @@
     }
   };
 
-  /* يتم استدعاء هذه الدالة فقط عند النقر على زر "تحديث الكشف" */
   window.renderRunningStatement = function() {
     const entity = $('stEntityName').value.trim();
     const currency = $('stCurrency').value;
@@ -834,7 +827,6 @@
       return;
     }
 
-    // تحديث بيانات شريط المعلومات العلوية بالكشف بناءً على القيم وقت البحث
     $('stInfoEntity').innerText = entity;
     $('stInfoCurrency').innerText = currency;
     $('stInfoFromDate').innerText = fromDate ? formatDateDMY(fromDate) : 'البداية';
