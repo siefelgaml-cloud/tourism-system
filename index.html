@@ -257,6 +257,9 @@
 </head>
 <body>
 
+<!-- قائمة الاقتراحات الموحدة المربوطة بمدخلات اسم الجهة -->
+<datalist id="entitiesDataList"></datalist>
+
 <div id="appScreen">
   <div class="header">
     <h2>📊 منظومة الحسابات والتصفية الشاملة</h2>
@@ -329,7 +332,8 @@
         <div id="addCreditSubTab" class="sub-tab-content active">
           <h3>تسجيل حركة كريديت</h3>
           <div class="form-row">
-            <div class="form-group"><label>الجهة</label><input type="text" id="creditEntity" placeholder="اسم الفندق/العميل"></div>
+            <!-- إضافة خاصية list لتجلب اقتراحات أسماء الموردين تلقائياً -->
+            <div class="form-group"><label>الجهة</label><input type="text" id="creditEntity" list="entitiesDataList" placeholder="أدخل أو اختر اسم المورد/الجهة..." autocomplete="off"></div>
             <div class="form-group"><label>رقم الملف</label><input type="text" id="creditFileCode" placeholder="EG-2026-99"></div>
           </div>
           <div class="form-row">
@@ -396,7 +400,8 @@
               <div class="form-row">
                 <div class="form-group">
                   <label>اسم المورد / الجهة</label>
-                  <input type="text" id="stEntityName" placeholder="أدخل اسم الجهة كلياً...">
+                  <!-- إضافة قائمة الاقتراحات التلقائية لكشف الحساب أيضاً -->
+                  <input type="text" id="stEntityName" list="entitiesDataList" placeholder="أدخل أو اختر اسم الجهة..." autocomplete="off">
                 </div>
                 <div class="form-group">
                   <label>العملة</label>
@@ -550,6 +555,26 @@
     currentSuppliers: [],
     currentCredit: [],
 
+    // دالة تحديث قائمة الاقتراحات التلقائية لأسماء الموردين
+    updateEntitiesDatalist() {
+      const datalist = $('entitiesDataList');
+      if (!datalist) return;
+
+      const supplierPropertyNames = this.currentSuppliers.map(s => s.propertyName);
+      const supplierNames = this.currentSuppliers.map(s => s.supplierName);
+      const creditEntities = this.currentCredit.map(c => c.entity);
+
+      // دمج وتجميع الأسماء مع إزالة الفراغات والتكرار
+      const allNames = [...supplierPropertyNames, ...supplierNames, ...creditEntities];
+      const uniqueNames = [...new Set(allNames)]
+        .map(name => name ? name.trim() : '')
+        .filter(name => name !== '');
+
+      datalist.innerHTML = uniqueNames
+        .map(name => `<option value="${name}"></option>`)
+        .join('');
+    },
+
     listenToSuppliers() {
       const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -559,6 +584,7 @@
 
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا توجد بيانات</td></tr>';
+          this.updateEntitiesDatalist();
           return;
         }
         let idx = 1;
@@ -587,6 +613,7 @@
             </tr>
           `;
         });
+        this.updateEntitiesDatalist();
       });
     },
 
@@ -600,6 +627,7 @@
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">لا توجد حركات</td></tr>';
           this.updateDashboard([]);
+          this.updateEntitiesDatalist();
           return;
         }
         let idx = 1;
@@ -625,6 +653,7 @@
         });
         
         this.updateDashboard(this.currentCredit);
+        this.updateEntitiesDatalist();
       });
     },
 
@@ -809,6 +838,7 @@
     }
   };
 
+  /* يتم استدعاء هذه الدالة فقط عند النقر على زر "تحديث الكشف" */
   window.renderRunningStatement = function() {
     const entity = $('stEntityName').value.trim();
     const currency = $('stCurrency').value;
@@ -827,6 +857,7 @@
       return;
     }
 
+    // تحديث بيانات شريط المعلومات العلوية بالكشف بناءً على القيم وقت البحث
     $('stInfoEntity').innerText = entity;
     $('stInfoCurrency').innerText = currency;
     $('stInfoFromDate').innerText = fromDate ? formatDateDMY(fromDate) : 'البداية';
