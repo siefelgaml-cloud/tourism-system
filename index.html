@@ -10,7 +10,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
   <style>
-    /* ===== خطوط احترافية ===== */
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -19,7 +18,7 @@
       padding: 20px;
       direction: rtl;
     }
-    /* ===== الهيدر ===== */
+    
     .header {
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       color: white;
@@ -32,14 +31,10 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .header h2 { font-weight: 800; letter-spacing: 1px; font-size: 22px; }
-    .header-actions { display: flex; gap: 12px; align-items: center; }
     .user-email { color: #94a3b8; font-size: 14px; font-weight: 400; }
 
-    /* ===== تخطيط التطبيق الرئيسي ===== */
-    #appScreen { display: block; }
     .app-layout { display: flex; gap: 24px; align-items: flex-start; }
 
-    /* ===== الشريط الجانبي العصري ===== */
     .tabs-vertical {
       width: 260px; flex-shrink: 0; background: #ffffff;
       border-radius: 16px; padding: 12px 10px;
@@ -65,7 +60,6 @@
     .sub-tab-btn:hover { background: #f8fafc; color: #1e293b; }
     .sub-tab-btn.active { background: #0d9488; color: white; font-weight: 700; }
 
-    /* ===== منطقة المحتوى ===== */
     .main-content-area { flex: 1; min-width: 0; }
     .tab-content {
       display: none; background: white; padding: 28px;
@@ -77,7 +71,6 @@
     .sub-tab-content.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ===== الفورم ===== */
     .form-row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 8px; }
     .form-group { flex: 1; min-width: 200px; margin-bottom: 18px; }
     label { display: block; margin-bottom: 6px; font-weight: 700; color: #1e293b; font-size: 14px; }
@@ -93,7 +86,6 @@
     .amount-input-group { display: flex; gap: 8px; align-items: center; max-width: 400px; }
     .amount-input-group input { flex: 2; }
 
-    /* ===== الأزرار ===== */
     .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     button, .btn-label {
       padding: 10px 20px; border: none; border-radius: 10px;
@@ -113,7 +105,7 @@
     .search-btn { background: #2563eb; color: white; }
     .search-btn:hover { background: #1d4ed8; transform: scale(1.02); }
 
-    /* ===== تصميم كشف الحساب الاحترافي (Running Balance UI) ===== */
+    /* تصميم كشف الحساب المستقل */
     .statement-container {
       background: #f8fafc;
       border-radius: 16px;
@@ -187,14 +179,13 @@
       margin-bottom: 20px;
     }
 
-    /* جدول كشف الحساب المصمم حديثاً */
     .running-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; }
     .running-table th { background: #1e293b; color: white; font-weight: 700; padding: 14px; text-align: center; font-size: 14px; }
     .running-table td { padding: 12px 14px; text-align: center; border-bottom: 1px solid #e2e8f0; background: white; font-size: 14px; }
     .running-table tr:hover td { background: #f8fafc; }
     .running-table .total-row td { background: #f1f5f9; font-weight: 800; font-size: 15px; border-top: 2px solid #cbd5e1; }
 
-    /* ===== بطاقات Dashboard ===== */
+    /* Dashboard UI */
     .dashboard-grid { display: flex; gap: 18px; margin-bottom: 25px; flex-wrap: wrap; }
     .dash-card {
       flex: 1; min-width: 180px; padding: 18px 22px;
@@ -204,7 +195,6 @@
     .dash-card-title { font-size: 13px; font-weight: 700; display: block; margin-bottom: 6px; color: #64748b; }
     .dash-card-value { font-size: 22px; font-weight: 800; direction: ltr; text-align: right; }
 
-    /* ===== الجداول العامة ===== */
     .table-wrapper { overflow-x: auto; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     th { background: #f1f5f9; color: #1e293b; font-weight: 700; padding: 12px 14px; text-align: right; border-bottom: 2px solid #e2e8f0; }
@@ -218,10 +208,7 @@
     .badge-deduction { background: #fee2e2; color: #b91c1c; }
     .badge-taxable { background: #dcfce7; color: #166534; }
     .badge-advance { background: #e0e7ff; color: #3730a3; }
-    .clickable-supplier { color: #2563eb; cursor: pointer; text-decoration: underline; font-weight: 700; }
-    .clickable-supplier:hover { color: #1d4ed8; }
 
-    /* ===== المودال ===== */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15,23,42,0.6); backdrop-filter: blur(4px);
@@ -233,7 +220,6 @@
       max-height: 85vh; overflow-y: auto;
     }
 
-    /* ===== نظام الإشعارات (Toast) ===== */
     .toast-container {
       position: fixed; top: 20px; left: 20px; z-index: 9999;
       display: flex; flex-direction: column; gap: 10px;
@@ -249,7 +235,6 @@
     .toast.info { background: #2563eb; }
     @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
 
-    /* ===== الطباعة ===== */
     @media print {
       body * { visibility: hidden; }
       #printableArea, #printableArea *, #printableSuppliersArea, #printableSuppliersArea *,
@@ -257,29 +242,17 @@
       #printableArea, #printableSuppliersArea, #printableStatementArea { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
       .no-print { display: none !important; }
     }
-    @media (max-width: 768px) {
-      .app-layout { flex-direction: column; }
-      .tabs-vertical { width: 100%; }
-      .dashboard-grid { flex-direction: column; }
-      .header { flex-direction: column; gap: 10px; align-items: stretch; text-align: center; }
-    }
   </style>
 </head>
 <body>
 
-<!-- ========================================================= -->
-<!-- 1. التطبيق الرئيسي -->
-<!-- ========================================================= -->
 <div id="appScreen">
   <div class="header">
     <h2>📊 منظومة الحسابات والتصفية الشاملة</h2>
-    <div class="header-actions">
-      <span class="user-email">🔓 وضع الضيف</span>
-    </div>
+    <div class="user-email">🔓 وضع المستقل</div>
   </div>
 
   <div class="app-layout">
-    <!-- القائمة الجانبية -->
     <div class="tabs-vertical">
       <button class="tab-btn active" id="taxDiscountBtn" onclick="toggleTaxDiscountMenu(event)">
         <span>📋 الخصم والإضافة</span>
@@ -298,8 +271,7 @@
         <button class="sub-tab-btn active" onclick="openSubTab(event, 'addCreditSubTab')">1- تسجيل حركة</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'creditRecordsSubTab')">2- سجل العمليات</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'creditSummarySubTab')">3- الملخص والـ Dashboard</button>
-        <!-- التبويب: كشف الحساب -->
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditStatementSubTab')">4- كشف الحساب</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditStatementSubTab')">4- كشف الحساب المستقل</button>
       </div>
 
       <button class="tab-btn" onclick="openTab(event, 'aviationTab')"><span>✈️ حجوزات الطيران</span></button>
@@ -307,10 +279,7 @@
       <button class="tab-btn" onclick="openTab(event, 'settlementTab')"><span>📄 تصفية الأوبريتور</span></button>
     </div>
 
-    <!-- المحتوى -->
     <div class="main-content-area">
-      
-      <!-- تبويب الخصم والإضافة -->
       <div id="taxDiscountTab" class="tab-content active">
         <div id="addSupplierSubTab" class="sub-tab-content active">
           <h3>تسجيل مورد جديد</h3>
@@ -326,12 +295,11 @@
           <div class="btn-group">
             <button class="submit-btn" onclick="App.saveSupplier()">حفظ البيانات</button>
             <button class="excel-btn" onclick="App.exportSupplierToExcel()">📊 تصدير الحقل</button>
-            <label class="excel-btn btn-label">📥 استيراد من Excel <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="App.importSuppliers(event)"></label>
           </div>
         </div>
 
         <div id="suppliersListSubTab" class="sub-tab-content">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h3>سجل الموردين</h3>
             <div class="btn-group no-print" style="margin:0;">
               <button class="print-btn" onclick="printSuppliersList()">𖥕 طباعة</button>
@@ -341,12 +309,11 @@
             </div>
           </div>
           <div id="printableSuppliersArea">
-            <div class="table-wrapper"><table id="suppliersTable"><thead><tr><th>#</th><th>النوع</th><th>الاسم</th><th>المورد</th><th>الرقم الضريبي</th><th>حالة الضريبة</th><th>التاريخ</th><th class="no-print">إجراءات</th></tr></thead><tbody id="suppliersTableBody"><tr><td colspan="8" style="text-align:center;color:#64748b;">جاري التحميل...</td></tr></tbody></table></div>
+            <div class="table-wrapper"><table id="suppliersTable"><thead><tr><th>#</th><th>النوع</th><th>الاسم</th><th>المورد</th><th>الرقم الضريبي</th><th>حالة الضريبة</th><th>التاريخ</th><th class="no-print">إجراءات</th></tr></thead><tbody id="suppliersTableBody"><tr><td colspan="8" style="text-align:center;">جاري التحميل...</td></tr></tbody></table></div>
           </div>
         </div>
       </div>
 
-      <!-- تبويب الكريديت -->
       <div id="creditTab" class="tab-content">
         <div id="addCreditSubTab" class="sub-tab-content active">
           <h3>تسجيل حركة كريديت</h3>
@@ -365,98 +332,67 @@
           <div class="form-group"><label>البيان</label><textarea id="creditDescription" placeholder="تفاصيل الحركة..."></textarea></div>
           <div class="btn-group">
             <button class="submit-btn" onclick="App.saveCredit()">تسجيل الحركة</button>
-            <label class="excel-btn btn-label">📥 استيراد من Excel <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="App.importCredit(event)"></label>
           </div>
         </div>
 
         <div id="creditRecordsSubTab" class="sub-tab-content">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-            <h3>سجل الكريديت</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3>سجل العمليات</h3>
             <div style="display:flex; gap:10px; align-items:center;">
               <input type="text" id="searchCredit" placeholder="🔍 بحث..." onkeyup="filterCreditTable()" style="max-width:200px;">
               <button class="excel-btn" onclick="App.exportCreditList()">📊 Excel</button>
             </div>
           </div>
-          <div class="table-wrapper"><table id="creditTable"><thead><tr><th>#</th><th>الجهة</th><th>رقم الملف</th><th>الوصول</th><th>المغادرة</th><th>النوع</th><th>المبلغ</th><th>العملة</th><th>البيان</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody id="creditTableBody"><tr><td colspan="11" style="text-align:center;color:#64748b;">جاري التحميل...</td></tr></tbody></table></div>
+          <div class="table-wrapper"><table id="creditTable"><thead><tr><th>#</th><th>الجهة</th><th>رقم الملف</th><th>الوصول</th><th>المغادرة</th><th>النوع</th><th>المبلغ</th><th>العملة</th><th>البيان</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody id="creditTableBody"><tr><td colspan="11" style="text-align:center;">جاري التحميل...</td></tr></tbody></table></div>
         </div>
 
         <div id="creditSummarySubTab" class="sub-tab-content">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-            <h3>ملخص الأرصدة</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3>ملخص Dashboard العامة</h3>
             <div class="btn-group no-print" style="margin:0;"><button class="print-btn" onclick="printDashboard()">𖥕 طباعة</button><button class="pdf-btn" onclick="downloadDashboardPDF()">📄 PDF</button></div>
           </div>
           <div id="printableArea">
             <div class="dashboard-grid">
-              <div class="dash-card" style="border-right:4px solid #16a34a;background:#f0fdf4;"><span class="dash-card-title" style="color:#166534;">إجمالي المدين (لنا)</span><div class="dash-card-value" id="dashTotalDeposits" style="color:#15803d;">0</div></div>
-              <div class="dash-card" style="border-right:4px solid #dc2626;background:#fef2f2;"><span class="dash-card-title" style="color:#991b1b;">إجمالي الدائن (علينا)</span><div class="dash-card-value" id="dashTotalDeductions" style="color:#b91c1c;">0</div></div>
+              <div class="dash-card" style="border-right:4px solid #16a34a;background:#f0fdf4;"><span class="dash-card-title" style="color:#166534;">إجمالي المدين</span><div class="dash-card-value" id="dashTotalDeposits" style="color:#15803d;">0</div></div>
+              <div class="dash-card" style="border-right:4px solid #dc2626;background:#fef2f2;"><span class="dash-card-title" style="color:#991b1b;">إجمالي الدائن</span><div class="dash-card-value" id="dashTotalDeductions" style="color:#b91c1c;">0</div></div>
               <div class="dash-card" style="border-right:4px solid #0284c7;background:#f0f9ff;"><span class="dash-card-title" style="color:#075985;">صافي الرصيد</span><div class="dash-card-value" id="dashNetBalance" style="color:#0369a1;">0</div></div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:25px; margin-bottom:10px;"><h4>ملخص رصيد كل جهة</h4><input type="text" id="searchEntitySummary" class="no-print" placeholder="🔍 بحث..." onkeyup="filterEntitySummaryTable()" style="max-width:200px;"></div>
-            <div class="table-wrapper"><table id="entitySummaryTable"><thead><tr><th>#</th><th>الجهة</th><th>العملة</th><th>إجمالي المدين</th><th>إجمالي الدائن</th><th>صافي الرصيد</th><th>الحالة</th></tr></thead><tbody id="entitySummaryTableBody"><tr><td colspan="7" style="text-align:center;color:#64748b;">جاري الحساب...</td></tr></tbody></table></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:25px; margin-bottom:10px;"><h4>ملخص الأرصدة التجميعي</h4><input type="text" id="searchEntitySummary" class="no-print" placeholder="🔍 بحث..." onkeyup="filterEntitySummaryTable()" style="max-width:200px;"></div>
+            <div class="table-wrapper"><table id="entitySummaryTable"><thead><tr><th>#</th><th>الجهة</th><th>العملة</th><th>إجمالي المدين</th><th>إجمالي الدائن</th><th>صافي الرصيد</th><th>الحالة</th></tr></thead><tbody id="entitySummaryTableBody"><tr><td colspan="7" style="text-align:center;">جاري الحساب...</td></tr></tbody></table></div>
           </div>
         </div>
 
-        <!-- ========================================================= -->
-        <!-- التبويب المعدل: كشف الحساب المطور بنفس تصميم الصورة -->
-        <!-- ========================================================= -->
+        <!-- تبويب كشف الحساب المستقل بالكامل -->
         <div id="creditStatementSubTab" class="sub-tab-content">
           <div class="statement-container">
-            
-            <!-- الهيدر الرئيسي لكشف الحساب -->
             <div class="statement-header-banner">
               <div>
-                <h2 style="margin:0; font-size:24px;">📄 كشف الحساب (Running Balance)</h2>
-                <span style="opacity:0.85; font-size:14px;">عرض جميع الحركات مع رصيد جاري لكل جهة</span>
+                <h2 style="margin:0; font-size:24px;">📄 كشف الحساب التفصيلي المستقل</h2>
+                <span style="opacity:0.85; font-size:14px;">مستقل كلياً عن بيانات Dashboard والملخص العام</span>
               </div>
             </div>
 
-            <!-- بطاقات الإحصائيات (المدين - الدائن - صافي الرصيد) -->
-            <div class="statement-cards-row">
-              <div class="st-card debit">
-                <div class="st-card-info">
-                  <span class="st-card-title">إجمالي المدين</span>
-                  <span class="st-card-val" id="stCardDebit" style="color:#16a34a;">0</span>
-                </div>
-                <div class="st-card-icon">↑</div>
-              </div>
-
-              <div class="st-card credit">
-                <div class="st-card-info">
-                  <span class="st-card-title">إجمالي الدائن</span>
-                  <span class="st-card-val" id="stCardCredit" style="color:#dc2626;">0</span>
-                </div>
-                <div class="st-card-icon">↓</div>
-              </div>
-
-              <div class="st-card balance">
-                <div class="st-card-info">
-                  <span class="st-card-title">صافي الرصيد</span>
-                  <span class="st-card-val" id="stCardBalance" style="color:#2563eb;">0</span>
-                </div>
-                <div class="st-card-icon">⚖</div>
-              </div>
-            </div>
-
-            <!-- شريط معلومات الجهة المحددة -->
-            <div class="statement-info-bar">
-              <div>🏢 المورد / الجهة: <span id="stInfoEntity" style="font-weight:800;">-</span></div>
-              <div>💲 العملة: <span id="stInfoCurrency" style="font-weight:800;">-</span></div>
-              <div>📅 الفترة من: <span id="stInfoFromDate">-</span> إلى: <span id="stInfoToDate">-</span></div>
-            </div>
-
-            <!-- شريط الفلاتر والبحث -->
+            <!-- لوحة البحث والفلترة الخاصة بكشف الحساب فقط -->
             <div class="filter-panel no-print">
-              <div class="form-row" style="margin-bottom:10px;">
-                <div class="form-group" style="margin-bottom:0;">
-                  <label>بحث عن البيان / رقم الملف</label>
-                  <input type="text" id="stSearchText" placeholder="اكتب للبحث..." oninput="renderRunningStatement()">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>اسم المورد / الجهة</label>
+                  <input type="text" id="stEntityName" placeholder="أدخل اسم الجهة كلياً..." oninput="renderRunningStatement()">
                 </div>
-                <div class="form-group" style="margin-bottom:0;">
-                  <label>رقم الملف</label>
-                  <select id="stSearchFileCode" onchange="renderRunningStatement()">
-                    <option value="">اختر رقم الملف</option>
+                <div class="form-group">
+                  <label>العملة</label>
+                  <select id="stCurrency" onchange="renderRunningStatement()">
+                    <option value="USD">USD</option>
+                    <option value="EGP">EGP</option>
+                    <option value="EUR">EUR</option>
                   </select>
                 </div>
+                <div class="form-group">
+                  <label>رقم الملف</label>
+                  <input type="text" id="stFileCode" placeholder="بحث برقم الملف..." oninput="renderRunningStatement()">
+                </div>
+              </div>
+              <div class="form-row" style="margin-bottom:0;">
                 <div class="form-group" style="margin-bottom:0;">
                   <label>من تاريخ</label>
                   <input type="date" id="stFromDate" onchange="renderRunningStatement()">
@@ -465,22 +401,46 @@
                   <label>إلى تاريخ</label>
                   <input type="date" id="stToDate" onchange="renderRunningStatement()">
                 </div>
-              </div>
-              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:15px;">
-                <div style="display:flex; gap:10px;">
-                  <button class="search-btn" onclick="renderRunningStatement()">🔍 بحث</button>
-                  <button class="print-btn" onclick="resetStatementFilters()">🔄 إعادة تعيين</button>
-                </div>
-                <div style="display:flex; gap:10px;">
-                  <button class="search-btn" style="background:#2563eb;" onclick="openSearchModal()">🔍 بحث جديد</button>
-                  <button class="excel-btn" onclick="exportStatementToExcel()">📊 تصدير Excel</button>
-                  <button class="pdf-btn" onclick="downloadStatementPDF()">📄 حفظ PDF</button>
-                  <button class="print-btn" onclick="printStatementArea()">𖥕 طباعة</button>
+                <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end; gap:10px;">
+                  <button class="search-btn" style="width:100%; height:42px;" onclick="renderRunningStatement()">🔍 تحديث الكشف</button>
+                  <button class="print-btn" style="height:42px;" onclick="resetStatementFilters()">🔄 إعادة ضبط</button>
                 </div>
               </div>
             </div>
 
-            <!-- جدول الحركات والرصيد الجاري -->
+            <!-- بطاقات ملخص كشف الحساب الخاص فقط -->
+            <div class="statement-cards-row">
+              <div class="st-card debit">
+                <div class="st-card-info">
+                  <span class="st-card-title">إجمالي مدين (الكشف)</span>
+                  <span class="st-card-val" id="stCardDebit" style="color:#16a34a;">0</span>
+                </div>
+                <div class="st-card-icon">↑</div>
+              </div>
+
+              <div class="st-card credit">
+                <div class="st-card-info">
+                  <span class="st-card-title">إجمالي دائن (الكشف)</span>
+                  <span class="st-card-val" id="stCardCredit" style="color:#dc2626;">0</span>
+                </div>
+                <div class="st-card-icon">↓</div>
+              </div>
+
+              <div class="st-card balance">
+                <div class="st-card-info">
+                  <span class="st-card-title">رصيد الكشف التراكمي</span>
+                  <span class="st-card-val" id="stCardBalance" style="color:#2563eb;">0</span>
+                </div>
+                <div class="st-card-icon">⚖</div>
+              </div>
+            </div>
+
+            <div class="statement-info-bar">
+              <div>🏢 الجهة الحالية: <span id="stInfoEntity" style="font-weight:800;">-</span></div>
+              <div>💲 العملة: <span id="stInfoCurrency" style="font-weight:800;">-</span></div>
+              <div>📅 النطاق: <span id="stInfoFromDate">الكل</span> إلى <span id="stInfoToDate">الآن</span></div>
+            </div>
+
             <div id="printableStatementArea">
               <div class="table-wrapper">
                 <table class="running-table" id="statementRunningTable">
@@ -492,20 +452,23 @@
                       <th>📝 البيان</th>
                       <th style="color:#4ade80;">↑ مدين</th>
                       <th style="color:#f87171;">↓ دائن</th>
-                      <th style="color:#60a5fa;">⚖ الرصيد</th>
+                      <th style="color:#60a5fa;">⚖ الرصيد التراكمي</th>
                     </tr>
                   </thead>
                   <tbody id="statementRunningTbody">
-                    <tr><td colspan="7" style="text-align:center; color:#64748b;">يرجى اختيار مورد من البحث المتقدم لمشاهدة كشف الحساب</td></tr>
+                    <tr><td colspan="7" style="text-align:center; color:#64748b;">قم بكتابة اسم المورد في الخانة العلوية لعرض كشف حسابه المستقل</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
 
-            <!-- الذيل الأخير للمعلومات -->
-            <div style="display:flex; justify-content:space-between; margin-top:15px; font-size:13px; color:#64748b; font-weight:600;" class="no-print">
-              <div>📊 إجمالي عدد الحركات: <span id="stTotalCount">0</span></div>
-              <div>🕒 آخر تحديث: <span id="stLastUpdated">-</span></div>
+            <div style="display:flex; justify-content:space-between; margin-top:15px;" class="no-print">
+              <div class="btn-group" style="margin:0;">
+                <button class="excel-btn" onclick="exportStatementToExcel()">📊 تصدير Excel</button>
+                <button class="pdf-btn" onclick="downloadStatementPDF()">📄 حفظ PDF</button>
+                <button class="print-btn" onclick="window.print()">𖥕 طباعة</button>
+              </div>
+              <div style="font-size:13px; color:#64748b; font-weight:600;">عدد الحركات: <span id="stTotalCount">0</span></div>
             </div>
 
           </div>
@@ -513,7 +476,6 @@
 
       </div>
 
-      <!-- تبويبات أخرى -->
       <div id="aviationTab" class="tab-content"><h3>حجوزات الطيران</h3><div class="form-group"><label>خط الطيران</label><input type="text" id="airlineName"></div><div class="form-group"><label>PNR</label><input type="text" id="pnrNumber"></div><div class="form-group"><label>القيمة ($)</label><input type="number" id="ticketCost"></div><button class="submit-btn" onclick="App.saveAviation()">حفظ</button></div>
       <div id="ticketsTab" class="tab-content"><h3>مخزون التذاكر</h3><div class="form-group"><label>اسم المزار</label><input type="text" id="ticketName"></div><div class="form-group"><label>الكمية</label><input type="number" id="ticketQty"></div><div class="form-group"><label>سعر الوحدة ($)</label><input type="number" id="ticketUnitPrice"></div><button class="submit-btn" onclick="App.saveTicket()">حفظ</button></div>
       <div id="settlementTab" class="tab-content"><h3>تصفية الملف</h3><div class="form-group"><label>كود الملف</label><input type="text" id="fileCode"></div><div class="form-group"><label>اسم المرشد</label><input type="text" id="guideName"></div><button class="submit-btn" onclick="App.saveSettlement()">تصفية</button></div>
@@ -521,46 +483,15 @@
   </div>
 </div>
 
-<!-- ========================================================= -->
-<!-- 2. المودالات -->
-<!-- ========================================================= -->
 <div id="editSupplierModal" class="modal-overlay"><div class="modal-content"><h3>تعديل المورد</h3><input type="hidden" id="editSupplierId"><div class="form-group"><label>النوع</label><select id="editSupplierType"><option value="فندق">فندق</option><option value="كروز">كروز</option><option value="مطعم">مطعم</option></select></div><div class="form-group"><label>الاسم</label><input type="text" id="editPropertyName"></div><div class="form-group"><label>اسم المورد</label><input type="text" id="editSupplierName"></div><div class="form-group"><label>الرقم الضريبي</label><input type="text" id="editTaxCardNumber"></div><div class="form-group"><label>حالة الضريبة</label><select id="editTaxType"><option value="0.03">خاضع 3%</option><option value="advance_payment">دفعات مقدمة</option></select></div><div class="btn-group" style="justify-content:flex-end;"><button class="submit-btn" onclick="App.saveEditedSupplier()">حفظ</button><button class="print-btn" onclick="App.closeEditModal()">إلغاء</button></div></div></div>
 
-<!-- ===== مودال البحث المتقدم ===== -->
-<div id="searchModal" class="modal-overlay">
-  <div class="modal-content" style="max-width:500px;">
-    <h3 style="margin-top:0; color:#1e293b;">🔍 بحث متقدم في كشف الحساب</h3>
-    <div class="form-group">
-      <label>اسم المورد / الجهة</label>
-      <input type="text" id="searchEntityInput" placeholder="أدخل اسم المورد">
-    </div>
-    <div class="form-group">
-      <label>العملة</label>
-      <select id="searchCurrencyInput">
-        <option value="USD">USD</option>
-        <option value="EGP">EGP</option>
-        <option value="EUR">EUR</option>
-      </select>
-    </div>
-    <div class="btn-group" style="justify-content:flex-end; margin-top:20px;">
-      <button class="submit-btn" onclick="performSearch()">🔍 عرض كشف الحساب</button>
-      <button class="print-btn" onclick="closeSearchModal()">إلغاء</button>
-    </div>
-  </div>
-</div>
-
-<!-- ========================================================= -->
-<!-- 3. Firebase + JavaScript -->
-<!-- ========================================================= -->
 <script type="module">
-  // ===== Firebase Imports =====
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { 
     getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, 
-    onSnapshot, query, orderBy, writeBatch 
+    onSnapshot, query, orderBy 
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // ===== التهيئة =====
   const firebaseConfig = {
     apiKey: "AIzaSyBnVZaF4cbNqTM03tA3dWEFk2k3aWj0djs",
     authDomain: "tourism-management-syste-b0c23.firebaseapp.com",
@@ -573,11 +504,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // المتغيرات الحالية لتقرير كشف الحساب
-  window.selectedStatementEntity = "";
-  window.selectedStatementCurrency = "USD";
-
-  // ===== دوال مساعدة =====
   const $ = (id) => document.getElementById(id);
   const showToast = (message, type = 'info', duration = 3500) => {
     const container = document.getElementById('toastContainer') || (() => {
@@ -602,7 +528,6 @@
     return iso;
   };
 
-  // ===== التطبيق الرئيسي =====
   const App = {
     currentSuppliers: [],
     currentCredit: [],
@@ -680,10 +605,12 @@
             </tr>
           `;
         });
+        
+        // تحديث Dashboard كلياً في مسار مستقل
         this.updateDashboard(this.currentCredit);
         
-        // تحديث كشف الحساب التلقائي لو تم اختيار مورّد سابقاً
-        if (window.selectedStatementEntity) {
+        // تحديث كشف الحساب إذا وجد نص بحث
+        if ($('stEntityName').value.trim() !== "") {
           window.renderRunningStatement();
         }
       });
@@ -727,7 +654,7 @@
         tbody.innerHTML += `
           <tr>
             <td>${idx++}</td>
-            <td><span class="clickable-supplier" onclick="App.openStatement('${e.entity.replace(/'/g,"\\'")}', '${e.currency}')">${e.entity}</span></td>
+            <td><strong>${e.entity}</strong></td>
             <td>${e.currency}</td>
             <td style="color:#15803d;">${e.deposit.toLocaleString()}</td>
             <td style="color:#b91c1c;">${e.deduction.toLocaleString()}</td>
@@ -746,13 +673,10 @@
       const taxTypeVal = $('taxType').value;
       const taxRate = taxTypeVal === "0.03" ? 0.03 : taxTypeVal;
 
-      if(!propertyName || !supplierName || !taxCardNumber) {
-        showToast('يرجى ملء جميع الحقول', 'error');
-        return;
-      }
+      if(!propertyName || !supplierName || !taxCardNumber) return showToast('يرجى ملء كافة البيانات', 'error');
       try {
         await addDoc(collection(db, "tax_discount_records"), { supplierType, propertyName, supplierName, taxCardNumber, taxRate, createdAt: new Date() });
-        showToast('تم حفظ المورد بنجاح!', 'success');
+        showToast('تم الحفظ بنجاح!', 'success');
         $('propertyName').value = ''; $('supplierName').value = ''; $('taxCardNumber').value = '';
       } catch (e) { showToast(e.message, 'error'); }
     },
@@ -820,11 +744,11 @@
       const amount = parseFloat($('creditAmount').value) || 0;
       const currency = $('creditCurrency').value;
       const description = $('creditDescription').value.trim();
-      if (!entity || amount <= 0) return showToast('املأ الجهة والمبلغ', 'error');
+      if (!entity || amount <= 0) return showToast('املأ البيانات الحيوية', 'error');
       try {
         await addDoc(collection(db, "credit_balances"), { entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, createdAt: new Date() });
         showToast('تم تسجيل الحركة!', 'success');
-        $('creditEntity').value = ''; $('creditFileCode').value = ''; $('creditArrivalDate').value = ''; $('creditDepartureDate').value = ''; $('creditAmount').value = ''; $('creditDescription').value = '';
+        $('creditEntity').value = ''; $('creditFileCode').value = ''; $('creditAmount').value = ''; $('creditDescription').value = '';
       } catch (e) { showToast(e.message, 'error'); }
     },
 
@@ -847,22 +771,12 @@
       XLSX.writeFile(wb, "Credit_List.xlsx");
     },
 
-    openStatement(entityName, currency) {
-      window.selectedStatementEntity = entityName;
-      window.selectedStatementCurrency = currency || 'USD';
-      
-      // فتح تبويب كشف الحساب
-      window.openSubTab(null, 'creditStatementSubTab');
-      window.renderRunningStatement();
-    },
-
     async saveAviation() {
       const airline = $('airlineName').value.trim();
       const pnr = $('pnrNumber').value.trim();
       if (!airline || !pnr) return showToast('املأ البيانات', 'error');
       const cost = parseFloat($('ticketCost').value) || 0;
-      try { await addDoc(collection(db, "aviation_bookings"), { airline, pnr, cost, createdAt: new Date() });
-      showToast('تم حفظ الطيران', 'success'); } catch (e) { showToast(e.message, 'error'); }
+      try { await addDoc(collection(db, "aviation_bookings"), { airline, pnr, cost, createdAt: new Date() }); showToast('تم الحفظ', 'success'); } catch (e) { showToast(e.message, 'error'); }
     },
 
     async saveTicket() {
@@ -870,58 +784,48 @@
       const qty = parseInt($('ticketQty').value) || 0;
       if (!name || qty <= 0) return showToast('املأ البيانات', 'error');
       const price = parseFloat($('ticketUnitPrice').value) || 0;
-      try { await addDoc(collection(db, "attractions_tickets"), { ticketName: name, quantity: qty, unitPrice: price, createdAt: new Date() });
-      showToast('تم حفظ التذاكر', 'success'); } catch (e) { showToast(e.message, 'error'); }
+      try { await addDoc(collection(db, "attractions_tickets"), { ticketName: name, quantity: qty, unitPrice: price, createdAt: new Date() }); showToast('تم الحفظ', 'success'); } catch (e) { showToast(e.message, 'error'); }
     },
 
     async saveSettlement() {
       const fileCode = $('fileCode').value.trim();
       if (!fileCode) return showToast('أدخل كود الملف', 'error');
       const guide = $('guideName').value.trim();
-      try { await addDoc(collection(db, "file_settlements"), { fileCode, guideName: guide, createdAt: new Date() });
-      showToast('تم حفظ التصفية', 'success'); } catch (e) { showToast(e.message, 'error'); }
+      try { await addDoc(collection(db, "file_settlements"), { fileCode, guideName: guide, createdAt: new Date() }); showToast('تم الحفظ', 'success'); } catch (e) { showToast(e.message, 'error'); }
     }
   };
 
-  // ===== محرك كشف الحساب والجداول التراكمية Running Balance =====
+  /* ===== بناء كشف الحساب مستقل تماماً وعزل الفلاتر والحسابات ===== */
   window.renderRunningStatement = function() {
-    const entity = window.selectedStatementEntity;
-    const currency = window.selectedStatementCurrency || 'USD';
+    const entity = $('stEntityName').value.trim();
+    const currency = $('stCurrency').value;
 
     if (!entity) {
-      $('statementRunningTbody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">يرجى الضغط على "بحث جديد" واختيار المورد لمشاهدة كشف الحساب التفصيلي.</td></tr>';
+      $('stInfoEntity').innerText = '-';
+      $('stInfoCurrency').innerText = '-';
+      $('statementRunningTbody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">ادخل اسم المورد لعرض كشف حسابه الخاص.</td></tr>';
+      $('stCardDebit').innerText = `0 ${currency}`;
+      $('stCardCredit').innerText = `0 ${currency}`;
+      $('stCardBalance').innerText = `0 ${currency}`;
+      $('stTotalCount').innerText = '0';
       return;
     }
 
     $('stInfoEntity').innerText = entity;
     $('stInfoCurrency').innerText = currency;
 
-    // تصفية حركات المورد المحدد
+    // استعلام مفصل محلي بحسب محددات كشف الحساب المستقل فقط
     let records = App.currentCredit.filter(item => 
-      (item.entity || '').trim().toLowerCase() === entity.trim().toLowerCase() &&
+      (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
       (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
     );
 
-    // ملء قائمة خيارات رقم الملف
-    const fileCodes = [...new Set(records.map(r => r.fileCode).filter(Boolean))];
-    const fileSelect = $('stSearchFileCode');
-    const currentSelectedFile = fileSelect.value;
-    fileSelect.innerHTML = '<option value="">اختر رقم الملف</option>';
-    fileCodes.forEach(code => {
-      fileSelect.innerHTML += `<option value="${code}" ${code === currentSelectedFile ? 'selected' : ''}>${code}</option>`;
-    });
-
-    // إعمال فلاتر البحث الداخلي
-    const searchText = $('stSearchText').value.toLowerCase().trim();
-    const filterFileCode = $('stSearchFileCode').value;
+    const filterFileCode = $('stFileCode').value.trim().toLowerCase();
     const fromDate = $('stFromDate').value;
     const toDate = $('stToDate').value;
 
-    if (searchText) {
-      records = records.filter(r => (r.description || '').toLowerCase().includes(searchText) || (r.fileCode || '').toLowerCase().includes(searchText));
-    }
     if (filterFileCode) {
-      records = records.filter(r => r.fileCode === filterFileCode);
+      records = records.filter(r => (r.fileCode || '').toLowerCase().includes(filterFileCode));
     }
     if (fromDate) {
       records = records.filter(r => {
@@ -936,7 +840,6 @@
       });
     }
 
-    // تحديث تاريخ الفترة
     $('stInfoFromDate').innerText = fromDate ? formatDateDMY(fromDate) : 'البداية';
     $('stInfoToDate').innerText = toDate ? formatDateDMY(toDate) : 'الآن';
 
@@ -944,7 +847,7 @@
     tbody.innerHTML = '';
 
     if (records.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات مطابقة للفلاتر الحالية</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات مطابقة للبحث الخاص بكشف الحساب</td></tr>';
       $('stCardDebit').innerText = `0 ${currency}`;
       $('stCardCredit').innerText = `0 ${currency}`;
       $('stCardBalance').innerText = `0 ${currency}`;
@@ -986,70 +889,40 @@
       `;
     });
 
-    // صف الإجمالي السفلي
     tbody.innerHTML += `
       <tr class="total-row">
-        <td colspan="4" style="text-align:right;">📊 الإجمالي</td>
+        <td colspan="4" style="text-align:right;">📊 صافي الإجمالي للحساب المستقل</td>
         <td style="color:#16a34a;">${totalDebit.toLocaleString()}</td>
         <td style="color:#dc2626;">${totalCredit.toLocaleString()}</td>
         <td style="color:#2563eb; background:#e0e7ff;">${runningBalance.toLocaleString()} ${currency}</td>
       </tr>
     `;
 
-    // تحديث الكروت بالقيم الأخيرة
     $('stCardDebit').innerText = `${totalDebit.toLocaleString()} ${currency}`;
     $('stCardCredit').innerText = `${totalCredit.toLocaleString()} ${currency}`;
     $('stCardBalance').innerText = `${runningBalance.toLocaleString()} ${currency}`;
     $('stTotalCount').innerText = records.length;
-    $('stLastUpdated').innerText = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
   };
 
   window.resetStatementFilters = function() {
-    $('stSearchText').value = '';
-    $('stSearchFileCode').value = '';
+    $('stEntityName').value = '';
+    $('stFileCode').value = '';
     $('stFromDate').value = '';
     $('stToDate').value = '';
     window.renderRunningStatement();
   };
 
-  window.openSearchModal = function() {
-    $('searchModal').style.display = 'flex';
-  };
-
-  window.closeSearchModal = function() {
-    $('searchModal').style.display = 'none';
-  };
-
-  window.performSearch = function() {
-    const entityFilter = $('searchEntityInput').value.trim();
-    const currencyFilter = $('searchCurrencyInput').value;
-
-    if (!entityFilter) {
-      showToast('يرجى أدخال اسم المورد أو الجهة', 'error');
-      return;
-    }
-
-    window.selectedStatementEntity = entityFilter;
-    window.selectedStatementCurrency = currencyFilter;
-
-    closeSearchModal();
-    window.renderRunningStatement();
-  };
-
   window.exportStatementToExcel = function() {
-    const entity = window.selectedStatementEntity;
-    if (!entity) return showToast('لا توجد بيانات لتصديرها', 'error');
-
     const table = document.getElementById("statementRunningTable");
-    const wb = XLSX.utils.table_to_book(table, { sheet: "كشف الحساب" });
-    XLSX.writeFile(wb, `Statement_${entity}_${window.selectedStatementCurrency}.xlsx`);
+    const wb = XLSX.utils.table_to_book(table, { sheet: "كشف حساب مستقل" });
+    XLSX.writeFile(wb, `Statement_${$('stEntityName').value || 'Unlinked'}.xlsx`);
   };
 
   window.downloadStatementPDF = function() {
     const el = $('printableStatementArea');
     const opt = {
       margin: 10,
-      filename: `Statement_${window.selectedStatementEntity}.pdf`,
+      filename: `Statement_${$('stEntityName').value || 'Independent'}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
@@ -1057,16 +930,10 @@
     html2pdf().set(opt).from(el).save();
   };
 
-  window.printStatementArea = function() {
-    window.print();
-  };
-
-  // ===== بدء الاستماع للبيانات =====
   App.listenToSuppliers();
   App.listenToCredit();
   window.App = App;
 
-  // ===== الدوال العامة للـ UI =====
   window.openTab = function(evt, tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -1153,8 +1020,6 @@
     const opt = { margin: 10, filename: `Suppliers_${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
     html2pdf().set(opt).from(el).save();
   };
-
-  console.log('✅ تم تصميم كشف الحساب الاحترافي بنجاح.');
 </script>
 
 </body>
