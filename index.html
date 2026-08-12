@@ -755,22 +755,24 @@
             </div>
           </div>
 
-          <!-- بطاقة إجمالي مبلغ العمولة -->
-          <div class="statement-cards-row" style="margin-bottom:15px;">
-            <div class="st-card commission">
-              <div class="st-card-info">
-                <span class="st-card-title">إجمالي مبلغ العمولة الخاص بالتصفيات المعروضة ($)</span>
-                <span class="st-card-val" id="settlementTotalCommission" style="color:#16a34a;">0.00 $</span>
-              </div>
-              <div class="st-card-icon">💵</div>
-            </div>
-          </div>
-
+          <!-- تضمين منطقة الطباعة لكي تحتوي كارت الإجمالي -->
           <div id="printableSettlementArea">
             <div class="pdf-report-header">
               <h2>تقرير تصفيات الأوبريتور والملفات</h2>
               <p>منظومة الحسابات السياحية</p>
             </div>
+
+            <!-- بطاقة إجمالي مبلغ العمولة -->
+            <div class="statement-cards-row" style="margin-bottom:15px;">
+              <div class="st-card commission">
+                <div class="st-card-info">
+                  <span class="st-card-title">إجمالي مبلغ العمولة الخاص بالتصفيات المعروضة</span>
+                  <span class="st-card-val" id="settlementTotalCommission" style="color:#16a34a;">0.00</span>
+                </div>
+                <div class="st-card-icon">💵</div>
+              </div>
+            </div>
+
             <div class="table-wrapper">
               <table id="settlementsTable">
                 <thead>
@@ -1501,7 +1503,7 @@
       });
       const commElem = $('settlementTotalCommission');
       if (commElem) {
-        commElem.innerText = `${totalCommission.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} $`;
+        commElem.innerText = `${totalCommission.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
       }
     },
 
@@ -1960,6 +1962,5 @@
   window.printDashboard = () => window.print();
   window.printSuppliersList = () => window.print();
 </script>
-
 </body>
 </html>
