@@ -257,9 +257,6 @@
 </head>
 <body>
 
-<!-- قائمة الاقتراحات الموحدة المربوطة بمدخلات اسم الجهة -->
-<datalist id="entitiesDataList"></datalist>
-
 <div id="appScreen">
   <div class="header">
     <h2>📊 منظومة الحسابات والتصفية الشاملة</h2>
@@ -332,8 +329,8 @@
         <div id="addCreditSubTab" class="sub-tab-content active">
           <h3>تسجيل حركة كريديت</h3>
           <div class="form-row">
-            <!-- إضافة خاصية list لتجلب اقتراحات أسماء الموردين تلقائياً -->
-            <div class="form-group"><label>الجهة</label><input type="text" id="creditEntity" list="entitiesDataList" placeholder="أدخل أو اختر اسم المورد/الجهة..." autocomplete="off"></div>
+            <!-- حقل نصي عادي بديل القائمة المنسدلة -->
+            <div class="form-group"><label>الجهة / المورد</label><input type="text" id="creditEntity" placeholder="أدخل اسم المورد أو الجهة..." autocomplete="off"></div>
             <div class="form-group"><label>رقم الملف</label><input type="text" id="creditFileCode" placeholder="EG-2026-99"></div>
           </div>
           <div class="form-row">
@@ -392,16 +389,16 @@
             <div class="statement-header-banner">
               <div>
                 <h2 style="margin:0; font-size:24px;">📄 كشف الحساب التفصيلي المستقل</h2>
-                <span style="opacity:0.85; font-size:14px;">مستقل كلياً عن بيانات Dashboard والملخص العام</span>
+                <span style="opacity:0.85; font-size:14px;">يقرأ الموردين المسجلين في حركات الكريديت فقط</span>
               </div>
             </div>
 
             <div class="filter-panel no-print">
               <div class="form-row">
                 <div class="form-group">
-                  <label>اسم المورد / الجهة</label>
-                  <!-- إضافة قائمة الاقتراحات التلقائية لكشف الحساب أيضاً -->
-                  <input type="text" id="stEntityName" list="entitiesDataList" placeholder="أدخل أو اختر اسم الجهة..." autocomplete="off">
+                  <label>اسم المورد / الجهة (الكريديت)</label>
+                  <!-- حقل بحث نصي بدون قائمة منسدلة -->
+                  <input type="text" id="stEntityName" placeholder="أدخل اسم الجهة المسجلة بالكريديت..." autocomplete="off">
                 </div>
                 <div class="form-group">
                   <label>العملة</label>
@@ -555,26 +552,6 @@
     currentSuppliers: [],
     currentCredit: [],
 
-    // دالة تحديث قائمة الاقتراحات التلقائية لأسماء الموردين
-    updateEntitiesDatalist() {
-      const datalist = $('entitiesDataList');
-      if (!datalist) return;
-
-      const supplierPropertyNames = this.currentSuppliers.map(s => s.propertyName);
-      const supplierNames = this.currentSuppliers.map(s => s.supplierName);
-      const creditEntities = this.currentCredit.map(c => c.entity);
-
-      // دمج وتجميع الأسماء مع إزالة الفراغات والتكرار
-      const allNames = [...supplierPropertyNames, ...supplierNames, ...creditEntities];
-      const uniqueNames = [...new Set(allNames)]
-        .map(name => name ? name.trim() : '')
-        .filter(name => name !== '');
-
-      datalist.innerHTML = uniqueNames
-        .map(name => `<option value="${name}"></option>`)
-        .join('');
-    },
-
     listenToSuppliers() {
       const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -584,7 +561,6 @@
 
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا توجد بيانات</td></tr>';
-          this.updateEntitiesDatalist();
           return;
         }
         let idx = 1;
@@ -613,7 +589,6 @@
             </tr>
           `;
         });
-        this.updateEntitiesDatalist();
       });
     },
 
@@ -627,7 +602,6 @@
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">لا توجد حركات</td></tr>';
           this.updateDashboard([]);
-          this.updateEntitiesDatalist();
           return;
         }
         let idx = 1;
@@ -653,7 +627,6 @@
         });
         
         this.updateDashboard(this.currentCredit);
-        this.updateEntitiesDatalist();
       });
     },
 
@@ -838,7 +811,7 @@
     }
   };
 
-  /* يتم استدعاء هذه الدالة فقط عند النقر على زر "تحديث الكشف" */
+  /* الاستعلام يقرأ فقط من حركات الكريديت المسجلة */
   window.renderRunningStatement = function() {
     const entity = $('stEntityName').value.trim();
     const currency = $('stCurrency').value;
@@ -849,7 +822,7 @@
     if (!entity) {
       $('stInfoEntity').innerText = '-';
       $('stInfoCurrency').innerText = '-';
-      $('statementRunningTbody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">ادخل اسم المورد والضغط على (🔍 تحديث الكشف) لعرض كشف حسابه الخاص.</td></tr>';
+      $('statementRunningTbody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">أدخل اسم المورد/الجهة من حركات الكريديت ثم اضغط على (🔍 تحديث الكشف) لعرض الكشف.</td></tr>';
       $('stCardDebit').innerText = `0 ${currency}`;
       $('stCardCredit').innerText = `0 ${currency}`;
       $('stCardBalance').innerText = `0 ${currency}`;
@@ -857,12 +830,12 @@
       return;
     }
 
-    // تحديث بيانات شريط المعلومات العلوية بالكشف بناءً على القيم وقت البحث
     $('stInfoEntity').innerText = entity;
     $('stInfoCurrency').innerText = currency;
     $('stInfoFromDate').innerText = fromDate ? formatDateDMY(fromDate) : 'البداية';
     $('stInfoToDate').innerText = toDate ? formatDateDMY(toDate) : 'الآن';
 
+    // فلترة الحركات من سجّلات الكريديت فقط
     let records = App.currentCredit.filter(item => 
       (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
       (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
@@ -888,11 +861,11 @@
     tbody.innerHTML = '';
 
     if (records.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات مطابقة للبحث الخاص بكشف الحساب</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات كريديت مطابقة للجهة المحددة</td></tr>';
       $('stCardDebit').innerText = `0 ${currency}`;
       $('stCardCredit').innerText = `0 ${currency}`;
       $('stCardBalance').innerText = `0 ${currency}`;
-      $('stTotalCount').innerText = records.length;
+      $('stTotalCount').innerText = '0';
       return;
     }
 
