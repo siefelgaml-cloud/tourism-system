@@ -83,8 +83,21 @@
       border-color: #2563eb; outline: none; background: white;
       box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
     }
-    .amount-input-group { display: flex; gap: 8px; align-items: center; max-width: 400px; }
-    .amount-input-group input { flex: 2; }
+    
+    /* تعديل تنسيق مجموعة إدخال المبلغ والعملة لإصلاح مشكلة الكتابة */
+    .amount-input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+    }
+    .amount-input-group input[type="number"] {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .amount-input-group select {
+      flex: 0 0 110px;
+    }
 
     .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     button, .btn-label {
@@ -315,6 +328,7 @@
       </div>
 
       <div id="creditTab" class="tab-content">
+        <!-- قسم تسجيل حركة الكريديت المعدل -->
         <div id="addCreditSubTab" class="sub-tab-content active">
           <h3>تسجيل حركة كريديت</h3>
           <div class="form-row">
@@ -327,7 +341,17 @@
           </div>
           <div class="form-row">
             <div class="form-group"><label>نوع الحركة</label><select id="creditType"><option value="deposit">مدين (لنا)</option><option value="deduction">دائن (علينا)</option></select></div>
-            <div class="form-group"><label>المبلغ والعملة</label><div class="amount-input-group"><input type="number" id="creditAmount" placeholder="0"><select id="creditCurrency"><option value="EGP">EGP</option><option value="USD">USD</option><option value="EUR">EUR</option></select></div></div>
+            <div class="form-group">
+              <label>المبلغ والعملة</label>
+              <div class="amount-input-group">
+                <input type="number" id="creditAmount" placeholder="أدخل المبلغ..." step="any" inputmode="decimal">
+                <select id="creditCurrency">
+                  <option value="EGP">EGP</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </div>
+            </div>
           </div>
           <div class="form-group"><label>البيان</label><textarea id="creditDescription" placeholder="تفاصيل الحركة..."></textarea></div>
           <div class="btn-group">
@@ -372,7 +396,6 @@
               </div>
             </div>
 
-            <!-- لوحة البحث والفلترة الخاصة بكشف الحساب فقط -->
             <div class="filter-panel no-print">
               <div class="form-row">
                 <div class="form-group">
@@ -408,7 +431,6 @@
               </div>
             </div>
 
-            <!-- بطاقات ملخص كشف الحساب الخاص فقط -->
             <div class="statement-cards-row">
               <div class="st-card debit">
                 <div class="st-card-info">
@@ -606,10 +628,8 @@
           `;
         });
         
-        // تحديث Dashboard كلياً في مسار مستقل
         this.updateDashboard(this.currentCredit);
         
-        // تحديث كشف الحساب إذا وجد نص بحث
         if ($('stEntityName').value.trim() !== "") {
           window.renderRunningStatement();
         }
@@ -741,13 +761,15 @@
       const arrivalDate = $('creditArrivalDate').value;
       const departureDate = $('creditDepartureDate').value;
       const type = $('creditType').value;
-      const amount = parseFloat($('creditAmount').value) || 0;
+      const rawAmount = $('creditAmount').value;
+      const amount = parseFloat(rawAmount) || 0;
       const currency = $('creditCurrency').value;
       const description = $('creditDescription').value.trim();
-      if (!entity || amount <= 0) return showToast('املأ البيانات الحيوية', 'error');
+
+      if (!entity || amount <= 0 || isNaN(amount)) return showToast('يرجى إدخال مبلغ صحيح والجهة', 'error');
       try {
         await addDoc(collection(db, "credit_balances"), { entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, createdAt: new Date() });
-        showToast('تم تسجيل الحركة!', 'success');
+        showToast('تم تسجيل الحركة بنجاح!', 'success');
         $('creditEntity').value = ''; $('creditFileCode').value = ''; $('creditAmount').value = ''; $('creditDescription').value = '';
       } catch (e) { showToast(e.message, 'error'); }
     },
@@ -795,7 +817,7 @@
     }
   };
 
-  /* ===== بناء كشف الحساب مستقل تماماً وعزل الفلاتر والحسابات ===== */
+  /* بناء كشف الحساب مستقل تماماً */
   window.renderRunningStatement = function() {
     const entity = $('stEntityName').value.trim();
     const currency = $('stCurrency').value;
@@ -814,7 +836,6 @@
     $('stInfoEntity').innerText = entity;
     $('stInfoCurrency').innerText = currency;
 
-    // استعلام مفصل محلي بحسب محددات كشف الحساب المستقل فقط
     let records = App.currentCredit.filter(item => 
       (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
       (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
@@ -851,7 +872,7 @@
       $('stCardDebit').innerText = `0 ${currency}`;
       $('stCardCredit').innerText = `0 ${currency}`;
       $('stCardBalance').innerText = `0 ${currency}`;
-      $('stTotalCount').innerText = '0';
+      $('stTotalCount').innerText = records.length;
       return;
     }
 
