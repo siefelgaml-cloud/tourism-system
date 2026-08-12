@@ -128,6 +128,7 @@
     .st-card.debit { border-right: 5px solid #16a34a; background: #f0fdf4; }
     .st-card.credit { border-right: 5px solid #dc2626; background: #fef2f2; }
     .st-card.balance { border-right: 5px solid #2563eb; background: #eff6ff; }
+    .st-card.commission { border-right: 5px solid #16a34a; background: #f0fdf4; }
     
     .st-card-info { display: flex; flex-direction: column; }
     .st-card-title { font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 4px; }
@@ -136,6 +137,7 @@
     .debit .st-card-icon { background: #dcfce7; color: #16a34a; }
     .credit .st-card-icon { background: #fee2e2; color: #dc2626; }
     .balance .st-card-icon { background: #dbeafe; color: #2563eb; }
+    .commission .st-card-icon { background: #dcfce7; color: #16a34a; }
 
     .statement-info-bar {
       background: #eff6ff; border: 1px dashed #93c5fd; padding: 12px 20px;
@@ -740,6 +742,30 @@
               <input type="text" id="searchSettlements" placeholder="🔍 بحث..." onkeyup="filterSettlementsTable()" style="max-width:200px;">
             </div>
           </div>
+
+          <!-- شريط التصفية والملخص بالعمولات -->
+          <div class="filter-panel no-print" style="margin-bottom:15px;">
+            <div class="form-row" style="margin-bottom:0; align-items:center;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label>👤 تصفية حسب المرشد / الأوبريتور</label>
+                <select id="operatorFilterSelect" onchange="filterSettlementsTable()">
+                  <option value="">-- جميع الأوبريتورز / المرشدين --</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- بطاقة إجمالي مبلغ العمولة -->
+          <div class="statement-cards-row" style="margin-bottom:15px;">
+            <div class="st-card commission">
+              <div class="st-card-info">
+                <span class="st-card-title">إجمالي مبلغ العمولة الخاص بالتصفيات المعروضة ($)</span>
+                <span class="st-card-val" id="settlementTotalCommission" style="color:#16a34a;">0.00 $</span>
+              </div>
+              <div class="st-card-icon">💵</div>
+            </div>
+          </div>
+
           <div id="printableSettlementArea">
             <div class="pdf-report-header">
               <h2>تقرير تصفيات الأوبريتور والملفات</h2>
@@ -1394,6 +1420,8 @@
         this.currentSettlements = [];
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات ملفات مسجلة</td></tr>';
+          this.populateOperatorSelect();
+          this.updateSettlementTotalCommission();
           this.updateMasterDashboard();
           return;
         }
@@ -1420,7 +1448,7 @@
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
           htmlBuffer += `
-            <tr>
+            <tr data-guide="${escapeHTML(data.guideName || '')}" data-commission="${commissionAmount}">
               <td>${idx++}</td>
               <td><strong style="color:#2563eb;">${escapeHTML(data.fileCode)}</strong></td>
               <td>${escapeHTML(data.guideName || '-')}</td>
@@ -1429,7 +1457,7 @@
               <td>${profitBadge}</td>
               <td style="font-weight:700; color:#0284c7;">${netAfterTax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
               <td><span class="badge badge-advance">10%</span></td>
-              <td style="font-weight:700; color:#16a34a;">${commissionAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+              <td style="font-weight:700; color:#16a34a;" class="commission-val">${commissionAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
               <td style="text-align:right;">${escapeHTML(data.notes || '-')}</td>
               <td>${dateStr}</td>
               <td class="no-print">
@@ -1440,8 +1468,41 @@
           `;
         });
         tbody.innerHTML = htmlBuffer;
+        this.populateOperatorSelect();
+        filterSettlementsTable();
         this.updateMasterDashboard();
       });
+    },
+
+    populateOperatorSelect() {
+      const select = $('operatorFilterSelect');
+      if (!select) return;
+      const currentVal = select.value;
+      const operators = new Set();
+      this.currentSettlements.forEach(s => {
+        if (s.guideName && s.guideName.trim() !== '') operators.add(s.guideName.trim());
+      });
+
+      let options = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>';
+      operators.forEach(op => {
+        options += `<option value="${escapeHTML(op)}">${escapeHTML(op)}</option>`;
+      });
+      select.innerHTML = options;
+      select.value = currentVal;
+    },
+
+    updateSettlementTotalCommission() {
+      let totalCommission = 0;
+      document.querySelectorAll('#settlementsTable tbody tr').forEach(tr => {
+        if (tr.style.display !== 'none') {
+          const commVal = parseFloat(tr.getAttribute('data-commission')) || 0;
+          totalCommission += commVal;
+        }
+      });
+      const commElem = $('settlementTotalCommission');
+      if (commElem) {
+        commElem.innerText = `${totalCommission.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} $`;
+      }
     },
 
     async saveSettlement() {
@@ -1500,7 +1561,19 @@
 
     exportSettlementsList() {
       if (this.currentSettlements.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const data = this.currentSettlements.map((item, idx) => {
+      const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase() : '';
+      const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase() : '';
+
+      const filtered = this.currentSettlements.filter(item => {
+        const guide = (item.guideName || '').toLowerCase();
+        const matchesOp = !selectedOperator || guide === selectedOperator;
+        const matchesText = !filterText || JSON.stringify(item).toLowerCase().includes(filterText);
+        return matchesOp && matchesText;
+      });
+
+      if (filtered.length === 0) return showToast('لا توجد بيانات سارية للتصدير وفق الفلتر المحدد', 'error');
+
+      const data = filtered.map((item, idx) => {
         const revenue = parseFloat(item.revenue) || 0;
         const expenses = parseFloat(item.expenses) || 0;
         const profit = revenue - expenses;
@@ -1862,7 +1935,27 @@
   window.filterEntitySummaryTable = () => createTableFilter('searchEntitySummary', 'entitySummaryTable');
   window.filterAviationTable = () => createTableFilter('searchAviation', 'aviationTable');
   window.filterTicketsTable = () => createTableFilter('searchTickets', 'ticketsTable');
-  window.filterSettlementsTable = () => createTableFilter('searchSettlements', 'settlementsTable');
+
+  window.filterSettlementsTable = () => {
+    const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase() : '';
+    const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase() : '';
+
+    document.querySelectorAll('#settlementsTable tbody tr').forEach(tr => {
+      const guideAttr = (tr.getAttribute('data-guide') || '').toLowerCase();
+      const txt = tr.textContent.toLowerCase();
+
+      const matchesOperator = !selectedOperator || guideAttr === selectedOperator;
+      const matchesText = !filterText || txt.includes(filterText);
+
+      if (matchesOperator && matchesText) {
+        tr.style.display = '';
+      } else {
+        tr.style.display = 'none';
+      }
+    });
+
+    App.updateSettlementTotalCommission();
+  };
 
   window.printDashboard = () => window.print();
   window.printSuppliersList = () => window.print();
