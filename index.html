@@ -479,7 +479,7 @@
 
             <div class="filter-panel no-print">
               <h4 style="margin-bottom:14px; color:#0f172a; display:flex; align-items:center; gap:8px; font-size:16px;">
-                🔍 البحث واختيار حساب الفندق / الجهة
+                🔍 البحث وااختيار حساب الفندق / الجهة
               </h4>
               <div class="form-row">
                 <div class="form-group" style="position:relative;">
@@ -516,43 +516,44 @@
               </div>
             </div>
 
-            <div class="statement-cards-row">
-              <div class="st-card debit">
-                <div class="st-card-info">
-                  <span class="st-card-title">إجمالي مدين (الكشف)</span>
-                  <span class="st-card-val" id="stCardDebit" style="color:#16a34a;">0</span>
-                </div>
-                <div class="st-card-icon">↑</div>
-              </div>
-
-              <div class="st-card credit">
-                <div class="st-card-info">
-                  <span class="st-card-title">إجمالي دائن (الكشف)</span>
-                  <span class="st-card-val" id="stCardCredit" style="color:#dc2626;">0</span>
-                </div>
-                <div class="st-card-icon">↓</div>
-              </div>
-
-              <div class="st-card balance">
-                <div class="st-card-info">
-                  <span class="st-card-title">رصيد الكشف التراكمي</span>
-                  <span class="st-card-val" id="stCardBalance" style="color:#2563eb;">0</span>
-                </div>
-                <div class="st-card-icon">⚖</div>
-              </div>
-            </div>
-
-            <div class="statement-info-bar">
-              <div>🏢 الجهة الحالية: <span id="stInfoEntity" style="font-weight:800;">-</span></div>
-              <div>💲 العملة: <span id="stInfoCurrency" style="font-weight:800;">-</span></div>
-              <div>📅 النطاق: <span id="stInfoFromDate">الكل</span> إلى <span id="stInfoToDate">الآن</span></div>
-            </div>
-
             <div id="printableStatementArea">
               <div class="pdf-report-header">
                 <h2>كشف حساب تفصيلي مستقل</h2>
                 <p id="pdfStatementSub">اسم الجهة: -</p>
               </div>
+
+              <div class="statement-cards-row">
+                <div class="st-card debit">
+                  <div class="st-card-info">
+                    <span class="st-card-title">إجمالي مدين (الكشف)</span>
+                    <span class="st-card-val" id="stCardDebit" style="color:#16a34a;">0</span>
+                  </div>
+                  <div class="st-card-icon">↑</div>
+                </div>
+
+                <div class="st-card credit">
+                  <div class="st-card-info">
+                    <span class="st-card-title">إجمالي دائن (الكشف)</span>
+                    <span class="st-card-val" id="stCardCredit" style="color:#dc2626;">0</span>
+                  </div>
+                  <div class="st-card-icon">↓</div>
+                </div>
+
+                <div class="st-card balance">
+                  <div class="st-card-info">
+                    <span class="st-card-title">رصيد الكشف التراكمي</span>
+                    <span class="st-card-val" id="stCardBalance" style="color:#2563eb;">0</span>
+                  </div>
+                  <div class="st-card-icon">⚖</div>
+                </div>
+              </div>
+
+              <div class="statement-info-bar">
+                <div>🏢 الجهة الحالية: <span id="stInfoEntity" style="font-weight:800;">-</span></div>
+                <div>💲 العملة: <span id="stInfoCurrency" style="font-weight:800;">-</span></div>
+                <div>📅 النطاق: <span id="stInfoFromDate">الكل</span> إلى <span id="stInfoToDate">الآن</span></div>
+              </div>
+
               <div class="table-wrapper">
                 <table class="running-table" id="statementRunningTable">
                   <thead>
@@ -726,7 +727,6 @@
           <div class="form-row">
             <div class="form-group"><label>إجمالي الإيرادات ($)</label><input type="number" id="settlementRevenue" placeholder="الإيراد..." step="any"></div>
             <div class="form-group"><label>إجمالي المصروفات ($)</label><input type="number" id="settlementExpenses" placeholder="المصروف..." step="any"></div>
-            <div class="form-group"><label>نسبة العمولة (%)</label><input type="number" id="settlementCommissionRate" placeholder="10" value="10" step="any"></div>
           </div>
           <div class="form-group"><label>ملاحظات التصفية</label><textarea id="settlementNotes" placeholder="أي تفاصيل أو ملاحظات أصل التصفية..."></textarea></div>
           <div class="btn-group">
@@ -884,7 +884,6 @@
     <div class="form-group"><label>اسم المرشد</label><input type="text" id="editGuideName"></div>
     <div class="form-group"><label>الإيرادات ($)</label><input type="number" id="editSettlementRevenue" step="any"></div>
     <div class="form-group"><label>المصروفات ($)</label><input type="number" id="editSettlementExpenses" step="any"></div>
-    <div class="form-group"><label>نسبة العمولة (%)</label><input type="number" id="editSettlementCommissionRate" step="any"></div>
     <div class="form-group"><label>ملاحظات</label><textarea id="editSettlementNotes"></textarea></div>
     <div class="btn-group" style="justify-content:flex-end;">
       <button class="submit-btn" onclick="App.saveEditedSettlement()">حفظ التعديلات</button>
@@ -1442,9 +1441,8 @@
           // الحسابات المطلوبة
           const profit = revenue - expenses;
           const netAfterTax = profit / 1.14;
-          const commRate = parseFloat(data.commissionRate ?? 10);
-          const commissionRateDecimal = commRate / 100;
-          const commissionAmount = netAfterTax * commissionRateDecimal;
+          const commissionRate = 0.10; // 10%
+          const commissionAmount = netAfterTax * commissionRate;
 
           const profitBadge = profit >= 0 ? 
             `<span class="badge badge-profit">+${profit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>` : 
@@ -1453,7 +1451,7 @@
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
           htmlBuffer += `
-            <tr data-guide="${escapeHTML(data.guideName || '')}" data-commission="${commissionAmount}">
+            <tr data-guide="${escapeHTML((data.guideName || '').trim())}" data-commission="${commissionAmount}">
               <td>${idx++}</td>
               <td><strong style="color:#2563eb;">${escapeHTML(data.fileCode)}</strong></td>
               <td>${escapeHTML(data.guideName || '-')}</td>
@@ -1461,7 +1459,7 @@
               <td style="color:#b91c1c;">${expenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
               <td>${profitBadge}</td>
               <td style="font-weight:700; color:#0284c7;">${netAfterTax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-              <td><span class="badge badge-advance">${commRate}%</span></td>
+              <td><span class="badge badge-advance">10%</span></td>
               <td style="font-weight:700; color:#16a34a;" class="commission-val">${commissionAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
               <td style="text-align:right;">${escapeHTML(data.notes || '-')}</td>
               <td>${dateStr}</td>
@@ -1515,7 +1513,6 @@
       const guideName = $('guideName').value.trim();
       const revenue = parseFloat($('settlementRevenue').value) || 0;
       const expenses = parseFloat($('settlementExpenses').value) || 0;
-      const commissionRate = parseFloat($('settlementCommissionRate').value) || 0;
       const notes = $('settlementNotes').value.trim();
 
       if (!fileCode) return showToast('يرجى إدخال كود الملف', 'error');
@@ -1523,9 +1520,9 @@
       const btn = $('btnSaveSettlement');
       btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
-        await addDoc(collection(db, "file_settlements"), { fileCode, guideName, revenue, expenses, commissionRate, notes, createdAt: new Date() });
+        await addDoc(collection(db, "file_settlements"), { fileCode, guideName, revenue, expenses, notes, createdAt: new Date() });
         showToast('تم تسجيل التصفية بنجاح!', 'success');
-        $('fileCode').value = ''; $('guideName').value = ''; $('settlementRevenue').value = ''; $('settlementExpenses').value = ''; $('settlementCommissionRate').value = '10'; $('settlementNotes').value = '';
+        $('fileCode').value = ''; $('guideName').value = ''; $('settlementRevenue').value = ''; $('settlementExpenses').value = ''; $('settlementNotes').value = '';
       } catch (e) { showToast(e.message, 'error'); }
       finally { btn.disabled = false; btn.innerText = 'حفظ التصفية'; }
     },
@@ -1543,7 +1540,6 @@
       $('editGuideName').value = item.guideName || '';
       $('editSettlementRevenue').value = item.revenue || 0;
       $('editSettlementExpenses').value = item.expenses || 0;
-      $('editSettlementCommissionRate').value = item.commissionRate ?? 10;
       $('editSettlementNotes').value = item.notes || '';
       $('editSettlementModal').style.display = 'flex';
     },
@@ -1556,12 +1552,11 @@
       const guideName = $('editGuideName').value.trim();
       const revenue = parseFloat($('editSettlementRevenue').value) || 0;
       const expenses = parseFloat($('editSettlementExpenses').value) || 0;
-      const commissionRate = parseFloat($('editSettlementCommissionRate').value) || 0;
       const notes = $('editSettlementNotes').value.trim();
 
       if (!fileCode) return showToast('يرجى كتابة كود الملف', 'error');
       try {
-        await updateDoc(doc(db, "file_settlements", id), { fileCode, guideName, revenue, expenses, commissionRate, notes });
+        await updateDoc(doc(db, "file_settlements", id), { fileCode, guideName, revenue, expenses, notes });
         showToast('تم تعديل التصفية بنجاح!', 'success');
         this.closeSettlementEditModal();
       } catch (e) { showToast(e.message, 'error'); }
@@ -1569,11 +1564,11 @@
 
     exportSettlementsList() {
       if (this.currentSettlements.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase() : '';
-      const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase() : '';
+      const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase().trim() : '';
+      const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase().trim() : '';
 
       const filtered = this.currentSettlements.filter(item => {
-        const guide = (item.guideName || '').toLowerCase();
+        const guide = (item.guideName || '').toLowerCase().trim();
         const matchesOp = !selectedOperator || guide === selectedOperator;
         const matchesText = !filterText || JSON.stringify(item).toLowerCase().includes(filterText);
         return matchesOp && matchesText;
@@ -1586,8 +1581,7 @@
         const expenses = parseFloat(item.expenses) || 0;
         const profit = revenue - expenses;
         const netAfterTax = profit / 1.14;
-        const commRate = parseFloat(item.commissionRate ?? 10);
-        const commissionAmount = netAfterTax * (commRate / 100);
+        const commissionAmount = netAfterTax * 0.10;
 
         return {
           "م": idx+1, 
@@ -1597,7 +1591,7 @@
           "المصروفات ($)": expenses,
           "الربح ($)": profit,
           "الصافي بعد الضريبة ($)": Number(netAfterTax.toFixed(2)),
-          "نسبة العموله": `${commRate}%`,
+          "نسبة العموله": "10%",
           "مبلغ العموله ($)": Number(commissionAmount.toFixed(2)),
           "ملاحظات": item.notes || '',
           "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'
@@ -1684,7 +1678,6 @@
   // SEARCH AUTOCOMPLETE IN STATEMENT TAB
   window.searchStatementEntities = function() {
     const queryText = $('stEntityName').value.trim().toLowerCase();
-    const selectedCurrency = $('stCurrency').value.toUpperCase();
     const container = $('stEntitySuggestions');
 
     if (!queryText) {
@@ -1836,10 +1829,20 @@
     const entity = $('stEntityName').value.trim();
     if (!entity) return showToast('يرجى تحديد جهة وعرض الكشف أولاً', 'error');
     const currency = $('stCurrency').value;
+    const filterFileCode = $('stFileCode').value.trim().toLowerCase();
+    const fromDate = $('stFromDate').value;
+    const toDate = $('stToDate').value;
+
     let records = App.currentCredit.filter(item => 
       (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
       (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
     );
+
+    if (filterFileCode) records = records.filter(r => (r.fileCode || '').toLowerCase().includes(filterFileCode));
+    if (fromDate) records = records.filter(r => (r.createdAt ? new Date(r.createdAt.seconds * 1000).toISOString().slice(0,10) : '') >= fromDate);
+    if (toDate) records = records.filter(r => (r.createdAt ? new Date(r.createdAt.seconds * 1000).toISOString().slice(0,10) : '') <= toDate);
+
+    if (records.length === 0) return showToast('لا توجد بيانات مطابقة للتصدير', 'error');
 
     let running = 0;
     const cleanData = records.map((item) => {
@@ -1921,6 +1924,11 @@
     const target = $(subTabName);
     if (!target) return;
     const parent = target.closest('.tab-content');
+    
+    // Ensure parent tab is active
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    parent.classList.add('active');
+
     parent.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
     
     const container = target.parentElement;
@@ -1945,18 +1953,18 @@
   window.filterAviationTable = () => createTableFilter('searchAviation', 'aviationTable');
   window.filterTicketsTable = () => createTableFilter('searchTickets', 'ticketsTable');
 
-  window.filterSettlementsTable = () => {
-    const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase() : '';
-    const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase() : '';
+  window.filterSettlementsTable = function() {
+    const filter = $('searchSettlements').value.toLowerCase().trim();
+    const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase().trim() : '';
 
     document.querySelectorAll('#settlementsTable tbody tr').forEach(tr => {
-      const guideAttr = (tr.getAttribute('data-guide') || '').toLowerCase();
       const txt = tr.textContent.toLowerCase();
+      const guide = (tr.getAttribute('data-guide') || '').toLowerCase().trim();
 
-      const matchesOperator = !selectedOperator || guideAttr === selectedOperator;
-      const matchesText = !filterText || txt.includes(filterText);
+      const matchesText = txt.includes(filter);
+      const matchesOperator = !selectedOperator || guide === selectedOperator;
 
-      if (matchesOperator && matchesText) {
+      if (matchesText && matchesOperator) {
         tr.style.display = '';
       } else {
         tr.style.display = 'none';
@@ -1966,8 +1974,8 @@
     App.updateSettlementTotalCommission();
   };
 
-  window.printDashboard = () => window.print();
   window.printSuppliersList = () => window.print();
+  window.printDashboard = () => window.print();
 </script>
 </body>
 </html>
