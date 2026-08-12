@@ -33,9 +33,7 @@
     }
     .header h2 { font-weight: 800; letter-spacing: 0.5px; font-size: 22px; }
     .user-email { color: #94a3b8; font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.08); padding: 6px 14px; border-radius: 20px; }
-
     .app-layout { display: flex; gap: 24px; align-items: flex-start; }
-
     .tabs-vertical {
       width: 260px; flex-shrink: 0; background: #ffffff;
       border-radius: 16px; padding: 12px 10px;
@@ -61,7 +59,6 @@
     }
     .sub-tab-btn:hover { background: #f8fafc; color: #1e293b; }
     .sub-tab-btn.active { background: #0d9488; color: white; font-weight: 700; }
-
     .main-content-area { flex: 1; min-width: 0; }
     .tab-content {
       display: none; background: white; padding: 28px;
@@ -72,7 +69,6 @@
     .sub-tab-content { display: none; animation: fadeIn 0.25s ease; }
     .sub-tab-content.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
     .form-row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 8px; }
     .form-group { flex: 1; min-width: 200px; margin-bottom: 18px; }
     label { display: block; margin-bottom: 6px; font-weight: 700; color: #1e293b; font-size: 14px; }
@@ -89,7 +85,6 @@
     .amount-input-group { display: flex; gap: 8px; align-items: center; width: 100%; }
     .amount-input-group input[type="number"] { flex: 1 1 auto; min-width: 0; }
     .amount-input-group select { flex: 0 0 110px; }
-
     .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     button, .btn-label {
       padding: 10px 20px; border: none; border-radius: 10px;
@@ -111,7 +106,6 @@
     .edit-btn:hover { background: #ca8a04; }
     .search-btn { background: #2563eb; color: white; }
     .search-btn:hover:not(:disabled) { background: #1d4ed8; }
-
     .statement-container { background: #f8fafc; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; }
     .statement-header-banner {
       background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
@@ -136,21 +130,17 @@
     .debit .st-card-icon { background: #dcfce7; color: #16a34a; }
     .credit .st-card-icon { background: #fee2e2; color: #dc2626; }
     .balance .st-card-icon { background: #dbeafe; color: #2563eb; }
-
     .statement-info-bar {
       background: #eff6ff; border: 1px dashed #93c5fd; padding: 12px 20px;
       border-radius: 12px; display: flex; justify-content: space-between; align-items: center;
       flex-wrap: wrap; gap: 15px; font-weight: 700; color: #1e3a8a; margin-bottom: 20px;
     }
-
     .filter-panel { background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
-
     .running-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; }
     .running-table th { background: #1e293b; color: white; font-weight: 700; padding: 14px; text-align: center; font-size: 14px; }
     .running-table td { padding: 12px 14px; text-align: center; border-bottom: 1px solid #e2e8f0; background: white; font-size: 14px; }
     .running-table tr:hover td { background: #f8fafc; }
     .running-table .total-row td { background: #f1f5f9; font-weight: 800; font-size: 15px; border-top: 2px solid #cbd5e1; }
-
     .dashboard-grid { display: flex; gap: 18px; margin-bottom: 25px; flex-wrap: wrap; }
     .dash-card {
       flex: 1; min-width: 200px; padding: 18px 22px;
@@ -159,7 +149,6 @@
     }
     .dash-card-title { font-size: 13px; font-weight: 700; display: block; margin-bottom: 6px; color: #64748b; }
     .dash-card-value { font-size: 20px; font-weight: 800; direction: ltr; text-align: right; }
-
     .table-wrapper { overflow-x: auto; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     th { background: #f1f5f9; color: #1e293b; font-weight: 700; padding: 12px 14px; text-align: right; border-bottom: 2px solid #e2e8f0; }
@@ -173,7 +162,6 @@
     .badge-deduction { background: #fee2e2; color: #b91c1c; }
     .badge-taxable { background: #dcfce7; color: #166534; }
     .badge-advance { background: #e0e7ff; color: #3730a3; }
-
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15,23,42,0.6); backdrop-filter: blur(4px);
@@ -184,7 +172,6 @@
       width: 90%; max-width: 700px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
       max-height: 85vh; overflow-y: auto;
     }
-
     .toast-container { position: fixed; top: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
     .toast {
       padding: 14px 24px; border-radius: 12px; color: white;
@@ -196,12 +183,10 @@
     .toast.error { background: #dc2626; }
     .toast.info { background: #2563eb; }
     @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
-
     @media (max-width: 768px) {
       .app-layout { flex-direction: column; }
       .tabs-vertical { width: 100%; }
     }
-
     @media print {
       body * { visibility: hidden; }
       #printableArea, #printableArea *, #printableSuppliersArea, #printableSuppliersArea *,
@@ -212,13 +197,11 @@
   </style>
 </head>
 <body>
-
 <div id="appScreen">
   <div class="header">
     <h2>📊 منظومة الحسابات والتصفية الشاملة</h2>
     <div class="user-email">🔓 وضع المستقل</div>
   </div>
-
   <div class="app-layout">
     <div class="tabs-vertical">
       <button class="tab-btn active" id="taxDiscountBtn" onclick="toggleTaxDiscountMenu(event)">
@@ -229,7 +212,6 @@
         <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSupplierSubTab')">1- إضافة مورد</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab')">2- قائمة الموردين</button>
       </div>
-
       <button class="tab-btn" id="creditBtn" onclick="toggleCreditMenu(event)">
         <span>💳 أرصدة الكريديت</span>
         <span id="creditArrowIcon" style="font-size:12px;">▼</span>
@@ -240,12 +222,10 @@
         <button class="sub-tab-btn" onclick="openSubTab(event, 'creditSummarySubTab')">3- الملخص والـ Dashboard</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'creditStatementSubTab')">4- كشف الحساب المستقل</button>
       </div>
-
       <button class="tab-btn" onclick="openTab(event, 'aviationTab')"><span>✈️ حجوزات الطيران</span></button>
       <button class="tab-btn" onclick="openTab(event, 'ticketsTab')"><span>🎟️ مخزون التذاكر</span></button>
       <button class="tab-btn" onclick="openTab(event, 'settlementTab')"><span>📄 تصفية الأوبريتور</span></button>
     </div>
-
     <div class="main-content-area">
       <!-- قسم الخصم والإضافة -->
       <div id="taxDiscountTab" class="tab-content active">
@@ -264,7 +244,6 @@
             <button class="submit-btn" id="btnSaveSupplier" onclick="App.saveSupplier()">حفظ البيانات</button>
           </div>
         </div>
-
         <div id="suppliersListSubTab" class="sub-tab-content">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h3>سجل الموردين</h3>
@@ -280,7 +259,6 @@
           </div>
         </div>
       </div>
-
       <!-- قسم أرصدة الكريديت -->
       <div id="creditTab" class="tab-content">
         <div id="addCreditSubTab" class="sub-tab-content active">
@@ -312,7 +290,6 @@
             <button class="submit-btn" id="btnSaveCredit" onclick="App.saveCredit()">تسجيل الحركة</button>
           </div>
         </div>
-
         <div id="creditRecordsSubTab" class="sub-tab-content">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h3>سجل العمليات</h3>
@@ -323,7 +300,6 @@
           </div>
           <div class="table-wrapper"><table id="creditTable"><thead><tr><th>#</th><th>الجهة</th><th>رقم الملف</th><th>الوصول</th><th>المغادرة</th><th>النوع</th><th>المبلغ</th><th>العملة</th><th>البيان</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody id="creditTableBody"><tr><td colspan="11" style="text-align:center;">جاري التحميل...</td></tr></tbody></table></div>
         </div>
-
         <div id="creditSummarySubTab" class="sub-tab-content">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h3>ملخص Dashboard العامة</h3>
@@ -339,7 +315,6 @@
             <div class="table-wrapper"><table id="entitySummaryTable"><thead><tr><th>#</th><th>الجهة</th><th>العملة</th><th>إجمالي المدين</th><th>إجمالي الدائن</th><th>صافي الرصيد</th><th>الحالة</th></tr></thead><tbody id="entitySummaryTableBody"><tr><td colspan="7" style="text-align:center;">جاري الحساب...</td></tr></tbody></table></div>
           </div>
         </div>
-
         <div id="creditStatementSubTab" class="sub-tab-content">
           <div class="statement-container">
             <div class="statement-header-banner">
@@ -348,7 +323,6 @@
                 <span style="opacity:0.85; font-size:14px;">يقرأ الموردين المسجلين في حركات الكريديت فقط</span>
               </div>
             </div>
-
             <div class="filter-panel no-print">
               <div class="form-row">
                 <div class="form-group">
@@ -383,7 +357,6 @@
                 </div>
               </div>
             </div>
-
             <div class="statement-cards-row">
               <div class="st-card debit">
                 <div class="st-card-info">
@@ -392,7 +365,6 @@
                 </div>
                 <div class="st-card-icon">↑</div>
               </div>
-
               <div class="st-card credit">
                 <div class="st-card-info">
                   <span class="st-card-title">إجمالي دائن (الكشف)</span>
@@ -400,7 +372,6 @@
                 </div>
                 <div class="st-card-icon">↓</div>
               </div>
-
               <div class="st-card balance">
                 <div class="st-card-info">
                   <span class="st-card-title">رصيد الكشف التراكمي</span>
@@ -409,13 +380,11 @@
                 <div class="st-card-icon">⚖</div>
               </div>
             </div>
-
             <div class="statement-info-bar">
               <div>🏢 الجهة الحالية: <span id="stInfoEntity" style="font-weight:800;">-</span></div>
               <div>💲 العملة: <span id="stInfoCurrency" style="font-weight:800;">-</span></div>
               <div>📅 النطاق: <span id="stInfoFromDate">الكل</span> إلى <span id="stInfoToDate">الآن</span></div>
             </div>
-
             <div id="printableStatementArea">
               <div class="table-wrapper">
                 <table class="running-table" id="statementRunningTable">
@@ -436,7 +405,6 @@
                 </table>
               </div>
             </div>
-
             <div style="display:flex; justify-content:space-between; margin-top:15px;" class="no-print">
               <div class="btn-group" style="margin:0;">
                 <button class="excel-btn" onclick="exportStatementToExcel()">📊 تصدير Excel</button>
@@ -445,11 +413,9 @@
               </div>
               <div style="font-size:13px; color:#64748b; font-weight:600;">عدد الحركات: <span id="stTotalCount">0</span></div>
             </div>
-
           </div>
         </div>
       </div>
-
       <!-- باقي الأقسام -->
       <div id="aviationTab" class="tab-content">
         <h3>حجوزات الطيران</h3>
@@ -460,7 +426,6 @@
         </div>
         <button class="submit-btn" onclick="App.saveAviation()">حفظ</button>
       </div>
-
       <div id="ticketsTab" class="tab-content">
         <h3>مخزون التذاكر</h3>
         <div class="form-row">
@@ -470,7 +435,6 @@
         </div>
         <button class="submit-btn" onclick="App.saveTicket()">حفظ</button>
       </div>
-
       <div id="settlementTab" class="tab-content">
         <h3>تصفية الملف</h3>
         <div class="form-row">
@@ -482,7 +446,6 @@
     </div>
   </div>
 </div>
-
 <!-- Modal التعديل -->
 <div id="editSupplierModal" class="modal-overlay">
   <div class="modal-content">
@@ -499,14 +462,12 @@
     </div>
   </div>
 </div>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { 
     getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, 
     onSnapshot, query, orderBy 
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
   const firebaseConfig = {
     apiKey: "AIzaSyBnVZaF4cbNqTM03tA3dWEFk2k3aWj0djs",
     authDomain: "tourism-management-syste-b0c23.firebaseapp.com",
@@ -515,12 +476,9 @@
     messagingSenderId: "220547259810",
     appId: "1:220547259810:web:0857978bcab6ea93ff26fb"
   };
-
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-
   const $ = (id) => document.getElementById(id);
-
   // دالة الحماية ضد ثغرة XSS
   const escapeHTML = (str) => {
     if (typeof str !== 'string') return str ?? '';
@@ -528,7 +486,6 @@
       tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
     );
   };
-
   const showToast = (message, type = 'info', duration = 3500) => {
     const container = document.getElementById('toastContainer') || (() => {
       const div = document.createElement('div'); div.id = 'toastContainer'; div.className = 'toast-container';
@@ -544,43 +501,36 @@
       setTimeout(() => toast.remove(), 300);
     }, duration);
   };
-
   const formatDateDMY = (iso) => {
     if (!iso) return '-';
     const parts = iso.split('-');
     if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
     return iso;
   };
-
   const App = {
     currentSuppliers: [],
     currentCredit: [],
-
     listenToSuppliers() {
       const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
         const tbody = $('suppliersTableBody');
         this.currentSuppliers = [];
-
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا توجد بيانات</td></tr>';
           return;
         }
-
         let idx = 1;
         let htmlBuffer = ''; // تجميع الكود لرفع كفاءة الأداء
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); 
           data.id = docSnap.id;
           this.currentSuppliers.push(data);
-
           const typeBadge = data.supplierType === 'كروز' ? '<span class="badge badge-cruise">كروز</span>' :
                             data.supplierType === 'مطعم' ? '<span class="badge badge-restaurant">مطعم</span>' :
                             '<span class="badge badge-hotel">فندق</span>';
           const taxBadge = (data.taxRate === 0.03 || data.taxRate === "0.03") ? '<span class="badge badge-taxable">خاضع 3%</span>' :
                            '<span class="badge badge-advance">دفعات مقدمة</span>';
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
-
           htmlBuffer += `
             <tr>
               <td>${idx++}</td>
@@ -600,26 +550,22 @@
         tbody.innerHTML = htmlBuffer;
       });
     },
-
     listenToCredit() {
       const q = query(collection(db, "credit_balances"), orderBy("createdAt", "asc"));
       onSnapshot(q, (snapshot) => {
         const tbody = $('creditTableBody');
         this.currentCredit = [];
-
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">لا توجد حركات</td></tr>';
           this.updateDashboard([]);
           return;
         }
-
         let idx = 1;
         let htmlBuffer = '';
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); 
           data.id = docSnap.id;
           this.currentCredit.push(data);
-
           const typeBadge = data.type === 'deposit' ? '<span class="badge badge-deposit">مدين (لنا)</span>' : '<span class="badge badge-deduction">دائن (المستخدم)</span>';
           
           htmlBuffer += `
@@ -642,35 +588,29 @@
         this.updateDashboard(this.currentCredit);
       });
     },
-
     updateDashboard(records) {
       let totals = { EGP: { deposit: 0, deduction: 0 }, USD: { deposit: 0, deduction: 0 }, EUR: { deposit: 0, deduction: 0 } };
       let entityMap = {};
-
       records.forEach(item => {
         const curr = (item.currency || 'EGP').toUpperCase();
         const amt = parseFloat(item.amount) || 0;
         if (!totals[curr]) totals[curr] = { deposit: 0, deduction: 0 };
         if (item.type === 'deposit') totals[curr].deposit += amt;
         else totals[curr].deduction += amt;
-
         const key = `${item.entity}___${curr}`;
         if (!entityMap[key]) entityMap[key] = { entity: item.entity, currency: curr, deposit: 0, deduction: 0 };
         if (item.type === 'deposit') entityMap[key].deposit += amt;
         else entityMap[key].deduction += amt;
       });
-
       const formatCurr = (type) => {
         return ['EGP', 'USD', 'EUR'].map(c => {
           let val = type === 'deposit' ? totals[c].deposit : type === 'deduction' ? totals[c].deduction : totals[c].deposit - totals[c].deduction;
           return `<span style="display:inline-block;direction:ltr;"><strong>${val.toLocaleString()}</strong> ${c}</span>`;
         }).join(' &nbsp;|&nbsp; ');
       };
-
       $('dashTotalDeposits').innerHTML = formatCurr('deposit');
       $('dashTotalDeductions').innerHTML = formatCurr('deduction');
       $('dashNetBalance').innerHTML = formatCurr('net');
-
       const tbody = $('entitySummaryTableBody');
       let idx = 1;
       let htmlBuffer = '';
@@ -692,7 +632,6 @@
       });
       tbody.innerHTML = htmlBuffer || '<tr><td colspan="7" style="text-align:center;">لا توجد بيانات</td></tr>';
     },
-
     async saveSupplier() {
       const supplierType = $('supplierType').value;
       const propertyName = $('propertyName').value.trim();
@@ -700,12 +639,9 @@
       const taxCardNumber = $('taxCardNumber').value.trim();
       const taxTypeVal = $('taxType').value;
       const taxRate = taxTypeVal === "0.03" ? 0.03 : taxTypeVal;
-
       if (!propertyName || !supplierName || !taxCardNumber) return showToast('يرجى ملء كافة البيانات', 'error');
-
       const btn = $('btnSaveSupplier');
       btn.disabled = true; btn.innerText = 'جاري الحفظ...';
-
       try {
         await addDoc(collection(db, "tax_discount_records"), { supplierType, propertyName, supplierName, taxCardNumber, taxRate, createdAt: new Date() });
         showToast('تم الحفظ بنجاح!', 'success');
@@ -716,13 +652,11 @@
         btn.disabled = false; btn.innerText = 'حفظ البيانات';
       }
     },
-
     async deleteSupplier(id) {
       if (!confirm('هل أنت تأكد من الحذف؟')) return;
       try { await deleteDoc(doc(db, "tax_discount_records", id)); showToast('تم الحذف بنجاح', 'success'); } 
       catch (e) { showToast(e.message, 'error'); }
     },
-
     openEditModal(id) {
       const item = this.currentSuppliers.find(s => s.id === id);
       if (!item) return;
@@ -734,9 +668,7 @@
       $('editTaxType').value = (item.taxRate === 0.03 || item.taxRate === "0.03") ? "0.03" : "advance_payment";
       $('editSupplierModal').style.display = 'flex';
     },
-
     closeEditModal() { $('editSupplierModal').style.display = 'none'; },
-
     async saveEditedSupplier() {
       const id = $('editSupplierId').value;
       const supplierType = $('editSupplierType').value;
@@ -753,7 +685,6 @@
         this.closeEditModal();
       } catch (e) { showToast(e.message, 'error'); }
     },
-
     exportSuppliersList() {
       if (this.currentSuppliers.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
       const data = this.currentSuppliers.map((item, idx) => ({
@@ -769,7 +700,6 @@
       XLSX.utils.book_append_sheet(wb, ws, "الموردين");
       XLSX.writeFile(wb, "Suppliers_List.xlsx");
     },
-
     async saveCredit() {
       const entity = $('creditEntity').value.trim();
       const fileCode = $('creditFileCode').value.trim();
@@ -779,17 +709,14 @@
       const amount = parseFloat($('creditAmount').value) || 0;
       const currency = $('creditCurrency').value;
       const description = $('creditDescription').value.trim();
-
       if (!entity || amount <= 0) return showToast('يرجى إدخال مبلغ صحيح واسم الجهة', 'error');
       
       // التحقق من تاريخ الوصول والمغادرة
       if (arrivalDate && departureDate && new Date(departureDate) < new Date(arrivalDate)) {
         return showToast('تاريخ المغادرة لا يمكن أن يكون قبل تاريخ الوصول!', 'error');
       }
-
       const btn = $('btnSaveCredit');
       btn.disabled = true; btn.innerText = 'جاري التسجيل...';
-
       try {
         await addDoc(collection(db, "credit_balances"), { entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, createdAt: new Date() });
         showToast('تم تسجيل الحركة بنجاح!', 'success');
@@ -800,13 +727,11 @@
         btn.disabled = false; btn.innerText = 'تسجيل الحركة';
       }
     },
-
     async deleteCredit(id) {
       if (!confirm('تأكيد الحذف؟')) return;
       try { await deleteDoc(doc(db, "credit_balances", id)); showToast('تم الحذف', 'success'); } 
       catch (e) { showToast(e.message, 'error'); }
     },
-
     exportCreditList() {
       if (this.currentCredit.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
       const data = this.currentCredit.map((item, idx) => ({
@@ -825,7 +750,6 @@
       XLSX.utils.book_append_sheet(wb, ws, "الكريديت");
       XLSX.writeFile(wb, "Credit_List.xlsx");
     },
-
     async saveAviation() {
       const airline = $('airlineName').value.trim();
       const pnr = $('pnrNumber').value.trim();
@@ -837,7 +761,6 @@
         $('airlineName').value = ''; $('pnrNumber').value = ''; $('ticketCost').value = '';
       } catch (e) { showToast(e.message, 'error'); }
     },
-
     async saveTicket() {
       const name = $('ticketName').value.trim();
       const qty = parseInt($('ticketQty').value) || 0;
@@ -849,7 +772,6 @@
         $('ticketName').value = ''; $('ticketQty').value = ''; $('ticketUnitPrice').value = '';
       } catch (e) { showToast(e.message, 'error'); }
     },
-
     async saveSettlement() {
       const fileCode = $('fileCode').value.trim();
       const guide = $('guideName').value.trim();
@@ -861,7 +783,6 @@
       } catch (e) { showToast(e.message, 'error'); }
     }
   };
-
   /* الاستعلام يقرأ فقط من حركات الكريديت المسجلة */
   window.renderRunningStatement = function() {
     const entity = $('stEntityName').value.trim();
@@ -869,7 +790,6 @@
     const filterFileCode = $('stFileCode').value.trim().toLowerCase();
     const fromDate = $('stFromDate').value;
     const toDate = $('stToDate').value;
-
     if (!entity) {
       $('stInfoEntity').innerText = '-';
       $('stInfoCurrency').innerText = '-';
@@ -880,17 +800,14 @@
       $('stTotalCount').innerText = '0';
       return;
     }
-
     $('stInfoEntity').innerText = entity;
     $('stInfoCurrency').innerText = currency;
     $('stInfoFromDate').innerText = fromDate ? formatDateDMY(fromDate) : 'البداية';
     $('stInfoToDate').innerText = toDate ? formatDateDMY(toDate) : 'الآن';
-
     let records = App.currentCredit.filter(item => 
       (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
       (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
     );
-
     if (filterFileCode) {
       records = records.filter(r => (r.fileCode || '').toLowerCase().includes(filterFileCode));
     }
@@ -906,9 +823,7 @@
         return d <= toDate;
       });
     }
-
     const tbody = $('statementRunningTbody');
-
     if (records.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات كريديت مطابقة للجهة المحددة</td></tr>';
       $('stCardDebit').innerText = `0 ${currency}`;
@@ -917,25 +832,20 @@
       $('stTotalCount').innerText = '0';
       return;
     }
-
     let runningBalance = 0;
     let totalDebit = 0;
     let totalCredit = 0;
     let idx = 1;
     let htmlBuffer = '';
-
     records.forEach(item => {
       const amt = parseFloat(item.amount) || 0;
       let debit = 0, credit = 0;
-
       if (item.type === 'deposit') {
         debit = amt; totalDebit += amt; runningBalance += amt;
       } else {
         credit = amt; totalCredit += amt; runningBalance -= amt;
       }
-
       const dateStr = item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
-
       htmlBuffer += `
         <tr>
           <td>${idx++}</td>
@@ -948,7 +858,6 @@
         </tr>
       `;
     });
-
     htmlBuffer += `
       <tr class="total-row">
         <td colspan="4" style="text-align:right;">📊 صافي الإجمالي للحساب المستقل</td>
@@ -957,15 +866,12 @@
         <td style="color:#2563eb; background:#e0e7ff;">${runningBalance.toLocaleString()} ${currency}</td>
       </tr>
     `;
-
     tbody.innerHTML = htmlBuffer;
-
     $('stCardDebit').innerText = `${totalDebit.toLocaleString()} ${currency}`;
     $('stCardCredit').innerText = `${totalCredit.toLocaleString()} ${currency}`;
     $('stCardBalance').innerText = `${runningBalance.toLocaleString()} ${currency}`;
     $('stTotalCount').innerText = records.length;
   };
-
   window.resetStatementFilters = function() {
     $('stEntityName').value = '';
     $('stFileCode').value = '';
@@ -973,7 +879,6 @@
     $('stToDate').value = '';
     window.renderRunningStatement();
   };
-
   window.exportStatementToExcel = function() {
     const entity = $('stEntityName').value.trim();
     if (!entity) return showToast('يرجى تحديد جهة وعرض الكشف أولاً', 'error');
@@ -984,7 +889,6 @@
       (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
       (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
     );
-
     let running = 0;
     const cleanData = records.map((item, idx) => {
       const amt = parseFloat(item.amount) || 0;
@@ -1001,13 +905,11 @@
         "الرصيد التراكمي": running
       };
     });
-
     const ws = XLSX.utils.json_to_sheet(cleanData);
     const wb = XLSX.utils.book_new(); 
     XLSX.utils.book_append_sheet(wb, ws, "كشف حساب");
     XLSX.writeFile(wb, `Statement_${entity}.xlsx`);
   };
-
   window.downloadStatementPDF = function() {
     const el = $('printableStatementArea');
     const opt = {
@@ -1019,11 +921,9 @@
     };
     html2pdf().set(opt).from(el).save();
   };
-
   App.listenToSuppliers();
   App.listenToCredit();
   window.App = App;
-
   window.openTab = function(evt, tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -1034,7 +934,6 @@
     if (tabName !== 'creditTab') { $('creditSubMenu').style.display = 'none'; $('creditArrowIcon').textContent = '▼'; } 
     else { $('creditBtn').classList.add('active'); }
   };
-
   window.toggleTaxDiscountMenu = function(evt) {
     const sub = $('taxDiscountSubMenu');
     const icon = $('taxArrowIcon');
@@ -1042,7 +941,6 @@
     if (sub.style.display === 'none') { sub.style.display = 'flex'; icon.textContent = '▲'; } 
     else { sub.style.display = 'none'; icon.textContent = '▼'; }
   };
-
   window.toggleCreditMenu = function(evt) {
     const sub = $('creditSubMenu');
     const icon = $('creditArrowIcon');
@@ -1050,7 +948,6 @@
     if (sub.style.display === 'none') { sub.style.display = 'flex'; icon.textContent = '▲'; } 
     else { sub.style.display = 'none'; icon.textContent = '▼'; }
   };
-
   window.openSubTab = function(evt, subTabName) {
     const target = $(subTabName);
     if (!target) return;
@@ -1061,7 +958,6 @@
     target.classList.add('active');
     if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
   };
-
   window.filterSuppliersTable = function() {
     const filter = $('searchSupplier').value.toLowerCase();
     document.querySelectorAll('#suppliersTable tbody tr').forEach(tr => {
@@ -1073,7 +969,6 @@
       }
     });
   };
-
   window.filterCreditTable = function() {
     const filter = $('searchCredit').value.toLowerCase();
     document.querySelectorAll('#creditTable tbody tr').forEach(tr => {
@@ -1085,7 +980,6 @@
       }
     });
   };
-
   window.filterEntitySummaryTable = function() {
     const filter = $('searchEntitySummary').value.toLowerCase();
     document.querySelectorAll('#entitySummaryTable tbody tr').forEach(tr => {
@@ -1093,10 +987,8 @@
       if (td) tr.style.display = td.textContent.toLowerCase().includes(filter) ? '' : 'none';
     });
   };
-
   window.printDashboard = () => window.print();
   window.printSuppliersList = () => window.print();
-
   window.downloadDashboardPDF = () => {
     const el = $('printableArea');
     const search = $('searchEntitySummary');
@@ -1104,13 +996,11 @@
     const opt = { margin: 10, filename: `Dashboard_${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
     html2pdf().set(opt).from(el).save().then(() => { if (search) search.style.display = ''; });
   };
-
   window.downloadSuppliersPDF = () => {
     const el = $('printableSuppliersArea');
     const opt = { margin: 10, filename: `Suppliers_${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
     html2pdf().set(opt).from(el).save();
   };
 </script>
-
 </body>
 </html>
