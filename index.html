@@ -1367,7 +1367,7 @@
 
       if (!ticketName || quantity <= 0 || unitPrice <= 0) return showToast('يرجى ملء البيانات بشكل صحيح', 'error');
       try {
-        await updateDoc(doc(db, "attractions_tickets"), { ticketName, quantity, unitPrice, currency });
+        await updateDoc(doc(db, "attractions_tickets", id), { ticketName, quantity, unitPrice, currency });
         showToast('تم تعديل التذكرة!', 'success');
         this.closeTicketEditModal();
       } catch (e) { showToast(e.message, 'error'); }
@@ -1492,7 +1492,7 @@
 
       if (!fileCode) return showToast('يرجى كتابة كود الملف', 'error');
       try {
-        await updateDoc(doc(db, "file_settlements"), { fileCode, guideName, revenue, expenses, notes });
+        await updateDoc(doc(db, "file_settlements", id), { fileCode, guideName, revenue, expenses, notes });
         showToast('تم تعديل التصفية بنجاح!', 'success');
         this.closeSettlementEditModal();
       } catch (e) { showToast(e.message, 'error'); }
