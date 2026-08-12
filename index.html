@@ -337,7 +337,6 @@
             <div class="form-group"><label>تاريخ المغادرة</label><input type="date" id="creditDepartureDate"></div>
           </div>
           <div class="form-row">
-            <!-- تم التعديل هنا: استبدال كلمة علينا بكلمة المستخدم -->
             <div class="form-group"><label>نوع الحركة</label><select id="creditType"><option value="deposit">مدين (لنا)</option><option value="deduction">دائن (المستخدم)</option></select></div>
             <div class="form-group">
               <label>المبلغ والعملة</label>
@@ -397,11 +396,13 @@
               <div class="form-row">
                 <div class="form-group">
                   <label>اسم المورد / الجهة</label>
-                  <input type="text" id="stEntityName" placeholder="أدخل اسم الجهة كلياً..." oninput="renderRunningStatement()">
+                  <!-- تم حذف oninput لتتم المعالجة فقط عند الضغط على زر البحث -->
+                  <input type="text" id="stEntityName" placeholder="أدخل اسم الجهة كلياً...">
                 </div>
                 <div class="form-group">
                   <label>العملة</label>
-                  <select id="stCurrency" onchange="renderRunningStatement()">
+                  <!-- تم حذف onchange لتتم المعالجة فقط عند الضغط على زر البحث -->
+                  <select id="stCurrency">
                     <option value="USD">USD</option>
                     <option value="EGP">EGP</option>
                     <option value="EUR">EUR</option>
@@ -409,19 +410,23 @@
                 </div>
                 <div class="form-group">
                   <label>رقم الملف</label>
-                  <input type="text" id="stFileCode" placeholder="بحث برقم الملف..." oninput="renderRunningStatement()">
+                  <!-- تم حذف oninput لتتم المعالجة فقط عند الضغط على زر البحث -->
+                  <input type="text" id="stFileCode" placeholder="بحث برقم الملف...">
                 </div>
               </div>
               <div class="form-row" style="margin-bottom:0;">
                 <div class="form-group" style="margin-bottom:0;">
                   <label>من تاريخ</label>
-                  <input type="date" id="stFromDate" onchange="renderRunningStatement()">
+                  <!-- تم حذف onchange لتتم المعالجة فقط عند الضغط على زر البحث -->
+                  <input type="date" id="stFromDate">
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
                   <label>إلى تاريخ</label>
-                  <input type="date" id="stToDate" onchange="renderRunningStatement()">
+                  <!-- تم حذف onchange لتتم المعالجة فقط عند الضغط على زر البحث -->
+                  <input type="date" id="stToDate">
                 </div>
                 <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end; gap:10px;">
+                  <!-- عند الضغط على البحث يتم تحديث الشاشة بناءً على التواريخ والبيانات -->
                   <button class="search-btn" style="width:100%; height:42px;" onclick="renderRunningStatement()">🔍 تحديث الكشف</button>
                   <button class="print-btn" style="height:42px;" onclick="resetStatementFilters()">🔄 إعادة ضبط</button>
                 </div>
@@ -475,7 +480,7 @@
                     </tr>
                   </thead>
                   <tbody id="statementRunningTbody">
-                    <tr><td colspan="7" style="text-align:center; color:#64748b;">قم بكتابة اسم المورد في الخانة العلوية لعرض كشف حسابه المستقل</td></tr>
+                    <tr><td colspan="7" style="text-align:center; color:#64748b;">قم بتحديد البيانات والضغط على زر (🔍 تحديث الكشف) لطباعة الكشف المستقل</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -607,7 +612,6 @@
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); data.id = docSnap.id;
           this.currentCredit.push(data);
-          /* تم التعديل هنا لطباعة المسمى الجديد للنوع */
           const typeBadge = data.type === 'deposit' ? '<span class="badge badge-deposit">مدين (لنا)</span>' : '<span class="badge badge-deduction">دائن (المستخدم)</span>';
           tbody.innerHTML += `
             <tr>
@@ -627,10 +631,6 @@
         });
         
         this.updateDashboard(this.currentCredit);
-        
-        if ($('stEntityName').value.trim() !== "") {
-          window.renderRunningStatement();
-        }
       });
     },
 
@@ -815,14 +815,18 @@
     }
   };
 
+  /* يتم استدعاء هذه الدالة فقط عند النقر على زر "تحديث الكشف" */
   window.renderRunningStatement = function() {
     const entity = $('stEntityName').value.trim();
     const currency = $('stCurrency').value;
+    const filterFileCode = $('stFileCode').value.trim().toLowerCase();
+    const fromDate = $('stFromDate').value;
+    const toDate = $('stToDate').value;
 
     if (!entity) {
       $('stInfoEntity').innerText = '-';
       $('stInfoCurrency').innerText = '-';
-      $('statementRunningTbody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">ادخل اسم المورد لعرض كشف حسابه الخاص.</td></tr>';
+      $('statementRunningTbody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">ادخل اسم المورد والضغط على (🔍 تحديث الكشف) لعرض كشف حسابه الخاص.</td></tr>';
       $('stCardDebit').innerText = `0 ${currency}`;
       $('stCardCredit').innerText = `0 ${currency}`;
       $('stCardBalance').innerText = `0 ${currency}`;
@@ -830,17 +834,16 @@
       return;
     }
 
+    // تحديث بيانات شريط المعلومات العلوية بالكشف بناءً على القيم وقت البحث
     $('stInfoEntity').innerText = entity;
     $('stInfoCurrency').innerText = currency;
+    $('stInfoFromDate').innerText = fromDate ? formatDateDMY(fromDate) : 'البداية';
+    $('stInfoToDate').innerText = toDate ? formatDateDMY(toDate) : 'الآن';
 
     let records = App.currentCredit.filter(item => 
       (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
       (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
     );
-
-    const filterFileCode = $('stFileCode').value.trim().toLowerCase();
-    const fromDate = $('stFromDate').value;
-    const toDate = $('stToDate').value;
 
     if (filterFileCode) {
       records = records.filter(r => (r.fileCode || '').toLowerCase().includes(filterFileCode));
@@ -857,9 +860,6 @@
         return d <= toDate;
       });
     }
-
-    $('stInfoFromDate').innerText = fromDate ? formatDateDMY(fromDate) : 'البداية';
-    $('stInfoToDate').innerText = toDate ? formatDateDMY(toDate) : 'الآن';
 
     const tbody = $('statementRunningTbody');
     tbody.innerHTML = '';
