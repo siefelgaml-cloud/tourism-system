@@ -84,7 +84,6 @@
       box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
     }
     
-    /* تعديل تنسيق مجموعة إدخال المبلغ والعملة لإصلاح مشكلة الكتابة */
     .amount-input-group {
       display: flex;
       gap: 8px;
@@ -118,7 +117,6 @@
     .search-btn { background: #2563eb; color: white; }
     .search-btn:hover { background: #1d4ed8; transform: scale(1.02); }
 
-    /* تصميم كشف الحساب المستقل */
     .statement-container {
       background: #f8fafc;
       border-radius: 16px;
@@ -328,7 +326,6 @@
       </div>
 
       <div id="creditTab" class="tab-content">
-        <!-- قسم تسجيل حركة الكريديت المعدل -->
         <div id="addCreditSubTab" class="sub-tab-content active">
           <h3>تسجيل حركة كريديت</h3>
           <div class="form-row">
@@ -340,7 +337,8 @@
             <div class="form-group"><label>تاريخ المغادرة</label><input type="date" id="creditDepartureDate"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>نوع الحركة</label><select id="creditType"><option value="deposit">مدين (لنا)</option><option value="deduction">دائن (علينا)</option></select></div>
+            <!-- تم التعديل هنا: استبدال كلمة علينا بكلمة المستخدم -->
+            <div class="form-group"><label>نوع الحركة</label><select id="creditType"><option value="deposit">مدين (لنا)</option><option value="deduction">دائن (المستخدم)</option></select></div>
             <div class="form-group">
               <label>المبلغ والعملة</label>
               <div class="amount-input-group">
@@ -386,7 +384,6 @@
           </div>
         </div>
 
-        <!-- تبويب كشف الحساب المستقل بالكامل -->
         <div id="creditStatementSubTab" class="sub-tab-content">
           <div class="statement-container">
             <div class="statement-header-banner">
@@ -610,7 +607,8 @@
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); data.id = docSnap.id;
           this.currentCredit.push(data);
-          const typeBadge = data.type === 'deposit' ? '<span class="badge badge-deposit">مدين</span>' : '<span class="badge badge-deduction">دائن</span>';
+          /* تم التعديل هنا لطباعة المسمى الجديد للنوع */
+          const typeBadge = data.type === 'deposit' ? '<span class="badge badge-deposit">مدين (لنا)</span>' : '<span class="badge badge-deduction">دائن (المستخدم)</span>';
           tbody.innerHTML += `
             <tr>
               <td>${idx++}</td>
@@ -785,7 +783,7 @@
       const data = this.currentCredit.map((item, idx) => ({
         "م": idx+1, "الجهة": item.entity || '', "رقم الملف": item.fileCode || '',
         "تاريخ الوصول": formatDateDMY(item.arrivalDate), "تاريخ المغادرة": formatDateDMY(item.departureDate),
-        "نوع الحركة": item.type === 'deposit' ? 'مدين' : 'دائن', "المبلغ": item.amount || 0,
+        "نوع الحركة": item.type === 'deposit' ? 'مدين (لنا)' : 'دائن (المستخدم)', "المبلغ": item.amount || 0,
         "العملة": item.currency || 'EGP', "البيان": item.description || ''
       }));
       const ws = XLSX.utils.json_to_sheet(data);
@@ -817,7 +815,6 @@
     }
   };
 
-  /* بناء كشف الحساب مستقل تماماً */
   window.renderRunningStatement = function() {
     const entity = $('stEntityName').value.trim();
     const currency = $('stCurrency').value;
