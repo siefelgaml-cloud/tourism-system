@@ -327,6 +327,10 @@
               <span class="dash-card-title" style="color:#0369a1;">💵 صافي رصيد الكريديت (USD)</span>
               <div class="dash-card-value" id="mDashCreditUSD" style="color:#075985;">0</div>
             </div>
+            <div class="dash-card" style="border-right:5px solid #eab308; background:#fefce8;">
+              <span class="dash-card-title" style="color:#ca8a04;">💶 صافي رصيد الكريديت (EUR)</span>
+              <div class="dash-card-value" id="mDashCreditEUR" style="color:#a16207;">0</div>
+            </div>
             <div class="dash-card" style="border-right:5px solid #7c3aed; background:#f5f3ff;">
               <span class="dash-card-title" style="color:#6d28d9;">✈️ إجمالي مصروفات الطيران</span>
               <div class="dash-card-value" id="mDashTotalAviation" style="color:#5b21b6;">0</div>
@@ -473,7 +477,7 @@
 
             <div class="filter-panel no-print">
               <h4 style="margin-bottom:14px; color:#0f172a; display:flex; align-items:center; gap:8px; font-size:16px;">
-                🔍 البحث وااختيار حساب الفندق / الجهة
+                🔍 البحث واختيار حساب الفندق / الجهة
               </h4>
               <div class="form-row">
                 <div class="form-group" style="position:relative;">
@@ -1496,33 +1500,22 @@
       XLSX.writeFile(wb, "File_Settlements.xlsx");
     },
 
-    // 6. MASTER DASHBOARD CALCULATIONS (تعديل دالة الحسابات لتحديث حركات الكريديت)
+    // 6. MASTER DASHBOARD CALCULATIONS
     updateMasterDashboard() {
       $('mDashTotalSuppliers').innerText = this.currentSuppliers.length;
 
-      let totals = { 
-        EGP: { deposit: 0, deduction: 0 }, 
-        USD: { deposit: 0, deduction: 0 }, 
-        EUR: { deposit: 0, deduction: 0 } 
-      };
-
+      let egpNet = 0, usdNet = 0, eurNet = 0;
       this.currentCredit.forEach(item => {
         const curr = (item.currency || 'EGP').toUpperCase();
         const amt = parseFloat(item.amount) || 0;
-        if (!totals[curr]) totals[curr] = { deposit: 0, deduction: 0 };
-
-        if (item.type === 'deposit') {
-          totals[curr].deposit += amt;
-        } else if (item.type === 'deduction') {
-          totals[curr].deduction += amt;
-        }
+        const val = item.type === 'deposit' ? amt : -amt;
+        if (curr === 'EGP') egpNet += val;
+        else if (curr === 'USD') usdNet += val;
+        else if (curr === 'EUR') eurNet += val;
       });
-
-      const egpNet = totals.EGP.deposit - totals.EGP.deduction;
-      const usdNet = totals.USD.deposit - totals.USD.deduction;
-
       $('mDashCreditEGP').innerText = `${egpNet.toLocaleString()} EGP`;
       $('mDashCreditUSD').innerText = `${usdNet.toLocaleString()} USD`;
+      if ($('mDashCreditEUR')) $('mDashCreditEUR').innerText = `${eurNet.toLocaleString()} EUR`;
 
       let totalAviation = 0;
       this.currentAviation.forEach(a => totalAviation += (parseFloat(a.cost) || 0));
@@ -1536,11 +1529,6 @@
       this.currentSettlements.forEach(s => totalProfit += ((parseFloat(s.revenue)||0) - (parseFloat(s.expenses)||0)));
       $('mDashTotalSettlementProfit').innerText = `${totalProfit.toLocaleString()} $`;
 
-      // بناء إجماليات الوارد والصادر للكريديت لعرضها في الجدول المجمع
-      const creditInStr = `EGP: ${totals.EGP.deposit.toLocaleString()} | USD: ${totals.USD.deposit.toLocaleString()}`;
-      const creditOutStr = `EGP: ${totals.EGP.deduction.toLocaleString()} | USD: ${totals.USD.deduction.toLocaleString()}`;
-      const creditNetStr = `EGP: ${egpNet.toLocaleString()} | USD: ${usdNet.toLocaleString()}`;
-
       const tbody = $('masterDashboardTbody');
       tbody.innerHTML = `
         <tr>
@@ -1553,29 +1541,32 @@
         <tr>
           <td><strong>💳 حركات الكريديت</strong></td>
           <td>${this.currentCredit.length} حركة</td>
-          <td style="color:#15803d; font-weight:700;">${creditInStr}</td>
-          <td style="color:#b91c1c; font-weight:700;">${creditOutStr}</td>
-          <td><span class="badge badge-deposit">${creditNetStr}</span></td>
+          <td>${egpNet.toLocaleString()} EGP</td>
+          <td>-</td>
+          <td>
+            <span class="badge badge-deposit">${usdNet.toLocaleString()} USD</span>
+            <span class="badge badge-advance" style="background:#fefce8; color:#ca8a04;">${eurNet.toLocaleString()} EUR</span>
+          </td>
         </tr>
         <tr>
           <td><strong>✈️ حجوزات الطيران</strong></td>
           <td>${this.currentAviation.length} حجز</td>
           <td>-</td>
-          <td style="color:#b91c1c; font-weight:700;">${totalAviation.toLocaleString()} $</td>
+          <td style="color:#b91c1c;">${totalAviation.toLocaleString()} $</td>
           <td><span class="badge badge-deduction">مصروفات</span></td>
         </tr>
         <tr>
           <td><strong>🎟️ مخزون التذاكر</strong></td>
           <td>${this.currentTickets.length} مزار</td>
-          <td style="color:#15803d; font-weight:700;">${totalTicketsVal.toLocaleString()} $</td>
+          <td>${totalTicketsVal.toLocaleString()} $</td>
           <td>-</td>
           <td><span class="badge badge-advance">أصول متوفرة</span></td>
         </tr>
         <tr>
           <td><strong>📄 تصفيات الملفات</strong></td>
           <td>${this.currentSettlements.length} ملف</td>
-          <td style="color:#15803d; font-weight:700;">إيراد شامل</td>
-          <td style="color:#b91c1c; font-weight:700;">مصروف شامل</td>
+          <td style="color:#15803d;">إيراد شامل</td>
+          <td style="color:#b91c1c;">مصروف شامل</td>
           <td><span class="badge ${totalProfit >= 0 ? 'badge-profit' : 'badge-loss'}">${totalProfit.toLocaleString()} $ صافي</span></td>
         </tr>
       `;
