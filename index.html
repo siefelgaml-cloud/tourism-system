@@ -238,6 +238,12 @@
       #printableArea, #printableSuppliersArea, #printableStatementArea, #printableAviationArea, #printableTicketsArea, #printableSettlementArea { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
       .no-print { display: none !important; }
       .pdf-report-header { display: block !important; }
+      body.print-settlements * { visibility: hidden; }
+      body.print-settlements #printableSettlementArea,
+      body.print-settlements #printableSettlementArea * { visibility: visible; }
+      body.print-settlements #printableSettlementArea {
+        position: absolute; left: 0; top: 0; width: 100%; padding: 10px;
+      }
     }
   </style>
 </head>
@@ -738,6 +744,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h3>سجل تصفيات الملفات</h3>
             <div class="btn-group no-print" style="margin:0;">
+              <button class="print-btn" onclick="printSettlementsList()">🖨️ طباعة</button>
               <button class="pdf-btn" onclick="downloadSettlementsPDF()">📄 PDF</button>
               <button class="excel-btn" onclick="App.exportSettlementsList()">📊 Excel</button>
               <input type="text" id="searchSettlements" placeholder="🔍 بحث..." onkeyup="filterSettlementsTable()" style="max-width:200px;">
@@ -1955,6 +1962,14 @@
   // PRINT HELPERS
   window.printSuppliersList = () => window.print();
   window.printDashboard = () => window.print();
+  window.printSettlementsList = () => {
+    const cleanup = () => document.body.classList.remove('print-settlements');
+    document.body.classList.add('print-settlements');
+    window.addEventListener('afterprint', cleanup, { once: true });
+    window.print();
+    // Covers browsers that do not emit afterprint after a cancelled dialog.
+    setTimeout(cleanup, 1000);
+  };
 
   // INITIALIZATION AND MENU NAVIGATION
   App.listenToSuppliers();
