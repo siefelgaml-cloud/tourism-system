@@ -896,7 +896,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { 
-    getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, 
+    getFirestore, collection, addDoc, updateDoc, doc, 
     onSnapshot, query, orderBy 
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -911,6 +911,12 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+
+  // Compatibility wrapper: every legacy delete call now preserves the record for audit.
+  const deleteDoc = async (documentReference) => updateDoc(documentReference, {
+    isDeleted: true,
+    deletedAt: new Date()
+  });
 
   const $ = (id) => document.getElementById(id);
 
@@ -951,6 +957,20 @@
     currentTickets: [],
     currentSettlements: [],
 
+    // V2: audit-friendly deletion and normalized duplicate matching.
+    normalizeKey(value) {
+      return String(value || '').trim().toUpperCase();
+    },
+
+    isDuplicate(records, field, value, excludeId = '') {
+      const key = this.normalizeKey(value);
+      return Boolean(key) && records.some(record => !record.isDeleted && record.id !== excludeId && this.normalizeKey(record[field]) === key);
+    },
+
+    async softDelete(collectionName, id) {
+      await updateDoc(doc(db, collectionName, id), { isDeleted: true, deletedAt: new Date() });
+    },
+
     // 1. SUPPLIERS (الخصم والإضافة)
     listenToSuppliers() {
       const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
@@ -967,6 +987,7 @@
         let htmlBuffer = '';
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); data.id = docSnap.id;
+          if (data.isDeleted) return;
           this.currentSuppliers.push(data);
 
           const typeBadge = data.supplierType === 'كروز' ? '<span class="badge badge-cruise">كروز</span>' :
@@ -1007,10 +1028,11 @@
 
       if (!propertyName || !supplierName || !taxCardNumber) return showToast('يرجى ملء كافة البيانات', 'error');
 
+      if (this.isDuplicate(this.currentSuppliers, 'taxCardNumber', taxCardNumber)) return showToast('يوجد مورد مسجل بنفس الرقم الضريبي', 'error');
       const btn = $('btnSaveSupplier');
       btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
-        await addDoc(collection(db, "tax_discount_records"), { supplierType, propertyName, supplierName, taxCardNumber, taxRate, createdAt: new Date() });
+        await addDoc(collection(db, "tax_discount_records"), { supplierType, propertyName, supplierName, taxCardNumber, taxRate, isDeleted: false, createdAt: new Date() });
         showToast('تم حفظ المورد بنجاح!', 'success');
         $('propertyName').value = ''; $('supplierName').value = ''; $('taxCardNumber').value = '';
       } catch (e) { showToast(e.message, 'error'); } 
@@ -1044,6 +1066,7 @@
       const taxCardNumber = $('editTaxCardNumber').value.trim();
       const taxRate = $('editTaxType').value === "0.03" ? 0.03 : "advance_payment";
       if (!propertyName || !supplierName || !taxCardNumber) return showToast('يرجى ملء الحقول المطلوبة', 'error');
+      if (this.isDuplicate(this.currentSuppliers, 'taxCardNumber', taxCardNumber, id)) return showToast('يوجد مورد مسجل بنفس الرقم الضريبي', 'error');
       try {
         await updateDoc(doc(db, "tax_discount_records", id), { supplierType, propertyName, supplierName, taxCardNumber, taxRate });
         showToast('تم التعديل بنجاح!', 'success');
@@ -1081,6 +1104,7 @@
         let htmlBuffer = '';
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); data.id = docSnap.id;
+          if (data.isDeleted) return;
           this.currentCredit.push(data);
           const typeBadge = data.type === 'deposit' ? '<span class="badge badge-deposit">مدين (لنا)</span>' : '<span class="badge badge-deduction">دائن (المستخدم)</span>';
           htmlBuffer += `
@@ -1111,7 +1135,7 @@
       const arrivalDate = $('creditArrivalDate').value;
       const departureDate = $('creditDepartureDate').value;
       const type = $('creditType').value;
-      const amount = parseFloat($('creditAmount').value) || 0;
+      const amount = Number($('creditAmount').value);
       const currency = $('creditCurrency').value;
       const description = $('creditDescription').value.trim();
 
@@ -1120,10 +1144,11 @@
         return showToast('تاريخ المغادرة لا يمكن أن يكون قبل تاريخ الوصول!', 'error');
       }
 
+      if (!Number.isFinite(amount) || amount <= 0) return showToast('يرجى إدخال مبلغ موجب وصحيح', 'error');
       const btn = $('btnSaveCredit');
       btn.disabled = true; btn.innerText = 'جاري التسجيل...';
       try {
-        await addDoc(collection(db, "credit_balances"), { entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, createdAt: new Date() });
+        await addDoc(collection(db, "credit_balances"), { entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, isDeleted: false, createdAt: new Date() });
         showToast('تم تسجيل حركة الكريديت بنجاح!', 'success');
         $('creditEntity').value = ''; $('creditFileCode').value = ''; $('creditAmount').value = ''; $('creditDescription').value = '';
       } catch (e) { showToast(e.message, 'error'); } 
@@ -1214,6 +1239,7 @@
         let htmlBuffer = '';
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); data.id = docSnap.id;
+          if (data.isDeleted) return;
           this.currentAviation.push(data);
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
           htmlBuffer += `
@@ -1243,15 +1269,17 @@
       const pnr = $('pnrNumber').value.trim();
       const passengerName = $('passengerName').value.trim();
       const fileCode = $('aviationFileCode').value.trim();
-      const cost = parseFloat($('ticketCost').value) || 0;
+      const cost = Number($('ticketCost').value);
       const currency = $('aviationCurrency').value;
 
       if (!airline || !pnr || cost <= 0) return showToast('يرجى كتابة خط الطيران وPNR والمبلغ الصحيح', 'error');
 
+      if (!Number.isFinite(cost) || cost <= 0) return showToast('يرجى إدخال مبلغ موجب وصحيح', 'error');
+      if (this.isDuplicate(this.currentAviation, 'pnr', pnr)) return showToast('رقم PNR مسجل بالفعل', 'error');
       const btn = $('btnSaveAviation');
       btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
-        await addDoc(collection(db, "aviation_bookings"), { airline, pnr, passengerName, fileCode, cost, currency, createdAt: new Date() });
+        await addDoc(collection(db, "aviation_bookings"), { airline, pnr, passengerName, fileCode, cost, currency, isDeleted: false, createdAt: new Date() });
         showToast('تم حفظ حجز الطيران بنجاح!', 'success');
         $('airlineName').value = ''; $('pnrNumber').value = ''; $('passengerName').value = ''; $('aviationFileCode').value = ''; $('ticketCost').value = '';
       } catch (e) { showToast(e.message, 'error'); }
@@ -1284,10 +1312,12 @@
       const pnr = $('editPnrNumber').value.trim();
       const passengerName = $('editPassengerName').value.trim();
       const fileCode = $('editAviationFileCode').value.trim();
-      const cost = parseFloat($('editTicketCost').value) || 0;
+      const cost = Number($('editTicketCost').value);
       const currency = $('editAviationCurrency').value;
 
       if (!airline || !pnr || cost <= 0) return showToast('يرجى ملء كافة البيانات بشكل صحيح', 'error');
+      if (!Number.isFinite(cost) || cost <= 0) return showToast('يرجى إدخال مبلغ موجب وصحيح', 'error');
+      if (this.isDuplicate(this.currentAviation, 'pnr', pnr, id)) return showToast('رقم PNR مسجل بالفعل', 'error');
       try {
         await updateDoc(doc(db, "aviation_bookings", id), { airline, pnr, passengerName, fileCode, cost, currency });
         showToast('تم التعديل بنجاح!', 'success');
@@ -1324,6 +1354,7 @@
         let htmlBuffer = '';
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); data.id = docSnap.id;
+          if (data.isDeleted) return;
           this.currentTickets.push(data);
           const qty = parseInt(data.quantity) || 0;
           const unitPrice = parseFloat(data.unitPrice) || 0;
@@ -1353,16 +1384,17 @@
 
     async saveTicket() {
       const ticketName = $('ticketName').value.trim();
-      const quantity = parseInt($('ticketQty').value) || 0;
-      const unitPrice = parseFloat($('ticketUnitPrice').value) || 0;
+      const quantity = Number($('ticketQty').value);
+      const unitPrice = Number($('ticketUnitPrice').value);
       const currency = $('ticketCurrency').value;
 
       if (!ticketName || quantity <= 0 || unitPrice <= 0) return showToast('يرجى ملء اسم المزار والكمية والسعر', 'error');
 
+      if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(unitPrice) || unitPrice <= 0) return showToast('الكمية يجب أن تكون عددًا صحيحًا والسعر موجبًا', 'error');
       const btn = $('btnSaveTicket');
       btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
-        await addDoc(collection(db, "attractions_tickets"), { ticketName, quantity, unitPrice, currency, createdAt: new Date() });
+        await addDoc(collection(db, "attractions_tickets"), { ticketName, quantity, unitPrice, currency, isDeleted: false, createdAt: new Date() });
         showToast('تم إضافة التذكرة للمخزون!', 'success');
         $('ticketName').value = ''; $('ticketQty').value = ''; $('ticketUnitPrice').value = '';
       } catch (e) { showToast(e.message, 'error'); }
@@ -1390,11 +1422,12 @@
     async saveEditedTicket() {
       const id = $('editTicketId').value;
       const ticketName = $('editTicketName').value.trim();
-      const quantity = parseInt($('editTicketQty').value) || 0;
-      const unitPrice = parseFloat($('editTicketUnitPrice').value) || 0;
+      const quantity = Number($('editTicketQty').value);
+      const unitPrice = Number($('editTicketUnitPrice').value);
       const currency = $('editTicketCurrency').value;
 
       if (!ticketName || quantity <= 0 || unitPrice <= 0) return showToast('يرجى ملء البيانات بشكل صحيح', 'error');
+      if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(unitPrice) || unitPrice <= 0) return showToast('الكمية يجب أن تكون عددًا صحيحًا والسعر موجبًا', 'error');
       try {
         await updateDoc(doc(db, "attractions_tickets", id), { ticketName, quantity, unitPrice, currency });
         showToast('تم تعديل التذكرة!', 'success');
@@ -1433,6 +1466,7 @@
         let htmlBuffer = '';
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); data.id = docSnap.id;
+          if (data.isDeleted) return;
           this.currentSettlements.push(data);
 
           const revenue = parseFloat(data.revenue) || 0;
@@ -1442,7 +1476,7 @@
           const profit = revenue - expenses;
           const netAfterTax = profit / 1.14;
           const commissionRate = 0.10; // 10%
-          const commissionAmount = netAfterTax * commissionRate;
+          const commissionAmount = Math.max(0, netAfterTax * commissionRate);
 
           const profitBadge = profit >= 0 ? 
             `<span class="badge badge-profit">+${profit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>` : 
@@ -1511,16 +1545,18 @@
     async saveSettlement() {
       const fileCode = $('fileCode').value.trim();
       const guideName = $('guideName').value.trim();
-      const revenue = parseFloat($('settlementRevenue').value) || 0;
-      const expenses = parseFloat($('settlementExpenses').value) || 0;
+      const revenue = Number($('settlementRevenue').value);
+      const expenses = Number($('settlementExpenses').value);
       const notes = $('settlementNotes').value.trim();
 
       if (!fileCode) return showToast('يرجى إدخال كود الملف', 'error');
 
+      if (!Number.isFinite(revenue) || !Number.isFinite(expenses) || revenue < 0 || expenses < 0) return showToast('الإيرادات والمصروفات يجب أن تكون أرقامًا غير سالبة', 'error');
+      if (this.isDuplicate(this.currentSettlements, 'fileCode', fileCode)) return showToast('كود الملف مسجل بالفعل في التصفيات', 'error');
       const btn = $('btnSaveSettlement');
       btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
-        await addDoc(collection(db, "file_settlements"), { fileCode, guideName, revenue, expenses, notes, createdAt: new Date() });
+        await addDoc(collection(db, "file_settlements"), { fileCode, guideName, revenue, expenses, notes, isDeleted: false, createdAt: new Date() });
         showToast('تم تسجيل التصفية بنجاح!', 'success');
         $('fileCode').value = ''; $('guideName').value = ''; $('settlementRevenue').value = ''; $('settlementExpenses').value = ''; $('settlementNotes').value = '';
       } catch (e) { showToast(e.message, 'error'); }
@@ -1550,11 +1586,13 @@
       const id = $('editSettlementId').value;
       const fileCode = $('editFileCode').value.trim();
       const guideName = $('editGuideName').value.trim();
-      const revenue = parseFloat($('editSettlementRevenue').value) || 0;
-      const expenses = parseFloat($('editSettlementExpenses').value) || 0;
+      const revenue = Number($('editSettlementRevenue').value);
+      const expenses = Number($('editSettlementExpenses').value);
       const notes = $('editSettlementNotes').value.trim();
 
       if (!fileCode) return showToast('يرجى كتابة كود الملف', 'error');
+      if (!Number.isFinite(revenue) || !Number.isFinite(expenses) || revenue < 0 || expenses < 0) return showToast('الإيرادات والمصروفات يجب أن تكون أرقامًا غير سالبة', 'error');
+      if (this.isDuplicate(this.currentSettlements, 'fileCode', fileCode, id)) return showToast('كود الملف مسجل بالفعل في التصفيات', 'error');
       try {
         await updateDoc(doc(db, "file_settlements", id), { fileCode, guideName, revenue, expenses, notes });
         showToast('تم تعديل التصفية بنجاح!', 'success');
@@ -1581,7 +1619,7 @@
         const expenses = parseFloat(item.expenses) || 0;
         const profit = revenue - expenses;
         const netAfterTax = profit / 1.14;
-        const commissionAmount = netAfterTax * 0.10;
+        const commissionAmount = Math.max(0, netAfterTax * 0.10);
 
         return {
           "م": idx+1, 
@@ -1619,13 +1657,18 @@
       $('mDashCreditUSD').innerText = `${usdNet.toLocaleString()} USD`;
       if ($('mDashCreditEUR')) $('mDashCreditEUR').innerText = `${eurNet.toLocaleString()} EUR`;
 
-      let totalAviation = 0;
-      this.currentAviation.forEach(a => totalAviation += (parseFloat(a.cost) || 0));
-      $('mDashTotalAviation').innerText = `${totalAviation.toLocaleString()} $`;
+      const currencyTotals = (records, valueFor) => records.reduce((totals, record) => {
+        const currency = (record.currency || 'USD').toUpperCase();
+        totals[currency] = (totals[currency] || 0) + (Number(valueFor(record)) || 0);
+        return totals;
+      }, {});
+      const renderCurrencyTotals = (totals) => Object.entries(totals).sort(([a], [b]) => a.localeCompare(b))
+        .map(([currency, value]) => `${value.toLocaleString()} ${currency}`).join(' | ') || '0';
 
-      let totalTicketsVal = 0;
-      this.currentTickets.forEach(t => totalTicketsVal += ((parseInt(t.quantity)||0) * (parseFloat(t.unitPrice)||0)));
-      $('mDashTotalTickets').innerText = `${totalTicketsVal.toLocaleString()} $`;
+      const aviationTotals = currencyTotals(this.currentAviation, a => a.cost);
+      const ticketTotals = currencyTotals(this.currentTickets, t => (parseInt(t.quantity) || 0) * (parseFloat(t.unitPrice) || 0));
+      $('mDashTotalAviation').innerText = renderCurrencyTotals(aviationTotals);
+      $('mDashTotalTickets').innerText = renderCurrencyTotals(ticketTotals);
 
       let totalProfit = 0;
       this.currentSettlements.forEach(s => totalProfit += ((parseFloat(s.revenue)||0) - (parseFloat(s.expenses)||0)));
@@ -1654,13 +1697,13 @@
           <td><strong>✈️ حجوزات الطيران</strong></td>
           <td>${this.currentAviation.length} حجز</td>
           <td>-</td>
-          <td style="color:#b91c1c;">${totalAviation.toLocaleString()} $</td>
+          <td style="color:#b91c1c;">${renderCurrencyTotals(aviationTotals)}</td>
           <td><span class="badge badge-deduction">مصروفات</span></td>
         </tr>
         <tr>
           <td><strong>🎟️ مخزون التذاكر</strong></td>
           <td>${this.currentTickets.length} مزار</td>
-          <td>${totalTicketsVal.toLocaleString()} $</td>
+          <td>${renderCurrencyTotals(ticketTotals)}</td>
           <td>-</td>
           <td><span class="badge badge-advance">أصول متوفرة</span></td>
         </tr>
