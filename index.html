@@ -768,6 +768,7 @@
             <div class="pdf-report-header">
               <h2>تقرير تصفيات الأوبريتور والملفات</h2>
               <p>منظومة الحسابات السياحية</p>
+              <p id="settlementPrintFilter" style="font-weight:700; color:#1e293b; margin-top:6px;">تصفية: جميع الأوبريتورز</p>
             </div>
 
             <!-- بطاقة إجمالي مبلغ العمولة -->
@@ -1957,12 +1958,22 @@
   window.downloadSuppliersPDF = () => generatePDFReport('printableSuppliersArea', `Suppliers_Report_${new Date().toISOString().slice(0,10)}.pdf`);
   window.downloadAviationPDF = () => generatePDFReport('printableAviationArea', `Aviation_Report_${new Date().toISOString().slice(0,10)}.pdf`);
   window.downloadTicketsPDF = () => generatePDFReport('printableTicketsArea', `Tickets_Inventory_Report_${new Date().toISOString().slice(0,10)}.pdf`);
-  window.downloadSettlementsPDF = () => generatePDFReport('printableSettlementArea', `Settlements_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+  window.updateSettlementPrintFilter = () => {
+    const selectedOperator = $('operatorFilterSelect')?.value.trim() || '';
+    const label = selectedOperator ? `تصفية أ/ ${selectedOperator}` : 'تصفية: جميع الأوبريتورز';
+    const caption = $('settlementPrintFilter');
+    if (caption) caption.textContent = label;
+  };
+  window.downloadSettlementsPDF = () => {
+    updateSettlementPrintFilter();
+    return generatePDFReport('printableSettlementArea', `Settlements_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+  };
 
   // PRINT HELPERS
   window.printSuppliersList = () => window.print();
   window.printDashboard = () => window.print();
   window.printSettlementsList = () => {
+    updateSettlementPrintFilter();
     const cleanup = () => document.body.classList.remove('print-settlements');
     document.body.classList.add('print-settlements');
     window.addEventListener('afterprint', cleanup, { once: true });
@@ -2059,6 +2070,7 @@
     });
 
     App.updateSettlementTotalCommission();
+    updateSettlementPrintFilter();
   };
 </script>
 
