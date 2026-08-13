@@ -728,11 +728,11 @@
           <h3>إضافة تصفية ملف جديد</h3>
           <div class="form-row">
             <div class="form-group"><label>كود الملف (File Code)</label><input type="text" id="fileCode" placeholder="EG-2026-99"></div>
-            <div class="form-group"><label>اسم المرشد / الأوبريتور</label><input type="text" id="guideName" placeholder="اسم المرشد"></div>
+            <div class="form-group"><label>اسم الأوبريتور</label><input type="text" id="guideName" placeholder="اسم الأوبريتور"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>إجمالي الإيرادات ($)</label><input type="number" id="settlementRevenue" placeholder="الإيراد..." step="any"></div>
-            <div class="form-group"><label>إجمالي المصروفات ($)</label><input type="number" id="settlementExpenses" placeholder="المصروف..." step="any"></div>
+            <div class="form-group"><label>إجمالي الإيرادات</label><input type="number" id="settlementRevenue" placeholder="الإيراد..." step="any"></div>
+            <div class="form-group"><label>إجمالي المصروفات</label><input type="number" id="settlementExpenses" placeholder="المصروف..." step="any"></div>
           </div>
           <div class="form-group"><label>ملاحظات التصفية</label><textarea id="settlementNotes" placeholder="أي تفاصيل أو ملاحظات أصل التصفية..."></textarea></div>
           <div class="btn-group">
@@ -755,7 +755,7 @@
           <div class="filter-panel no-print" style="margin-bottom:15px;">
             <div class="form-row" style="margin-bottom:0; align-items:center;">
               <div class="form-group" style="margin-bottom:0;">
-                <label>👤 تصفية حسب المرشد / الأوبريتور</label>
+                <label>👤 تصفية حسب الأوبريتور</label>
                 <select id="operatorFilterSelect" onchange="filterSettlementsTable()">
                   <option value="">-- جميع الأوبريتورز / المرشدين --</option>
                 </select>
@@ -787,13 +787,13 @@
                   <tr>
                     <th>#</th>
                     <th>كود الملف</th>
-                    <th>اسم المرشد</th>
-                    <th>الإيرادات ($)</th>
-                    <th>المصروفات ($)</th>
-                    <th>الربح ($)</th>
-                    <th>الصافي بعد الضريبة ($)</th>
+                    <th>اسم الأوبريتور</th>
+                    <th>الإيرادات</th>
+                    <th>المصروفات</th>
+                    <th>الربح</th>
+                    <th>الصافي بعد الضريبة</th>
                     <th>نسبة العموله</th>
-                    <th>مبلغ العموله ($)</th>
+                    <th>مبلغ العموله</th>
                     <th>ملاحظات</th>
                     <th>التاريخ</th>
                     <th class="no-print">إجراءات</th>
@@ -888,9 +888,9 @@
     <h3>تعديل تصفية الملف</h3>
     <input type="hidden" id="editSettlementId">
     <div class="form-group"><label>كود الملف</label><input type="text" id="editFileCode"></div>
-    <div class="form-group"><label>اسم المرشد</label><input type="text" id="editGuideName"></div>
-    <div class="form-group"><label>الإيرادات ($)</label><input type="number" id="editSettlementRevenue" step="any"></div>
-    <div class="form-group"><label>المصروفات ($)</label><input type="number" id="editSettlementExpenses" step="any"></div>
+    <div class="form-group"><label>اسم الأوبريتور</label><input type="text" id="editGuideName"></div>
+    <div class="form-group"><label>الإيرادات</label><input type="number" id="editSettlementRevenue" step="any"></div>
+    <div class="form-group"><label>المصروفات</label><input type="number" id="editSettlementExpenses" step="any"></div>
     <div class="form-group"><label>ملاحظات</label><textarea id="editSettlementNotes"></textarea></div>
     <div class="btn-group" style="justify-content:flex-end;">
       <button class="submit-btn" onclick="App.saveEditedSettlement()">حفظ التعديلات</button>
@@ -1631,13 +1631,13 @@
         return {
           "م": idx+1, 
           "كود الملف": item.fileCode || '', 
-          "اسم المرشد": item.guideName || '',
-          "الإيرادات ($)": revenue, 
-          "المصروفات ($)": expenses,
-          "الربح ($)": profit,
-          "الصافي بعد الضريبة ($)": Number(netAfterTax.toFixed(2)),
+          "اسم الأوبريتور": item.guideName || '',
+          "الإيرادات": revenue, 
+          "المصروفات": expenses,
+          "الربح": profit,
+          "الصافي بعد الضريبة": Number(netAfterTax.toFixed(2)),
           "نسبة العموله": "10%",
-          "مبلغ العموله ($)": Number(commissionAmount.toFixed(2)),
+          "مبلغ العموله": Number(commissionAmount.toFixed(2)),
           "ملاحظات": item.notes || '',
           "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'
         };
