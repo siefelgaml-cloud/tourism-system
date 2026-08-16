@@ -270,8 +270,8 @@
         <span id="taxArrowIcon" style="font-size:12px;">▼</span>
       </button>
       <div id="taxDiscountSubMenu" class="sub-tabs-container" style="display:none;">
-        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSupplierSubTab')">1- إضافة مورد</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab')">2- قائمة الموردين</button>
+        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSupplierSubTab', 'taxDiscountTab')">1- إضافة مورد</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab', 'taxDiscountTab')">2- قائمة الموردين</button>
       </div>
 
       <button class="tab-btn" id="creditBtn" onclick="toggleCreditMenu(event)">
@@ -279,10 +279,10 @@
         <span id="creditArrowIcon" style="font-size:12px;">▼</span>
       </button>
       <div id="creditSubMenu" class="sub-tabs-container" style="display:none;">
-        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addCreditSubTab')">1- تسجيل حركة</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditRecordsSubTab')">2- سجل العمليات</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditSummarySubTab')">3- الملخص والـ Dashboard</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditStatementSubTab')">4- كشف الحساب المستقل</button>
+        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addCreditSubTab', 'creditTab')">1- تسجيل حركة</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditRecordsSubTab', 'creditTab')">2- سجل العمليات</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditSummarySubTab', 'creditTab')">3- الملخص والـ Dashboard</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditStatementSubTab', 'creditTab')">4- كشف الحساب المستقل</button>
       </div>
 
       <button class="tab-btn" id="aviationBtn" onclick="toggleAviationMenu(event)">
@@ -290,8 +290,8 @@
         <span id="aviationArrowIcon" style="font-size:12px;">▼</span>
       </button>
       <div id="aviationSubMenu" class="sub-tabs-container" style="display:none;">
-        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addAviationSubTab')">1- إضافة حجز طيران</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'aviationListSubTab')">2- سجل حجوزات الطيران</button>
+        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addAviationSubTab', 'aviationTab')">1- إضافة حجز طيران</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'aviationListSubTab', 'aviationTab')">2- سجل حجوزات الطيران</button>
       </div>
 
       <button class="tab-btn" id="ticketsBtn" onclick="toggleTicketsMenu(event)">
@@ -299,8 +299,8 @@
         <span id="ticketsArrowIcon" style="font-size:12px;">▼</span>
       </button>
       <div id="ticketsSubMenu" class="sub-tabs-container" style="display:none;">
-        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addTicketSubTab')">1- إضافة تذكرة مزار</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'ticketsListSubTab')">2- سجل التذاكر والمخزون</button>
+        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addTicketSubTab', 'ticketsTab')">1- إضافة تذكرة مزار</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'ticketsListSubTab', 'ticketsTab')">2- سجل التذاكر والمخزون</button>
       </div>
 
       <button class="tab-btn" id="settlementBtn" onclick="toggleSettlementMenu(event)">
@@ -308,9 +308,9 @@
         <span id="settlementArrowIcon" style="font-size:12px;">▼</span>
       </button>
       <div id="settlementSubMenu" class="sub-tabs-container" style="display:none;">
-        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSettlementSubTab')">1- إضافة تصفية ملف</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementListSubTab')">2- سجل تصفيات الملفات</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementArchiveSubTab')">3- الأرشيف (التصفيات المعتمدة)</button>
+        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSettlementSubTab', 'settlementTab')">1- إضافة تصفية ملف</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementListSubTab', 'settlementTab')">2- سجل تصفيات الملفات</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementArchiveSubTab', 'settlementTab')">3- الأرشيف (التصفيات المعتمدة)</button>
       </div>
     </div>
 
@@ -731,6 +731,7 @@
 
       <!-- ================= SETTLEMENT TAB ================= -->
       <div id="settlementTab" class="tab-content">
+        <!-- 1. إضافة تصفية ملف (صفحة مستقلة) -->
         <div id="addSettlementSubTab" class="sub-tab-content active">
           <h3>إضافة تصفية ملف جديد</h3>
           <div class="form-row">
@@ -747,6 +748,7 @@
           </div>
         </div>
 
+        <!-- 2. سجل تصفيات الملفات الجارية (صفحة مستقلة) -->
         <div id="settlementListSubTab" class="sub-tab-content">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h3>سجل تصفيات الملفات (الجارية)</h3>
@@ -770,7 +772,6 @@
             </div>
           </div>
 
-          <!-- تضمين منطقة الطباعة لكي تحتوي كارت الإجمالي -->
           <div id="printableSettlementArea">
             <div class="pdf-report-header">
               <h2>تقرير تصفيات الأوبريتور والملفات</h2>
@@ -815,7 +816,7 @@
           </div>
         </div>
 
-        <!-- الأرشيف (التصفيات المعتمدة) -->
+        <!-- 3. الأرشيف (التصفيات المعتمدة) (صفحة مستقلة) -->
         <div id="settlementArchiveSubTab" class="sub-tab-content">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h3>📁 أرشيف التصفيات المعتمدة</h3>
@@ -966,6 +967,136 @@
     </div>
   </div>
 </div>
+
+<!-- ================= NAVIGATION & GLOBAL JS ================= -->
+<script>
+  function openTab(evt, tabId) {
+    const tabContents = document.getElementsByClassName("tab-content");
+    for (let i = 0; i < tabContents.length; i++) {
+      tabContents[i].classList.remove("active");
+    }
+    const tabBtns = document.getElementsByClassName("tab-btn");
+    for (let i = 0; i < tabBtns.length; i++) {
+      tabBtns[i].classList.remove("active");
+    }
+    document.getElementById(tabId).classList.add("active");
+    evt.currentTarget.classList.add("active");
+  }
+
+  function openSubTab(evt, subTabId, parentTabId) {
+    if (parentTabId) {
+      const tabContents = document.getElementsByClassName("tab-content");
+      for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove("active");
+      }
+      document.getElementById(parentTabId).classList.add("active");
+    }
+
+    const currentTab = document.getElementById(parentTabId) || evt.currentTarget.closest('.tab-content');
+    const subContents = currentTab.getElementsByClassName("sub-tab-content");
+    for (let i = 0; i < subContents.length; i++) {
+      subContents[i].classList.remove("active");
+    }
+
+    const subBtns = evt.currentTarget.parentElement.getElementsByClassName("sub-tab-btn");
+    for (let i = 0; i < subBtns.length; i++) {
+      subBtns[i].classList.remove("active");
+    }
+
+    document.getElementById(subTabId).classList.add("active");
+    evt.currentTarget.classList.add("active");
+  }
+
+  function toggleTaxDiscountMenu(evt) {
+    const menu = document.getElementById("taxDiscountSubMenu");
+    const isHidden = menu.style.display === "none" || menu.style.display === "";
+    menu.style.display = isHidden ? "flex" : "none";
+    document.getElementById("taxArrowIcon").innerText = isHidden ? "▲" : "▼";
+    openTab(evt, "taxDiscountTab");
+  }
+
+  function toggleCreditMenu(evt) {
+    const menu = document.getElementById("creditSubMenu");
+    const isHidden = menu.style.display === "none" || menu.style.display === "";
+    menu.style.display = isHidden ? "flex" : "none";
+    document.getElementById("creditArrowIcon").innerText = isHidden ? "▲" : "▼";
+    openTab(evt, "creditTab");
+  }
+
+  function toggleAviationMenu(evt) {
+    const menu = document.getElementById("aviationSubMenu");
+    const isHidden = menu.style.display === "none" || menu.style.display === "";
+    menu.style.display = isHidden ? "flex" : "none";
+    document.getElementById("aviationArrowIcon").innerText = isHidden ? "▲" : "▼";
+    openTab(evt, "aviationTab");
+  }
+
+  function toggleTicketsMenu(evt) {
+    const menu = document.getElementById("ticketsSubMenu");
+    const isHidden = menu.style.display === "none" || menu.style.display === "";
+    menu.style.display = isHidden ? "flex" : "none";
+    document.getElementById("ticketsArrowIcon").innerText = isHidden ? "▲" : "▼";
+    openTab(evt, "ticketsTab");
+  }
+
+  function toggleSettlementMenu(evt) {
+    const menu = document.getElementById("settlementSubMenu");
+    const isHidden = menu.style.display === "none" || menu.style.display === "";
+    menu.style.display = isHidden ? "flex" : "none";
+    document.getElementById("settlementArrowIcon").innerText = isHidden ? "▲" : "▼";
+    openTab(evt, "settlementTab");
+  }
+
+  function filterSettlementsTable() {
+    const input = document.getElementById("searchSettlements");
+    const filter = input ? input.value.toLowerCase() : "";
+    const select = document.getElementById("operatorFilterSelect");
+    const selectedOperator = select ? select.value.toLowerCase().trim() : "";
+
+    const trs = document.querySelectorAll("#settlementsTable tbody tr");
+    trs.forEach(tr => {
+      if (tr.children.length === 1) return; // Skip empty/loading state row
+      const guideName = (tr.getAttribute("data-guide") || "").toLowerCase().trim();
+      const textMatch = tr.innerText.toLowerCase().includes(filter);
+      const operatorMatch = !selectedOperator || guideName === selectedOperator;
+
+      if (textMatch && operatorMatch) {
+        tr.style.display = "";
+      } else {
+        tr.style.display = "none";
+      }
+    });
+
+    if (window.App && window.App.updateSettlementTotalCommission) {
+      window.App.updateSettlementTotalCommission();
+    }
+  }
+
+  function filterArchiveSettlementsTable() {
+    const input = document.getElementById("searchArchiveSettlements");
+    const filter = input ? input.value.toLowerCase() : "";
+    const select = document.getElementById("archiveOperatorFilterSelect");
+    const selectedOperator = select ? select.value.toLowerCase().trim() : "";
+
+    const trs = document.querySelectorAll("#settlementsArchiveTable tbody tr");
+    trs.forEach(tr => {
+      if (tr.children.length === 1) return; // Skip empty state row
+      const guideName = (tr.getAttribute("data-guide") || "").toLowerCase().trim();
+      const textMatch = tr.innerText.toLowerCase().includes(filter);
+      const operatorMatch = !selectedOperator || guideName === selectedOperator;
+
+      if (textMatch && operatorMatch) {
+        tr.style.display = "";
+      } else {
+        tr.style.display = "none";
+      }
+    });
+
+    if (window.App && window.App.updateArchiveSettlementTotalCommission) {
+      window.App.updateArchiveSettlementTotalCommission();
+    }
+  }
+</script>
 
 <!-- ================= JAVASCRIPT LOGIC ================= -->
 <script type="module">
@@ -1874,8 +2005,19 @@
           <td><span class="badge ${totalProfit >= 0 ? 'badge-profit' : 'badge-loss'}">${totalProfit.toLocaleString()} $ صافي</span></td>
         </tr>
       `;
+    },
+
+    init() {
+      this.listenToSuppliers();
+      this.listenToCredit();
+      this.listenToAviation();
+      this.listenToTickets();
+      this.listenToSettlements();
     }
   };
+
+  window.App = App;
+  App.init();
 
   // SEARCH AUTOCOMPLETE IN STATEMENT TAB
   window.searchStatementEntities = function() {
@@ -1904,17 +2046,17 @@
     });
 
     if (matchingEntitiesMap.size === 0) {
-      container.innerHTML = '<div style="padding:12px; text-align:center; color:#64748b; font-size:13px;">لا توجد حسابات مطابقة للبحث</div>';
+      container.innerHTML = '<div style="padding:12px; text-align:center; color:#64748b;">لا توجد نتائج مطابقة</div>';
       container.style.display = 'block';
       return;
     }
 
     let html = '';
-    matchingEntitiesMap.forEach((info) => {
+    matchingEntitiesMap.forEach((val) => {
       html += `
-        <div class="suggestion-item" onclick="selectStatementEntity('${escapeHTML(info.name)}', '${info.currency}')">
-          <div><strong>🏨 ${escapeHTML(info.name)}</strong></div>
-          <div style="font-size:12px; color:#64748b;">العملة: <span class="badge badge-hotel">${info.currency}</span> (${info.count} حركة)</div>
+        <div class="suggestion-item" onclick="selectStatementEntity('${escapeHTML(val.name)}', '${escapeHTML(val.currency)}')">
+          <span>🏢 <strong>${escapeHTML(val.name)}</strong></span>
+          <span class="badge badge-hotel">${escapeHTML(val.currency)} (${val.count})</span>
         </div>
       `;
     });
@@ -1927,323 +2069,126 @@
     $('stEntityName').value = name;
     $('stCurrency').value = currency;
     $('stEntitySuggestions').style.display = 'none';
-    window.renderRunningStatement();
+    renderRunningStatement();
   };
 
-  document.addEventListener('click', (e) => {
-    const suggestions = $('stEntitySuggestions');
-    const input = $('stEntityName');
-    if (suggestions && input && !input.contains(e.target) && !suggestions.contains(e.target)) {
-      suggestions.style.display = 'none';
-    }
-  });
-
   window.renderRunningStatement = function() {
-    const entity = $('stEntityName').value.trim();
+    const entityName = $('stEntityName').value.trim();
     const currency = $('stCurrency').value;
-    const filterFileCode = $('stFileCode').value.trim().toLowerCase();
+    const fileCode = $('stFileCode').value.trim().toLowerCase();
     const fromDate = $('stFromDate').value;
     const toDate = $('stToDate').value;
 
-    if (!entity) {
-      $('stInfoEntity').innerText = '-';
-      $('stInfoCurrency').innerText = '-';
-      $('statementRunningTbody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">قم باختيار الفندق/الجهة والضغط على (🔍 بحث) لعرض كشف الحساب</td></tr>';
-      $('stCardDebit').innerText = `0 ${currency}`;
-      $('stCardCredit').innerText = `0 ${currency}`;
-      $('stCardBalance').innerText = `0 ${currency}`;
-      $('stTotalCount').innerText = '0';
+    if (!entityName) {
+      showToast('يرجى كتابة اسم الفندق أو الجهة أولاً', 'error');
       return;
     }
 
-    $('stInfoEntity').innerText = entity;
+    $('stInfoEntity').innerText = entityName;
     $('stInfoCurrency').innerText = currency;
-    $('stInfoFromDate').innerText = fromDate ? formatDateDMY(fromDate) : 'البداية';
-    $('stInfoToDate').innerText = toDate ? formatDateDMY(toDate) : 'الآن';
+    $('stInfoFromDate').innerText = fromDate || 'الكل';
+    $('stInfoToDate').innerText = toDate || 'الآن';
+    $('pdfStatementSub').innerText = `اسم الجهة: ${entityName} (${currency})`;
 
-    const records = App.currentCredit.filter(item => {
-      if ((item.entity || '').trim().toLowerCase() !== entity.toLowerCase()) return false;
-      if ((item.currency || 'EGP').toUpperCase() !== currency.toUpperCase()) return false;
-      if (filterFileCode && !(item.fileCode || '').toLowerCase().includes(filterFileCode)) return false;
+    let filtered = App.currentCredit.filter(item => {
+      const matchEntity = (item.entity || '').trim().toLowerCase() === entityName.toLowerCase();
+      const matchCurr = (item.currency || 'EGP').toUpperCase() === currency.toUpperCase();
+      const matchFile = !fileCode || (item.fileCode || '').toLowerCase().includes(fileCode);
 
-      if (fromDate || toDate) {
-        const itemDate = item.createdAt ? new Date(item.createdAt.seconds * 1000) : null;
-        if (itemDate) {
-          if (fromDate) {
-            const fDate = new Date(fromDate);
-            fDate.setHours(0,0,0,0);
-            if (itemDate < fDate) return false;
-          }
-          if (toDate) {
-            const tDate = new Date(toDate);
-            tDate.setHours(23,59,59,999);
-            if (itemDate > tDate) return false;
-          }
+      let matchDate = true;
+      if (item.createdAt) {
+        const itemDate = new Date(item.createdAt.seconds * 1000);
+        if (fromDate && itemDate < new Date(fromDate)) matchDate = false;
+        if (toDate) {
+          const endDate = new Date(toDate);
+          endDate.setHours(23, 59, 59, 999);
+          if (itemDate > endDate) matchDate = false;
         }
       }
-      return true;
+
+      return matchEntity && matchCurr && matchFile && matchDate;
     });
 
-    if (records.length === 0) {
-      $('statementRunningTbody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">لا توجد حركات مطابقة لشروط البحث</td></tr>';
-      $('stCardDebit').innerText = `0 ${currency}`;
-      $('stCardCredit').innerText = `0 ${currency}`;
-      $('stCardBalance').innerText = `0 ${currency}`;
+    const tbody = $('statementRunningTbody');
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">لا توجد حركات مسجلة لهذا الحساب بالتصفيات المحددة</td></tr>';
+      $('stCardDebit').innerText = '0';
+      $('stCardCredit').innerText = '0';
+      $('stCardBalance').innerText = '0';
       $('stTotalCount').innerText = '0';
       return;
     }
 
-    let runningBalance = 0;
     let totalDebit = 0;
     let totalCredit = 0;
+    let runningBalance = 0;
     let htmlBuffer = '';
 
-    records.forEach(item => {
-      const amt = parseFloat(item.amount) || 0;
-      const isDeposit = item.type === 'deposit';
-      let debitVal = 0;
-      let creditVal = 0;
+    filtered.forEach(item => {
+      const amount = parseFloat(item.amount) || 0;
+      let debit = 0;
+      let credit = 0;
 
-      if (isDeposit) {
-        debitVal = amt;
-        totalDebit += amt;
-        runningBalance += amt;
+      if (item.type === 'deposit') {
+        debit = amount;
+        totalDebit += amount;
+        runningBalance += amount;
       } else {
-        creditVal = amt;
-        totalCredit += amt;
-        runningBalance -= amt;
+        credit = amount;
+        totalCredit += amount;
+        runningBalance -= amount;
       }
 
       const dateStr = item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
-      const balClass = runningBalance > 0 ? 'color:#16a34a;' : runningBalance < 0 ? 'color:#dc2626;' : 'color:#2563eb;';
 
       htmlBuffer += `
         <tr>
           <td>${dateStr}</td>
-          <td style="text-align:right;">
-            <strong>${escapeHTML(item.description || 'حركة حساب')}</strong>
-            ${item.fileCode ? `<br><small style="color:#64748b;">ملف: ${escapeHTML(item.fileCode)}</small>` : ''}
-          </td>
-          <td style="color:#16a34a; font-weight:700;">${debitVal ? debitVal.toLocaleString() : '-'}</td>
-          <td style="color:#dc2626; font-weight:700;">${creditVal ? creditVal.toLocaleString() : '-'}</td>
-          <td style="font-weight:800; ${balClass}">${runningBalance.toLocaleString()}</td>
+          <td style="text-align:right;"><strong>${escapeHTML(item.description || '-')}</strong> ${item.fileCode ? `(${escapeHTML(item.fileCode)})` : ''}</td>
+          <td style="color:#16a34a; font-weight:700;">${debit ? debit.toLocaleString() : '-'}</td>
+          <td style="color:#dc2626; font-weight:700;">${credit ? credit.toLocaleString() : '-'}</td>
+          <td style="font-weight:800; color:${runningBalance >= 0 ? '#2563eb' : '#dc2626'};">${runningBalance.toLocaleString()}</td>
         </tr>
       `;
     });
 
     htmlBuffer += `
       <tr class="total-row">
-        <td colspan="2" style="text-align:right;">إجمالي الحركات والرصيد النهائي</td>
+        <td colspan="2">الإجماليات والـ Balance النهائي</td>
         <td style="color:#16a34a;">${totalDebit.toLocaleString()}</td>
         <td style="color:#dc2626;">${totalCredit.toLocaleString()}</td>
-        <td style="color:#2563eb;">${runningBalance.toLocaleString()} ${currency}</td>
+        <td style="color:${runningBalance >= 0 ? '#2563eb' : '#dc2626'};">${runningBalance.toLocaleString()} ${currency}</td>
       </tr>
     `;
 
-    $('statementRunningTbody').innerHTML = htmlBuffer;
-    $('stCardDebit').innerText = `${totalDebit.toLocaleString()} ${currency}`;
-    $('stCardCredit').innerText = `${totalCredit.toLocaleString()} ${currency}`;
+    tbody.innerHTML = htmlBuffer;
+    $('stCardDebit').innerText = totalDebit.toLocaleString();
+    $('stCardCredit').innerText = totalCredit.toLocaleString();
     $('stCardBalance').innerText = `${runningBalance.toLocaleString()} ${currency}`;
-    $('stTotalCount').innerText = records.length;
-    $('pdfStatementSub').innerText = `اسم الجهة: ${entity} | العملة: ${currency}`;
+    $('stTotalCount').innerText = filtered.length;
   };
 
   window.resetStatementFilters = function() {
     $('stEntityName').value = '';
-    $('stCurrency').value = 'EGP';
     $('stFileCode').value = '';
     $('stFromDate').value = '';
     $('stToDate').value = '';
-    window.renderRunningStatement();
+    $('stEntitySuggestions').style.display = 'none';
+    $('statementRunningTbody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">قم باختيار الفندق/الجهة والضغط على (🔍 بحث) لعرض كشف الحساب</td></tr>';
+    $('stCardDebit').innerText = '0';
+    $('stCardCredit').innerText = '0';
+    $('stCardBalance').innerText = '0';
+    $('stInfoEntity').innerText = '-';
+    $('stInfoCurrency').innerText = '-';
+    $('stTotalCount').innerText = '0';
   };
 
-  // Helper UI functions
-  window.filterSuppliersTable = function() {
-    const val = $('searchSupplier').value.toLowerCase().trim();
-    document.querySelectorAll('#suppliersTable tbody tr').forEach(tr => {
-      tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none';
-    });
-  };
-
-  window.filterCreditTable = function() {
-    const val = $('searchCredit').value.toLowerCase().trim();
-    document.querySelectorAll('#creditTable tbody tr').forEach(tr => {
-      tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none';
-    });
-  };
-
-  window.filterEntitySummaryTable = function() {
-    const val = $('searchEntitySummary').value.toLowerCase().trim();
-    document.querySelectorAll('#entitySummaryTable tbody tr').forEach(tr => {
-      tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none';
-    });
-  };
-
-  window.filterAviationTable = function() {
-    const val = $('searchAviation').value.toLowerCase().trim();
-    document.querySelectorAll('#aviationTable tbody tr').forEach(tr => {
-      tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none';
-    });
-  };
-
-  window.filterTicketsTable = function() {
-    const val = $('searchTickets').value.toLowerCase().trim();
-    document.querySelectorAll('#ticketsTable tbody tr').forEach(tr => {
-      tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none';
-    });
-  };
-
-  window.filterSettlementsTable = function() {
-    const opVal = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase().trim() : '';
-    const textVal = $('searchSettlements') ? $('searchSettlements').value.toLowerCase().trim() : '';
-
-    const printFilterText = $('settlementPrintFilter');
-    if (printFilterText) {
-      printFilterText.innerText = opVal ? `تصفية الأوبريتور: ${$('operatorFilterSelect').value}` : 'تصفية: جميع الأوبريتورز';
+  document.addEventListener('click', (e) => {
+    const container = $('stEntitySuggestions');
+    const input = $('stEntityName');
+    if (container && !container.contains(e.target) && e.target !== input) {
+      container.style.display = 'none';
     }
-
-    document.querySelectorAll('#settlementsTable tbody tr').forEach(tr => {
-      const guideName = (tr.getAttribute('data-guide') || '').toLowerCase();
-      const textMatch = !textVal || tr.innerText.toLowerCase().includes(textVal);
-      const opMatch = !opVal || guideName === opVal;
-
-      if (textMatch && opMatch) {
-        tr.style.display = '';
-      } else {
-        tr.style.display = 'none';
-      }
-    });
-
-    App.updateSettlementTotalCommission();
-  };
-
-  window.filterArchiveSettlementsTable = function() {
-    const opVal = $('archiveOperatorFilterSelect') ? $('archiveOperatorFilterSelect').value.toLowerCase().trim() : '';
-    const textVal = $('searchArchiveSettlements') ? $('searchArchiveSettlements').value.toLowerCase().trim() : '';
-
-    document.querySelectorAll('#settlementsArchiveTable tbody tr').forEach(tr => {
-      const guideName = (tr.getAttribute('data-guide') || '').toLowerCase();
-      const textMatch = !textVal || tr.innerText.toLowerCase().includes(textVal);
-      const opMatch = !opVal || guideName === opVal;
-
-      if (textMatch && opMatch) {
-        tr.style.display = '';
-      } else {
-        tr.style.display = 'none';
-      }
-    });
-
-    App.updateArchiveSettlementTotalCommission();
-  };
-
-  // Export PDF & Print Actions
-  window.downloadMasterDashboardPDF = function() {
-    const element = $('printableMasterDashboard');
-    html2pdf().from(element).set({ margin: 10, filename: 'Master_Dashboard_Report.pdf', html2canvas: { scale: 2 }, jsPDF: { orientation: 'landscape' } }).save();
-  };
-
-  window.printSuppliersList = function() { window.print(); };
-  window.downloadSuppliersPDF = function() {
-    const element = $('printableSuppliersArea');
-    html2pdf().from(element).set({ margin: 10, filename: 'Suppliers_Report.pdf', html2canvas: { scale: 2 } }).save();
-  };
-
-  window.printDashboard = function() { window.print(); };
-  window.downloadDashboardPDF = function() {
-    const element = $('printableArea');
-    html2pdf().from(element).set({ margin: 10, filename: 'Credit_Dashboard_Report.pdf', html2canvas: { scale: 2 } }).save();
-  };
-
-  window.exportStatementToExcel = function() {
-    const table = $('statementRunningTable');
-    if (!table) return;
-    const wb = XLSX.utils.table_to_book(table);
-    XLSX.writeFile(wb, `Statement_${$('stEntityName').value.trim() || 'Details'}.xlsx`);
-  };
-
-  window.downloadStatementPDF = function() {
-    const element = $('printableStatementArea');
-    html2pdf().from(element).set({ margin: 10, filename: 'Statement_Report.pdf', html2canvas: { scale: 2 } }).save();
-  };
-
-  window.downloadAviationPDF = function() {
-    const element = $('printableAviationArea');
-    html2pdf().from(element).set({ margin: 10, filename: 'Aviation_Report.pdf', html2canvas: { scale: 2 } }).save();
-  };
-
-  window.downloadTicketsPDF = function() {
-    const element = $('printableTicketsArea');
-    html2pdf().from(element).set({ margin: 10, filename: 'Tickets_Report.pdf', html2canvas: { scale: 2 } }).save();
-  };
-
-  window.printSettlementsList = function() {
-    document.body.classList.add('print-settlements');
-    window.print();
-    document.body.classList.remove('print-settlements');
-  };
-
-  window.downloadSettlementsPDF = function() {
-    const element = $('printableSettlementArea');
-    html2pdf().from(element).set({ margin: 10, filename: 'Settlements_Report.pdf', html2canvas: { scale: 2 }, jsPDF: { orientation: 'landscape' } }).save();
-  };
-
-  // Tab System Controls
-  window.openTab = function(evt, tabId) {
-    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
-    $(tabId).classList.add('active');
-    if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
-  };
-
-  window.toggleTaxDiscountMenu = function(evt) {
-    const sub = $('taxDiscountSubMenu');
-    sub.style.display = sub.style.display === 'none' ? 'flex' : 'none';
-    window.openTab(evt, 'taxDiscountTab');
-  };
-
-  window.toggleCreditMenu = function(evt) {
-    const sub = $('creditSubMenu');
-    sub.style.display = sub.style.display === 'none' ? 'flex' : 'none';
-    window.openTab(evt, 'creditTab');
-  };
-
-  window.toggleAviationMenu = function(evt) {
-    const sub = $('aviationSubMenu');
-    sub.style.display = sub.style.display === 'none' ? 'flex' : 'none';
-    window.openTab(evt, 'aviationTab');
-  };
-
-  window.toggleTicketsMenu = function(evt) {
-    const sub = $('ticketsSubMenu');
-    sub.style.display = sub.style.display === 'none' ? 'flex' : 'none';
-    window.openTab(evt, 'ticketsTab');
-  };
-
-  window.toggleSettlementMenu = function(evt) {
-    const sub = $('settlementSubMenu');
-    sub.style.display = sub.style.display === 'none' ? 'flex' : 'none';
-    window.openTab(evt, 'settlementTab');
-  };
-
-  window.openSubTab = function(evt, subTabId) {
-    const parent = evt.currentTarget.parentElement;
-    parent.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
-    evt.currentTarget.classList.add('active');
-
-    const tabContent = parent.parentElement;
-    tabContent.querySelectorAll('.sub-tab-content').forEach(sc => sc.classList.remove('active'));
-    $(subTabId).classList.add('active');
-  };
-
-  window.App = App;
-
-  // Initialize Data Listeners
-  window.addEventListener('DOMContentLoaded', () => {
-    App.listenToSuppliers();
-    App.listenToCredit();
-    App.listenToAviation();
-    App.listenToTickets();
-    App.listenToSettlements();
   });
 </script>
 </body>
