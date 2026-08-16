@@ -756,7 +756,7 @@
               <button class="print-btn" onclick="printSettlementsList()">🖨️ طباعة</button>
               <button class="pdf-btn" onclick="downloadSettlementsPDF()">📄 PDF</button>
               <button class="excel-btn" onclick="App.exportSettlementsList()">📊 Excel</button>
-              <input type="text" id="searchSettlements" placeholder="تصفية الملفات..." onkeyup="filterSettlementsTable()" style="max-width:200px;">
+              <input type="text" id="searchSettlements" placeholder="🔍 بحث..." onkeyup="filterSettlementsTable()" style="max-width:200px;">
             </div>
           </div>
 
@@ -764,7 +764,7 @@
           <div class="filter-panel no-print" style="margin-bottom:15px;">
             <div class="form-row" style="margin-bottom:0; align-items:center;">
               <div class="form-group" style="margin-bottom:0;">
-                <label>👤 تصفية حسب الأوبريتور</label>
+                <label>👤 اختر الأوبريتور</label>
                 <select id="operatorFilterSelect" onchange="filterSettlementsTable()">
                   <option value="">-- جميع الأوبريتورز / المرشدين --</option>
                 </select>
@@ -776,7 +776,7 @@
             <div class="pdf-report-header">
               <h2>تقرير تصفيات الأوبريتور والملفات</h2>
               <p>منظومة الحسابات السياحية</p>
-              <p id="settlementPrintFilter" style="font-weight:700; color:#ffffff; margin-top:6px;">تصفية: جميع الأوبريتورز</p>
+              <p id="settlementPrintFilter" style="font-weight:700; color:#ffffff; margin-top:6px;">جميع الأوبريتورز</p>
             </div>
 
             <!-- بطاقة إجمالي مبلغ العمولة -->
@@ -824,7 +824,7 @@
               <button class="print-btn" onclick="printArchiveSettlementsList()">🖨️ طباعة الأرشيف</button>
               <button class="pdf-btn" onclick="downloadArchiveSettlementsPDF()">📄 PDF للأرشيف</button>
               <button class="excel-btn" onclick="App.exportArchiveSettlementsList()">📊 تصدير Excel</button>
-              <input type="text" id="searchArchiveSettlements" placeholder="تصفية بالأرشيف..." onkeyup="filterArchiveSettlementsTable()" style="max-width:200px;">
+              <input type="text" id="searchArchiveSettlements" placeholder="🔍 بحث بالأرشيف..." onkeyup="filterArchiveSettlementsTable()" style="max-width:200px;">
             </div>
           </div>
 
@@ -832,7 +832,7 @@
           <div class="filter-panel no-print" style="margin-bottom:15px;">
             <div class="form-row" style="margin-bottom:0; align-items:center;">
               <div class="form-group" style="margin-bottom:0;">
-                <label>👤 تصفية الأرشيف حسب الأوبريتور</label>
+                <label>👤 اختر الأوبريتور</label>
                 <select id="archiveOperatorFilterSelect" onchange="filterArchiveSettlementsTable()">
                   <option value="">-- جميع الأوبريتورز / المرشدين --</option>
                 </select>
@@ -844,7 +844,7 @@
             <div class="pdf-report-header">
               <h2>تقرير أرشيف التصفيات المعتمدة</h2>
               <p>منظومة الحسابات السياحية</p>
-              <p id="archiveSettlementPrintFilter" style="font-weight:700; color:#ffffff; margin-top:6px;">تصفية: جميع الأوبريتورز</p>
+              <p id="archiveSettlementPrintFilter" style="font-weight:700; color:#ffffff; margin-top:6px;">جميع الأوبريتورز</p>
             </div>
 
             <!-- بطاقة إجمالي مبلغ العمولة الخاصة بالأرشيف -->
@@ -1064,7 +1064,7 @@
 
     const printFilterElem = document.getElementById("settlementPrintFilter");
     if (printFilterElem) {
-      printFilterElem.innerText = selectedOperator ? `تصفية الأوبريتور: ${select.value}` : 'تصفية: جميع الأوبريتورز';
+      printFilterElem.innerText = selectedOperator ? `${select.value}` : 'جميع الأوبريتورز';
     }
 
     const trs = document.querySelectorAll("#settlementsTable tbody tr");
@@ -1094,7 +1094,7 @@
 
     const archivePrintFilterElem = document.getElementById("archiveSettlementPrintFilter");
     if (archivePrintFilterElem) {
-      archivePrintFilterElem.innerText = selectedOperator ? `تصفية الأوبريتور للأرشيف: ${select.value}` : 'تصفية الأرشيف: جميع الأوبريتورز';
+      archivePrintFilterElem.innerText = selectedOperator ? `${select.value}` : 'جميع الأوبريتورز';
     }
 
     const trs = document.querySelectorAll("#settlementsArchiveTable tbody tr");
@@ -1916,122 +1916,127 @@
       const expenses = Number($('editSettlementExpenses').value);
       const notes = $('editSettlementNotes').value.trim();
 
-      if (!fileCode) return showToast('يرجى ملء كافة البيانات المطلوبة', 'error');
+      if (!fileCode) return showToast('يرجى إدخال كود الملف', 'error');
       if (!Number.isFinite(revenue) || !Number.isFinite(expenses) || revenue < 0 || expenses < 0) return showToast('الإيرادات والمصروفات يجب أن تكون أرقامًا غير سالبة', 'error');
       if (this.isDuplicate(this.currentSettlements, 'fileCode', fileCode, id)) return showToast('كود الملف مسجل بالفعل في التصفيات', 'error');
+
       try {
         await updateDoc(doc(db, "file_settlements", id), { fileCode, guideName, revenue, expenses, notes });
-        showToast('تم التعديل بنجاح!', 'success');
+        showToast('تم تعديل التصفية بنجاح!', 'success');
         this.closeSettlementEditModal();
       } catch (e) { showToast(e.message, 'error'); }
     },
 
     exportSettlementsList() {
       if (this.currentSettlements.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const data = this.currentSettlements.filter(s => s.status !== 'approved').map((item, idx) => {
+      const activeSettlements = this.currentSettlements.filter(s => s.status !== 'approved');
+      const data = activeSettlements.map((item, idx) => {
         const profit = (item.revenue || 0) - (item.expenses || 0);
         const net = profit / 1.14;
         const comm = Math.max(0, net * 0.10);
         return {
-          "م": idx+1, "كود الملف": item.fileCode || '', "الأوبريتور": item.guideName || '',
+          "م": idx+1, "كود الملف": item.fileCode || '', "اسم الأوبريتور": item.guideName || '',
           "الإيرادات": item.revenue || 0, "المصروفات": item.expenses || 0,
-          "الربح": profit, "الصافي": net, "العمولة": comm, "ملاحظات": item.notes || ''
+          "الربح": profit, "الصافي بعد الضريبة": net, "نسبة العمولة": "10%", "مبلغ العمولة": comm,
+          "ملاحظات": item.notes || '',
+          "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'
         };
       });
       const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "تصفيات الملفات");
-      XLSX.writeFile(wb, "Settlements_List.xlsx");
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "التصفيات الجارية");
+      XLSX.writeFile(wb, "Active_Settlements.xlsx");
     },
 
     exportArchiveSettlementsList() {
       if (this.currentSettlements.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const data = this.currentSettlements.filter(s => s.status === 'approved').map((item, idx) => {
+      const archiveSettlements = this.currentSettlements.filter(s => s.status === 'approved');
+      const data = archiveSettlements.map((item, idx) => {
         const profit = (item.revenue || 0) - (item.expenses || 0);
         const net = profit / 1.14;
         const comm = Math.max(0, net * 0.10);
         return {
-          "م": idx+1, "كود الملف": item.fileCode || '', "الأوبريتور": item.guideName || '',
+          "م": idx+1, "كود الملف": item.fileCode || '', "اسم الأوبريتور": item.guideName || '',
           "الإيرادات": item.revenue || 0, "المصروفات": item.expenses || 0,
-          "الربح": profit, "الصافي": net, "العمولة": comm, "حالة الملف": "معتمد بالأرشيف"
+          "الربح": profit, "الصافي بعد الضريبة": net, "نسبة العمولة": "10%", "مبلغ العمولة": comm,
+          "الحالة": "معتمد بالأرشيف",
+          "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'
         };
       });
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "أرشيف التصفيات");
-      XLSX.writeFile(wb, "Archive_Settlements_List.xlsx");
+      XLSX.writeFile(wb, "Archive_Settlements.xlsx");
     },
 
-    // MASTER DASHBOARD CALCULATIONS
+    // 6. MASTER DASHBOARD UPDATE
     updateMasterDashboard() {
       $('mDashTotalSuppliers').innerText = this.currentSuppliers.length;
 
       let creditEGP = 0, creditUSD = 0, creditEUR = 0;
       this.currentCredit.forEach(c => {
         const amt = parseFloat(c.amount) || 0;
-        const curr = (c.currency || 'EGP').toUpperCase();
-        const factor = c.type === 'deposit' ? 1 : -1;
-        if (curr === 'EGP') creditEGP += (amt * factor);
-        else if (curr === 'USD') creditUSD += (amt * factor);
-        else if (curr === 'EUR') creditEUR += (amt * factor);
+        const sign = c.type === 'deposit' ? 1 : -1;
+        if ((c.currency || 'EGP') === 'EGP') creditEGP += amt * sign;
+        else if (c.currency === 'USD') creditUSD += amt * sign;
+        else if (c.currency === 'EUR') creditEUR += amt * sign;
       });
 
       $('mDashCreditEGP').innerText = creditEGP.toLocaleString();
       $('mDashCreditUSD').innerText = creditUSD.toLocaleString();
       $('mDashCreditEUR').innerText = creditEUR.toLocaleString();
 
-      let totalAviationCost = 0;
-      this.currentAviation.forEach(a => totalAviationCost += (parseFloat(a.cost) || 0));
-      $('mDashTotalAviation').innerText = totalAviationCost.toLocaleString();
+      let totalAviation = 0;
+      this.currentAviation.forEach(a => totalAviation += parseFloat(a.cost) || 0);
+      $('mDashTotalAviation').innerText = totalAviation.toLocaleString();
 
-      let totalTicketsVal = 0;
-      this.currentTickets.forEach(t => totalTicketsVal += ((parseInt(t.quantity) || 0) * (parseFloat(t.unitPrice) || 0)));
-      $('mDashTotalTickets').innerText = totalTicketsVal.toLocaleString();
+      let totalTickets = 0;
+      this.currentTickets.forEach(t => totalTickets += (parseInt(t.quantity) || 0) * (parseFloat(t.unitPrice) || 0));
+      $('mDashTotalTickets').innerText = totalTickets.toLocaleString();
 
       let totalCommissions = 0;
       this.currentSettlements.forEach(s => {
-        const prof = (parseFloat(s.revenue) || 0) - (parseFloat(s.expenses) || 0);
-        const net = prof / 1.14;
-        const comm = Math.max(0, net * 0.10);
-        totalCommissions += comm;
+        const profit = (parseFloat(s.revenue) || 0) - (parseFloat(s.expenses) || 0);
+        const net = profit / 1.14;
+        totalCommissions += Math.max(0, net * 0.10);
       });
       $('mDashTotalSettlementCommissions').innerText = totalCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-      // Master Summary Table
+      // Populate Table
       const tbody = $('masterDashboardTbody');
       tbody.innerHTML = `
         <tr>
-          <td><strong>📋 الموردين (الخصم والإضافة)</strong></td>
-          <td>${this.currentSuppliers.length} مورد</td>
+          <td><strong>سجل الموردين (الخصم والإضافة)</strong></td>
+          <td>${this.currentSuppliers.length}</td>
           <td>-</td>
           <td>-</td>
-          <td><span class="badge badge-hotel">مسجل بالمنظومة</span></td>
+          <td><span class="badge badge-hotel">مسجلين: ${this.currentSuppliers.length}</span></td>
         </tr>
         <tr>
-          <td><strong>💳 حركات الكريديت</strong></td>
-          <td>${this.currentCredit.length} حركة</td>
-          <td>${this.currentCredit.filter(c => c.type === 'deposit').reduce((a,b)=>a+(parseFloat(b.amount)||0),0).toLocaleString()} (شامل العملات)</td>
-          <td>${this.currentCredit.filter(c => c.type === 'deduction').reduce((a,b)=>a+(parseFloat(b.amount)||0),0).toLocaleString()} (شامل العملات)</td>
-          <td>EGP: ${creditEGP.toLocaleString()} | USD: ${creditUSD.toLocaleString()}</td>
+          <td><strong>أرصدة الكريديت (EGP)</strong></td>
+          <td>${this.currentCredit.filter(c => (c.currency || 'EGP') === 'EGP').length}</td>
+          <td>${this.currentCredit.filter(c => (c.currency || 'EGP') === 'EGP' && c.type === 'deposit').reduce((a,b) => a + Number(b.amount||0), 0).toLocaleString()}</td>
+          <td>${this.currentCredit.filter(c => (c.currency || 'EGP') === 'EGP' && c.type === 'deduction').reduce((a,b) => a + Number(b.amount||0), 0).toLocaleString()}</td>
+          <td><strong>${creditEGP.toLocaleString()} EGP</strong></td>
         </tr>
         <tr>
-          <td><strong>✈️ حجوزات الطيران</strong></td>
-          <td>${this.currentAviation.length} حجز</td>
+          <td><strong>حجوزات الطيران</strong></td>
+          <td>${this.currentAviation.length}</td>
           <td>-</td>
-          <td>${totalAviationCost.toLocaleString()}</td>
-          <td><span class="badge badge-deduction">إجمالي المصروفات</span></td>
+          <td>${totalAviation.toLocaleString()}</td>
+          <td><span class="badge badge-deduction">إجمالي المصروف: ${totalAviation.toLocaleString()}</span></td>
         </tr>
         <tr>
-          <td><strong>🎟️ مخزون التذاكر</strong></td>
-          <td>${this.currentTickets.length} مزارات</td>
-          <td>${totalTicketsVal.toLocaleString()} (القيمة)</td>
+          <td><strong>مخزون التذاكر والمزارات</strong></td>
+          <td>${this.currentTickets.length}</td>
           <td>-</td>
-          <td><span class="badge badge-deposit">قيمة المخزون المتوفر</span></td>
+          <td>-</td>
+          <td><span class="badge badge-deposit">قيمة المخزون: ${totalTickets.toLocaleString()}</span></td>
         </tr>
         <tr>
-          <td><strong>📄 تصفيات الملفات</strong></td>
-          <td>${this.currentSettlements.length} ملفات</td>
-          <td>${this.currentSettlements.reduce((a,b)=>a+(parseFloat(b.revenue)||0),0).toLocaleString()}</td>
-          <td>${this.currentSettlements.reduce((a,b)=>a+(parseFloat(b.expenses)||0),0).toLocaleString()}</td>
-          <td>إجمالي العمولات: ${totalCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td><strong>تصفيات الملفات والأوبريتور</strong></td>
+          <td>${this.currentSettlements.length}</td>
+          <td>${this.currentSettlements.reduce((a,b) => a + Number(b.revenue||0), 0).toLocaleString()}</td>
+          <td>${this.currentSettlements.reduce((a,b) => a + Number(b.expenses||0), 0).toLocaleString()}</td>
+          <td><span class="badge badge-profit">عمولات: ${totalCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></td>
         </tr>
       `;
     },
@@ -2046,7 +2051,7 @@
   };
 
   window.App = App;
-  document.addEventListener('DOMContentLoaded', () => App.init());
+  document.addEventListener("DOMContentLoaded", () => App.init());
 </script>
 
 </body>
