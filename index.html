@@ -90,7 +90,7 @@
     .amount-input-group input[type="number"] { flex: 1 1 auto; min-width: 0; }
     .amount-input-group select { flex: 0 0 110px; }
 
-    .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
     button, .btn-label {
       padding: 10px 20px; border: none; border-radius: 10px;
       font-weight: 700; font-size: 14px; cursor: pointer;
@@ -105,10 +105,14 @@
     .print-btn:hover:not(:disabled) { background: #475569; }
     .pdf-btn { background: #ef4444; color: white; }
     .pdf-btn:hover:not(:disabled) { background: #dc2626; }
-    .delete-btn { background: #ef4444; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; }
+    .delete-btn { background: #ef4444; color: white; padding: 6px 10px; border-radius: 6px; font-size: 12px; }
     .delete-btn:hover { background: #b91c1c; }
-    .edit-btn { background: #eab308; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; }
+    .edit-btn { background: #eab308; color: white; padding: 6px 10px; border-radius: 6px; font-size: 12px; }
     .edit-btn:hover { background: #ca8a04; }
+    .approve-btn { background: #0d9488; color: white; padding: 6px 10px; border-radius: 6px; font-size: 12px; }
+    .approve-btn:hover { background: #0f766e; }
+    .unapprove-btn { background: #475569; color: white; padding: 6px 10px; border-radius: 6px; font-size: 12px; }
+    .unapprove-btn:hover { background: #334155; }
     .search-btn { background: #2563eb; color: white; }
     .search-btn:hover:not(:disabled) { background: #1d4ed8; }
 
@@ -180,6 +184,7 @@
     .badge-advance { background: #e0e7ff; color: #3730a3; }
     .badge-profit { background: #dcfce7; color: #15803d; }
     .badge-loss { background: #fee2e2; color: #b91c1c; }
+    .badge-archive { background: #ccfbf1; color: #0f766e; }
 
     .suggestions-dropdown {
       position: absolute; top: 100%; left: 0; right: 0;
@@ -234,8 +239,9 @@
       #printableStatementArea, #printableStatementArea *,
       #printableAviationArea, #printableAviationArea *,
       #printableTicketsArea, #printableTicketsArea *,
-      #printableSettlementArea, #printableSettlementArea * { visibility: visible; }
-      #printableArea, #printableSuppliersArea, #printableStatementArea, #printableAviationArea, #printableTicketsArea, #printableSettlementArea { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
+      #printableSettlementArea, #printableSettlementArea *,
+      #printableSettlementArchiveArea, #printableSettlementArchiveArea * { visibility: visible; }
+      #printableArea, #printableSuppliersArea, #printableStatementArea, #printableAviationArea, #printableTicketsArea, #printableSettlementArea, #printableSettlementArchiveArea { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
       .no-print { display: none !important; }
       .pdf-report-header { display: block !important; }
       body.print-settlements * { visibility: hidden; }
@@ -304,6 +310,7 @@
       <div id="settlementSubMenu" class="sub-tabs-container" style="display:none;">
         <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSettlementSubTab')">1- إضافة تصفية ملف</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementListSubTab')">2- سجل تصفيات الملفات</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementArchiveSubTab')">3- الأرشيف (التصفيات المعتمدة)</button>
       </div>
     </div>
 
@@ -742,7 +749,7 @@
 
         <div id="settlementListSubTab" class="sub-tab-content">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-            <h3>سجل تصفيات الملفات</h3>
+            <h3>سجل تصفيات الملفات (الجارية)</h3>
             <div class="btn-group no-print" style="margin:0;">
               <button class="print-btn" onclick="printSettlementsList()">🖨️ طباعة</button>
               <button class="pdf-btn" onclick="downloadSettlementsPDF()">📄 PDF</button>
@@ -807,6 +814,43 @@
             </div>
           </div>
         </div>
+
+        <!-- الأرشيف (التصفيات المعتمدة) -->
+        <div id="settlementArchiveSubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h3>📁 أرشيف التصفيات المعتمدة</h3>
+            <div class="btn-group no-print" style="margin:0;">
+              <input type="text" id="searchArchiveSettlements" placeholder="🔍 بحث بالأرشيف..." onkeyup="filterArchiveSettlementsTable()" style="max-width:200px;">
+            </div>
+          </div>
+
+          <div id="printableSettlementArchiveArea">
+            <div class="table-wrapper">
+              <table id="settlementsArchiveTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>كود الملف</th>
+                    <th>اسم الأوبريتور</th>
+                    <th>الإيرادات</th>
+                    <th>المصروفات</th>
+                    <th>الربح</th>
+                    <th>الصافي بعد الضريبة</th>
+                    <th>نسبة العموله</th>
+                    <th>مبلغ العموله</th>
+                    <th>حالة الملف</th>
+                    <th>التاريخ</th>
+                    <th class="no-print">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="settlementsArchiveTableBody">
+                  <tr><td colspan="12" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -920,7 +964,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Compatibility wrapper: every legacy delete call now preserves the record for audit.
   const deleteDoc = async (documentReference) => updateDoc(documentReference, {
     isDeleted: true,
     deletedAt: new Date()
@@ -965,7 +1008,6 @@
     currentTickets: [],
     currentSettlements: [],
 
-    // V2: audit-friendly deletion and normalized duplicate matching.
     normalizeKey(value) {
       return String(value || '').trim().toUpperCase();
     },
@@ -979,7 +1021,7 @@
       await updateDoc(doc(db, collectionName, id), { isDeleted: true, deletedAt: new Date() });
     },
 
-    // 1. SUPPLIERS (الخصم والإضافة)
+    // 1. SUPPLIERS
     listenToSuppliers() {
       const q = query(collection(db, "tax_discount_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -1094,7 +1136,7 @@
       XLSX.writeFile(wb, "Suppliers_List.xlsx");
     },
 
-    // 2. CREDIT BALANCES (أرصدة الكريديت)
+    // 2. CREDIT BALANCES
     listenToCredit() {
       const q = query(collection(db, "credit_balances"), orderBy("createdAt", "asc"));
       onSnapshot(q, (snapshot) => {
@@ -1231,7 +1273,7 @@
       tbody.innerHTML = htmlBuffer || '<tr><td colspan="7" style="text-align:center;">لا توجد بيانات</td></tr>';
     },
 
-    // 3. AVIATION (حجوزات الطيران)
+    // 3. AVIATION
     listenToAviation() {
       const q = query(collection(db, "aviation_bookings"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -1346,7 +1388,7 @@
       XLSX.writeFile(wb, "Aviation_Bookings.xlsx");
     },
 
-    // 4. TICKETS INVENTORY (مخزون التذاكر)
+    // 4. TICKETS INVENTORY
     listenToTickets() {
       const q = query(collection(db, "attractions_tickets"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -1461,17 +1503,23 @@
       const q = query(collection(db, "file_settlements"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
         const tbody = $('settlementsTableBody');
+        const archiveTbody = $('settlementsArchiveTableBody');
         this.currentSettlements = [];
+
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات ملفات مسجلة</td></tr>';
+          archiveTbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>';
           this.populateOperatorSelect();
           this.updateSettlementTotalCommission();
           this.updateMasterDashboard();
           return;
         }
 
-        let idx = 1;
-        let htmlBuffer = '';
+        let idxActive = 1;
+        let idxArchive = 1;
+        let htmlActiveBuffer = '';
+        let htmlArchiveBuffer = '';
+
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); data.id = docSnap.id;
           if (data.isDeleted) return;
@@ -1479,11 +1527,9 @@
 
           const revenue = parseFloat(data.revenue) || 0;
           const expenses = parseFloat(data.expenses) || 0;
-          
-          // الحسابات المطلوبة
           const profit = revenue - expenses;
           const netAfterTax = profit / 1.14;
-          const commissionRate = 0.10; // 10%
+          const commissionRate = 0.10;
           const commissionAmount = Math.max(0, netAfterTax * commissionRate);
 
           const profitBadge = profit >= 0 ? 
@@ -1492,31 +1538,74 @@
 
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
-          htmlBuffer += `
-            <tr data-guide="${escapeHTML((data.guideName || '').trim())}" data-commission="${commissionAmount}">
-              <td>${idx++}</td>
-              <td><strong style="color:#2563eb;">${escapeHTML(data.fileCode)}</strong></td>
-              <td>${escapeHTML(data.guideName || '-')}</td>
-              <td style="color:#15803d;">${revenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-              <td style="color:#b91c1c;">${expenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-              <td>${profitBadge}</td>
-              <td style="font-weight:700; color:#0284c7;">${netAfterTax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-              <td><span class="badge badge-advance">10%</span></td>
-              <td style="font-weight:700; color:#16a34a;" class="commission-val">${commissionAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-              <td style="text-align:right;">${escapeHTML(data.notes || '-')}</td>
-              <td>${dateStr}</td>
-              <td class="no-print">
-                <button class="edit-btn" onclick="App.openSettlementEditModal('${docSnap.id}')">تعديل</button>
-                <button class="delete-btn" onclick="App.deleteSettlement('${docSnap.id}')">حذف</button>
-              </td>
-            </tr>
-          `;
+          // التمييز بين الملفات المعتمدة والملفات النشطة
+          if (data.status === 'approved') {
+            htmlArchiveBuffer += `
+              <tr data-guide="${escapeHTML((data.guideName || '').trim())}" data-commission="${commissionAmount}">
+                <td>${idxArchive++}</td>
+                <td><strong style="color:#2563eb;">${escapeHTML(data.fileCode)}</strong></td>
+                <td>${escapeHTML(data.guideName || '-')}</td>
+                <td style="color:#15803d;">${revenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td style="color:#b91c1c;">${expenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td>${profitBadge}</td>
+                <td style="font-weight:700; color:#0284c7;">${netAfterTax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td><span class="badge badge-advance">10%</span></td>
+                <td style="font-weight:700; color:#16a34a;">${commissionAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td><span class="badge badge-archive">معتمد بالأرشيف</span></td>
+                <td>${dateStr}</td>
+                <td class="no-print">
+                  <button class="unapprove-btn" onclick="App.toggleApproveSettlement('${docSnap.id}', false)">إعادة للتصفيات</button>
+                  <button class="delete-btn" onclick="App.deleteSettlement('${docSnap.id}')">حذف</button>
+                </td>
+              </tr>
+            `;
+          } else {
+            htmlActiveBuffer += `
+              <tr data-guide="${escapeHTML((data.guideName || '').trim())}" data-commission="${commissionAmount}">
+                <td>${idxActive++}</td>
+                <td><strong style="color:#2563eb;">${escapeHTML(data.fileCode)}</strong></td>
+                <td>${escapeHTML(data.guideName || '-')}</td>
+                <td style="color:#15803d;">${revenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td style="color:#b91c1c;">${expenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td>${profitBadge}</td>
+                <td style="font-weight:700; color:#0284c7;">${netAfterTax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td><span class="badge badge-advance">10%</span></td>
+                <td style="font-weight:700; color:#16a34a;" class="commission-val">${commissionAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td style="text-align:right;">${escapeHTML(data.notes || '-')}</td>
+                <td>${dateStr}</td>
+                <td class="no-print">
+                  <button class="approve-btn" onclick="App.toggleApproveSettlement('${docSnap.id}', true)">معتمد</button>
+                  <button class="edit-btn" onclick="App.openSettlementEditModal('${docSnap.id}')">تعديل</button>
+                  <button class="delete-btn" onclick="App.deleteSettlement('${docSnap.id}')">حذف</button>
+                </td>
+              </tr>
+            `;
+          }
         });
-        tbody.innerHTML = htmlBuffer;
+
+        tbody.innerHTML = htmlActiveBuffer || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات جارية</td></tr>';
+        archiveTbody.innerHTML = htmlArchiveBuffer || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>';
+
         this.populateOperatorSelect();
         filterSettlementsTable();
         this.updateMasterDashboard();
       });
+    },
+
+    // الاعتماد ونقل التصفية للأرشيف أو العكس
+    async toggleApproveSettlement(id, approveStatus) {
+      const actionText = approveStatus ? 'اعتماد التصفية ونقلها إلى الأرشيف' : 'إلغاء الاعتماد وإعادة التصفية للسجل النشط';
+      if (!confirm(`تأكيد ${actionText}؟`)) return;
+
+      try {
+        await updateDoc(doc(db, "file_settlements", id), {
+          status: approveStatus ? 'approved' : 'active',
+          approvedAt: approveStatus ? new Date() : null
+        });
+        showToast(approveStatus ? 'تم اعتماد التصفية ونقلها إلى الأرشيف بنجاح!' : 'تمت إعادة التصفية إلى السجل النشط بنجاح!', 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
     },
 
     populateOperatorSelect() {
@@ -1564,7 +1653,7 @@
       const btn = $('btnSaveSettlement');
       btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
-        await addDoc(collection(db, "file_settlements"), { fileCode, guideName, revenue, expenses, notes, isDeleted: false, createdAt: new Date() });
+        await addDoc(collection(db, "file_settlements"), { fileCode, guideName, revenue, expenses, notes, status: 'active', isDeleted: false, createdAt: new Date() });
         showToast('تم تسجيل التصفية بنجاح!', 'success');
         $('fileCode').value = ''; $('guideName').value = ''; $('settlementRevenue').value = ''; $('settlementExpenses').value = ''; $('settlementNotes').value = '';
       } catch (e) { showToast(e.message, 'error'); }
@@ -1614,6 +1703,7 @@
       const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase().trim() : '';
 
       const filtered = this.currentSettlements.filter(item => {
+        if (item.status === 'approved') return false; // تصدير التصفيات النشطة فقط
         const guide = (item.guideName || '').toLowerCase().trim();
         const matchesOp = !selectedOperator || guide === selectedOperator;
         const matchesText = !filterText || JSON.stringify(item).toLowerCase().includes(filterText);
@@ -1901,178 +1991,210 @@
       const debit = item.type === 'deposit' ? amt : 0;
       const credit = item.type === 'deduction' ? amt : 0;
       running += (debit - credit);
-      let desc = item.description || '';
-      if (item.fileCode) desc += ` (ملف: ${item.fileCode})`;
+
       return {
         "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-',
-        "البيان": desc, "مدين": debit, "دائن": credit, "الرصيد": running
+        "رقم الملف": item.fileCode || '',
+        "البيان": item.description || '',
+        "مدين (لنا)": debit,
+        "دائن (علينات)": credit,
+        "الرصيد التراكمي": running,
+        "العملة": currency
       };
     });
 
     const ws = XLSX.utils.json_to_sheet(cleanData);
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "كشف حساب");
-    XLSX.writeFile(wb, `Statement_${entity}.xlsx`);
+    XLSX.writeFile(wb, `Statement_${entity.replace(/\\s+/g, '_')}_${currency}.xlsx`);
   };
 
-  // ENHANCED PDF EXPORTS FOR ALL MODULES (FIXED FOR ARABIC & RENDERING)
-  const generatePDFReport = async (elementId, filename) => {
-    const el = $(elementId);
-    if (!el) return showToast('العنصر المراد طباعته غير موجود', 'error');
+  // UI Tabs Control Global Handlers
+  window.openTab = function(evt, tabName) {
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
+    $(tabName).classList.add('active');
+    evt.currentTarget.classList.add('active');
+  };
 
-    showToast('جاري تحضير ملف الـ PDF...', 'info', 2000);
+  window.toggleTaxDiscountMenu = function(e) {
+    const sub = $('taxDiscountSubMenu');
+    const isVisible = sub.style.display === 'flex';
+    sub.style.display = isVisible ? 'none' : 'flex';
+    $('taxArrowIcon').innerText = isVisible ? '▼' : '▲';
+    openTab(e, 'taxDiscountTab');
+  };
 
-    // إظهار الترويسة المسؤولة عن عنوان التقرير مؤقتاً لتدخل ضمن تصدير ה-PDF
-    const headerEl = el.querySelector('.pdf-report-header');
-    if (headerEl) headerEl.style.display = 'block';
+  window.toggleCreditMenu = function(e) {
+    const sub = $('creditSubMenu');
+    const isVisible = sub.style.display === 'flex';
+    sub.style.display = isVisible ? 'none' : 'flex';
+    $('creditArrowIcon').innerText = isVisible ? '▼' : '▲';
+    openTab(e, 'creditTab');
+  };
 
-    const opt = {
-      margin: [10, 10, 10, 10],
-      filename: filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 2, 
-        useCORS: true,
-        scrollX: 0,
-        scrollY: 0,
-        letterRendering: true
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    };
+  window.toggleAviationMenu = function(e) {
+    const sub = $('aviationSubMenu');
+    const isVisible = sub.style.display === 'flex';
+    sub.style.display = isVisible ? 'none' : 'flex';
+    $('aviationArrowIcon').innerText = isVisible ? '▼' : '▲';
+    openTab(e, 'aviationTab');
+  };
 
-    try {
-      await html2pdf().set(opt).from(el).save();
-      showToast('تم إخراج ملف الـ PDF بنجاح!', 'success');
-    } catch (err) {
-      console.error(err);
-      showToast('حدث خطأ أثناء استخراج الـ PDF', 'error');
-    } finally {
-      // إعادة إخفاء الترويسة بعد توليد الملف لتنسيق الشاشة العادي
-      if (headerEl) headerEl.style.display = 'none';
+  window.toggleTicketsMenu = function(e) {
+    const sub = $('ticketsSubMenu');
+    const isVisible = sub.style.display === 'flex';
+    sub.style.display = isVisible ? 'none' : 'flex';
+    $('ticketsArrowIcon').innerText = isVisible ? '▼' : '▲';
+    openTab(e, 'ticketsTab');
+  };
+
+  window.toggleSettlementMenu = function(e) {
+    const sub = $('settlementSubMenu');
+    const isVisible = sub.style.display === 'flex';
+    sub.style.display = isVisible ? 'none' : 'flex';
+    $('settlementArrowIcon').innerText = isVisible ? '▼' : '▲';
+    openTab(e, 'settlementTab');
+  };
+
+  window.openSubTab = function(evt, subTabName) {
+    const parentTab = evt.currentTarget.closest('.tab-content') || evt.currentTarget.parentElement.parentElement;
+    const parentContainer = evt.currentTarget.parentElement;
+    
+    parentContainer.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
+    evt.currentTarget.classList.add('active');
+
+    const activeMainTab = document.querySelector('.tab-content.active');
+    if (activeMainTab) {
+      activeMainTab.querySelectorAll('.sub-tab-content').forEach(st => st.classList.remove('active'));
+      const targetSub = activeMainTab.querySelector(`#${subTabName}`);
+      if (targetSub) targetSub.classList.add('active');
     }
   };
 
-  window.downloadMasterDashboardPDF = () => generatePDFReport('printableMasterDashboard', `Master_Dashboard_${new Date().toISOString().slice(0,10)}.pdf`);
-  window.downloadStatementPDF = () => generatePDFReport('printableStatementArea', `Statement_${$('stEntityName').value || 'Report'}.pdf`);
-  window.downloadDashboardPDF = () => generatePDFReport('printableArea', `Credit_Dashboard_${new Date().toISOString().slice(0,10)}.pdf`);
-  window.downloadSuppliersPDF = () => generatePDFReport('printableSuppliersArea', `Suppliers_Report_${new Date().toISOString().slice(0,10)}.pdf`);
-  window.downloadAviationPDF = () => generatePDFReport('printableAviationArea', `Aviation_Report_${new Date().toISOString().slice(0,10)}.pdf`);
-  window.downloadTicketsPDF = () => generatePDFReport('printableTicketsArea', `Tickets_Inventory_Report_${new Date().toISOString().slice(0,10)}.pdf`);
-  window.updateSettlementPrintFilter = () => {
-    const selectedOperator = $('operatorFilterSelect')?.value.trim() || '';
-    const label = selectedOperator ? `تصفية أ/ ${selectedOperator}` : 'تصفية: جميع الأوبريتورز';
-    const caption = $('settlementPrintFilter');
-    if (caption) caption.textContent = label;
-  };
-  window.downloadSettlementsPDF = () => {
-    updateSettlementPrintFilter();
-    return generatePDFReport('printableSettlementArea', `Settlements_Report_${new Date().toISOString().slice(0,10)}.pdf`);
-  };
-
-  // PRINT HELPERS
-  window.printSuppliersList = () => window.print();
-  window.printDashboard = () => window.print();
-  window.printSettlementsList = () => {
-    updateSettlementPrintFilter();
-    const cleanup = () => document.body.classList.remove('print-settlements');
-    document.body.classList.add('print-settlements');
-    window.addEventListener('afterprint', cleanup, { once: true });
-    window.print();
-    // Covers browsers that do not emit afterprint after a cancelled dialog.
-    setTimeout(cleanup, 1000);
-  };
-
-  // INITIALIZATION AND MENU NAVIGATION
-  App.listenToSuppliers();
-  App.listenToCredit();
-  App.listenToAviation();
-  App.listenToTickets();
-  App.listenToSettlements();
-  window.App = App;
-
-  window.openTab = function(evt, tabName) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    $(tabName).classList.add('active');
-    if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
-    
-    // Close submenus if switching main top tab
-    if (tabName !== 'taxDiscountTab') { $('taxDiscountSubMenu').style.display = 'none'; $('taxArrowIcon').textContent = '▼'; }
-    if (tabName !== 'creditTab') { $('creditSubMenu').style.display = 'none'; $('creditArrowIcon').textContent = '▼'; }
-    if (tabName !== 'aviationTab') { $('aviationSubMenu').style.display = 'none'; $('aviationArrowIcon').textContent = '▼'; }
-    if (tabName !== 'ticketsTab') { $('ticketsSubMenu').style.display = 'none'; $('ticketsArrowIcon').textContent = '▼'; }
-    if (tabName !== 'settlementTab') { $('settlementSubMenu').style.display = 'none'; $('settlementArrowIcon').textContent = '▼'; }
-  };
-
-  const toggleGenericMenu = (evt, tabId, subMenuId, arrowId) => {
-    const sub = $(subMenuId);
-    const icon = $(arrowId);
-    openTab(evt, tabId);
-    if (sub.style.display === 'none' || !sub.style.display) { sub.style.display = 'flex'; icon.textContent = '▲'; } 
-    else { sub.style.display = 'none'; icon.textContent = '▼'; }
-  };
-
-  window.toggleTaxDiscountMenu = (evt) => toggleGenericMenu(evt, 'taxDiscountTab', 'taxDiscountSubMenu', 'taxArrowIcon');
-  window.toggleCreditMenu = (evt) => toggleGenericMenu(evt, 'creditTab', 'creditSubMenu', 'creditArrowIcon');
-  window.toggleAviationMenu = (evt) => toggleGenericMenu(evt, 'aviationTab', 'aviationSubMenu', 'aviationArrowIcon');
-  window.toggleTicketsMenu = (evt) => toggleGenericMenu(evt, 'ticketsTab', 'ticketsSubMenu', 'ticketsArrowIcon');
-  window.toggleSettlementMenu = (evt) => toggleGenericMenu(evt, 'settlementTab', 'settlementSubMenu', 'settlementArrowIcon');
-
-  window.openSubTab = function(evt, subTabName) {
-    const target = $(subTabName);
-    if (!target) return;
-    const parent = target.closest('.tab-content');
-    
-    // Ensure parent tab is active
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    parent.classList.add('active');
-
-    parent.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
-    
-    const container = target.parentElement;
-    if (container) container.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
-
-    target.classList.add('active');
-    if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
-  };
-
-  // SEARCH FILTER FUNCTIONS FOR ALL TABLES
-  const createTableFilter = (inputId, tableId) => {
-    const filter = $(inputId).value.toLowerCase();
-    document.querySelectorAll(`#${tableId} tbody tr`).forEach(tr => {
-      const txt = tr.textContent.toLowerCase();
-      tr.style.display = txt.includes(filter) ? '' : 'none';
+  // Helper filters for tables
+  window.filterSuppliersTable = function() {
+    const q = $('searchSupplier').value.toLowerCase();
+    document.querySelectorAll('#suppliersTable tbody tr').forEach(row => {
+      row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
     });
   };
 
-  window.filterSuppliersTable = () => createTableFilter('searchSupplier', 'suppliersTable');
-  window.filterCreditTable = () => createTableFilter('searchCredit', 'creditTable');
-  window.filterEntitySummaryTable = () => createTableFilter('searchEntitySummary', 'entitySummaryTable');
-  window.filterAviationTable = () => createTableFilter('searchAviation', 'aviationTable');
-  window.filterTicketsTable = () => createTableFilter('searchTickets', 'ticketsTable');
+  window.filterCreditTable = function() {
+    const q = $('searchCredit').value.toLowerCase();
+    document.querySelectorAll('#creditTable tbody tr').forEach(row => {
+      row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+  };
 
-  window.filterSettlementsTable = () => {
-    const selectedOperator = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase().trim() : '';
-    const filterText = $('searchSettlements') ? $('searchSettlements').value.toLowerCase().trim() : '';
+  window.filterEntitySummaryTable = function() {
+    const q = $('searchEntitySummary').value.toLowerCase();
+    document.querySelectorAll('#entitySummaryTable tbody tr').forEach(row => {
+      row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+  };
 
-    document.querySelectorAll('#settlementsTable tbody tr').forEach(tr => {
-      const guideName = (tr.getAttribute('data-guide') || '').toLowerCase().trim();
-      const trText = tr.textContent.toLowerCase();
+  window.filterAviationTable = function() {
+    const q = $('searchAviation').value.toLowerCase();
+    document.querySelectorAll('#aviationTable tbody tr').forEach(row => {
+      row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+  };
 
-      const matchesOperator = !selectedOperator || guideName === selectedOperator;
-      const matchesSearch = !filterText || trText.includes(filterText);
+  window.filterTicketsTable = function() {
+    const q = $('searchTickets').value.toLowerCase();
+    document.querySelectorAll('#ticketsTable tbody tr').forEach(row => {
+      row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+  };
 
-      if (matchesOperator && matchesSearch) {
-        tr.style.display = '';
+  window.filterSettlementsTable = function() {
+    const select = $('operatorFilterSelect');
+    const selectedOp = select ? select.value.toLowerCase().trim() : '';
+    const q = $('searchSettlements') ? $('searchSettlements').value.toLowerCase().trim() : '';
+
+    const printFilterText = $('settlementPrintFilter');
+    if (printFilterText) {
+      printFilterText.innerText = selectedOp ? `تصفية: الأوبريتور/المرشد [ ${select.value} ]` : 'تصفية: جميع الأوبريتورز';
+    }
+
+    document.querySelectorAll('#settlementsTable tbody tr').forEach(row => {
+      const rowGuide = (row.getAttribute('data-guide') || '').toLowerCase().trim();
+      const rowText = row.innerText.toLowerCase();
+
+      const matchesOp = !selectedOp || rowGuide === selectedOp;
+      const matchesSearch = !q || rowText.includes(q);
+
+      if (matchesOp && matchesSearch) {
+        row.style.display = '';
       } else {
-        tr.style.display = 'none';
+        row.style.display = 'none';
       }
     });
 
     App.updateSettlementTotalCommission();
-    updateSettlementPrintFilter();
   };
-</script>
 
+  window.filterArchiveSettlementsTable = function() {
+    const q = $('searchArchiveSettlements') ? $('searchArchiveSettlements').value.toLowerCase().trim() : '';
+    document.querySelectorAll('#settlementsArchiveTable tbody tr').forEach(row => {
+      row.style.display = (!q || row.innerText.toLowerCase().includes(q)) ? '' : 'none';
+    });
+  };
+
+  // PDF Export functions wrapper
+  window.downloadMasterDashboardPDF = function() {
+    const element = $('printableMasterDashboard');
+    html2pdf().set({ margin: 10, filename: 'Master_Dashboard.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+  };
+
+  window.downloadSuppliersPDF = function() {
+    const element = $('printableSuppliersArea');
+    html2pdf().set({ margin: 10, filename: 'Suppliers_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(element).save();
+  };
+
+  window.downloadDashboardPDF = function() {
+    const element = $('printableArea');
+    html2pdf().set({ margin: 10, filename: 'Credit_Dashboard.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+  };
+
+  window.downloadStatementPDF = function() {
+    const element = $('printableStatementArea');
+    html2pdf().set({ margin: 10, filename: 'Account_Statement.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+  };
+
+  window.downloadAviationPDF = function() {
+    const element = $('printableAviationArea');
+    html2pdf().set({ margin: 10, filename: 'Aviation_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(element).save();
+  };
+
+  window.downloadTicketsPDF = function() {
+    const element = $('printableTicketsArea');
+    html2pdf().set({ margin: 10, filename: 'Tickets_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(element).save();
+  };
+
+  window.downloadSettlementsPDF = function() {
+    const element = $('printableSettlementArea');
+    html2pdf().set({ margin: 10, filename: 'Settlements_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(element).save();
+  };
+
+  window.printSuppliersList = function() { window.print(); };
+  window.printDashboard = function() { window.print(); };
+  window.printSettlementsList = function() {
+    document.body.classList.add('print-settlements');
+    window.print();
+    document.body.classList.remove('print-settlements');
+  };
+
+  window.App = App;
+
+  // Initialize Firebase listeners on app boot
+  document.addEventListener('DOMContentLoaded', () => {
+    App.listenToSuppliers();
+    App.listenToCredit();
+    App.listenToAviation();
+    App.listenToTickets();
+    App.listenToSettlements();
+  });
+</script>
 </body>
 </html>
