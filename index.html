@@ -824,7 +824,30 @@
             </div>
           </div>
 
+          <!-- شريط تصفية الأوبريتور في الأرشيف -->
+          <div class="filter-panel no-print" style="margin-bottom:15px;">
+            <div class="form-row" style="margin-bottom:0; align-items:center;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label>👤 تصفية الأرشيف حسب الأوبريتور</label>
+                <select id="archiveOperatorFilterSelect" onchange="filterArchiveSettlementsTable()">
+                  <option value="">-- جميع الأوبريتورز / المرشدين --</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           <div id="printableSettlementArchiveArea">
+            <!-- بطاقة إجمالي مبلغ العمولة الخاصة بالأرشيف -->
+            <div class="statement-cards-row" style="margin-bottom:15px;">
+              <div class="st-card commission">
+                <div class="st-card-info">
+                  <span class="st-card-title">إجمالي مبلغ العمولة الخاص بتصفيات الأرشيف المعروضة</span>
+                  <span class="st-card-val" id="archiveSettlementTotalCommission" style="color:#16a34a;">0.00</span>
+                </div>
+                <div class="st-card-icon">💵</div>
+              </div>
+            </div>
+
             <div class="table-wrapper">
               <table id="settlementsArchiveTable">
                 <thead>
@@ -1511,6 +1534,7 @@
           archiveTbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>';
           this.populateOperatorSelect();
           this.updateSettlementTotalCommission();
+          this.updateArchiveSettlementTotalCommission();
           this.updateMasterDashboard();
           return;
         }
@@ -1588,6 +1612,7 @@
 
         this.populateOperatorSelect();
         filterSettlementsTable();
+        filterArchiveSettlementsTable();
         this.updateMasterDashboard();
       });
     },
@@ -1610,19 +1635,41 @@
 
     populateOperatorSelect() {
       const select = $('operatorFilterSelect');
-      if (!select) return;
-      const currentVal = select.value;
-      const operators = new Set();
+      const archiveSelect = $('archiveOperatorFilterSelect');
+      
+      const currentVal = select ? select.value : '';
+      const archiveCurrentVal = archiveSelect ? archiveSelect.value : '';
+      
+      const activeOperators = new Set();
+      const archiveOperators = new Set();
+      
       this.currentSettlements.forEach(s => {
-        if (s.guideName && s.guideName.trim() !== '') operators.add(s.guideName.trim());
+        if (s.guideName && s.guideName.trim() !== '') {
+          if (s.status === 'approved') {
+            archiveOperators.add(s.guideName.trim());
+          } else {
+            activeOperators.add(s.guideName.trim());
+          }
+        }
       });
 
-      let options = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>';
-      operators.forEach(op => {
-        options += `<option value="${escapeHTML(op)}">${escapeHTML(op)}</option>`;
-      });
-      select.innerHTML = options;
-      select.value = currentVal;
+      if (select) {
+        let options = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>';
+        activeOperators.forEach(op => {
+          options += `<option value="${escapeHTML(op)}">${escapeHTML(op)}</option>`;
+        });
+        select.innerHTML = options;
+        select.value = currentVal;
+      }
+
+      if (archiveSelect) {
+        let archiveOptions = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>';
+        archiveOperators.forEach(op => {
+          archiveOptions += `<option value="${escapeHTML(op)}">${escapeHTML(op)}</option>`;
+        });
+        archiveSelect.innerHTML = archiveOptions;
+        archiveSelect.value = archiveCurrentVal;
+      }
     },
 
     updateSettlementTotalCommission() {
@@ -1634,6 +1681,20 @@
         }
       });
       const commElem = $('settlementTotalCommission');
+      if (commElem) {
+        commElem.innerText = `${totalCommission.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      }
+    },
+
+    updateArchiveSettlementTotalCommission() {
+      let totalCommission = 0;
+      document.querySelectorAll('#settlementsArchiveTable tbody tr').forEach(tr => {
+        if (tr.style.display !== 'none') {
+          const commVal = parseFloat(tr.getAttribute('data-commission')) || 0;
+          totalCommission += commVal;
+        }
+      });
+      const commElem = $('archiveSettlementTotalCommission');
       if (commElem) {
         commElem.innerText = `${totalCommission.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
       }
@@ -1899,21 +1960,32 @@
     $('stInfoCurrency').innerText = currency;
     $('stInfoFromDate').innerText = fromDate ? formatDateDMY(fromDate) : 'البداية';
     $('stInfoToDate').innerText = toDate ? formatDateDMY(toDate) : 'الآن';
-    $('pdfStatementSub').innerText = `اسم الجهة: ${entity} | العملة: ${currency}`;
 
-    let records = App.currentCredit.filter(item => 
-      (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
-      (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
-    );
+    const records = App.currentCredit.filter(item => {
+      if ((item.entity || '').trim().toLowerCase() !== entity.toLowerCase()) return false;
+      if ((item.currency || 'EGP').toUpperCase() !== currency.toUpperCase()) return false;
+      if (filterFileCode && !(item.fileCode || '').toLowerCase().includes(filterFileCode)) return false;
 
-    if (filterFileCode) records = records.filter(r => (r.fileCode || '').toLowerCase().includes(filterFileCode));
-    if (fromDate) records = records.filter(r => (r.createdAt ? new Date(r.createdAt.seconds * 1000).toISOString().slice(0,10) : '') >= fromDate);
-    if (toDate) records = records.filter(r => (r.createdAt ? new Date(r.createdAt.seconds * 1000).toISOString().slice(0,10) : '') <= toDate);
-
-    const tbody = $('statementRunningTbody');
+      if (fromDate || toDate) {
+        const itemDate = item.createdAt ? new Date(item.createdAt.seconds * 1000) : null;
+        if (itemDate) {
+          if (fromDate) {
+            const fDate = new Date(fromDate);
+            fDate.setHours(0,0,0,0);
+            if (itemDate < fDate) return false;
+          }
+          if (toDate) {
+            const tDate = new Date(toDate);
+            tDate.setHours(23,59,59,999);
+            if (itemDate > tDate) return false;
+          }
+        }
+      }
+      return true;
+    });
 
     if (records.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات كريديت مطابقة للجهة المحددة</td></tr>';
+      $('statementRunningTbody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">لا توجد حركات مطابقة لشروط البحث</td></tr>';
       $('stCardDebit').innerText = `0 ${currency}`;
       $('stCardCredit').innerText = `0 ${currency}`;
       $('stCardBalance').innerText = `0 ${currency}`;
@@ -1921,213 +1993,124 @@
       return;
     }
 
-    let runningBalance = 0, totalDebit = 0, totalCredit = 0, htmlBuffer = '';
+    let runningBalance = 0;
+    let totalDebit = 0;
+    let totalCredit = 0;
+    let htmlBuffer = '';
 
     records.forEach(item => {
       const amt = parseFloat(item.amount) || 0;
-      let debit = 0, credit = 0;
+      const isDeposit = item.type === 'deposit';
+      let debitVal = 0;
+      let creditVal = 0;
 
-      if (item.type === 'deposit') { debit = amt; totalDebit += amt; runningBalance += amt; }
-      else { credit = amt; totalCredit += amt; runningBalance -= amt; }
+      if (isDeposit) {
+        debitVal = amt;
+        totalDebit += amt;
+        runningBalance += amt;
+      } else {
+        creditVal = amt;
+        totalCredit += amt;
+        runningBalance -= amt;
+      }
 
       const dateStr = item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
-      let descriptionText = escapeHTML(item.description || '-');
-      if (item.fileCode) descriptionText += ` <span style="color:#2563eb; font-size:12px; font-weight:700;">(ملف: ${escapeHTML(item.fileCode)})</span>`;
+      const balClass = runningBalance > 0 ? 'color:#16a34a;' : runningBalance < 0 ? 'color:#dc2626;' : 'color:#2563eb;';
 
       htmlBuffer += `
         <tr>
-          <td style="font-weight:600;">${dateStr}</td>
-          <td style="text-align:right;">${descriptionText}</td>
-          <td style="color:#16a34a; font-weight:700;">${debit ? debit.toLocaleString() : '-'}</td>
-          <td style="color:#dc2626; font-weight:700;">${credit ? credit.toLocaleString() : '-'}</td>
-          <td style="color:#2563eb; font-weight:800; background:#f8fafc;">${runningBalance.toLocaleString()}</td>
+          <td>${dateStr}</td>
+          <td style="text-align:right;">
+            <strong>${escapeHTML(item.description || 'حركة حساب')}</strong>
+            ${item.fileCode ? `<br><small style="color:#64748b;">ملف: ${escapeHTML(item.fileCode)}</small>` : ''}
+          </td>
+          <td style="color:#16a34a; font-weight:700;">${debitVal ? debitVal.toLocaleString() : '-'}</td>
+          <td style="color:#dc2626; font-weight:700;">${creditVal ? creditVal.toLocaleString() : '-'}</td>
+          <td style="font-weight:800; ${balClass}">${runningBalance.toLocaleString()}</td>
         </tr>
       `;
     });
 
     htmlBuffer += `
       <tr class="total-row">
-        <td colspan="2" style="text-align:right;">📊 صافي الإجمالي للحساب</td>
+        <td colspan="2" style="text-align:right;">إجمالي الحركات والرصيد النهائي</td>
         <td style="color:#16a34a;">${totalDebit.toLocaleString()}</td>
         <td style="color:#dc2626;">${totalCredit.toLocaleString()}</td>
-        <td style="color:#2563eb; background:#e0e7ff;">${runningBalance.toLocaleString()} ${currency}</td>
+        <td style="color:#2563eb;">${runningBalance.toLocaleString()} ${currency}</td>
       </tr>
     `;
 
-    tbody.innerHTML = htmlBuffer;
+    $('statementRunningTbody').innerHTML = htmlBuffer;
     $('stCardDebit').innerText = `${totalDebit.toLocaleString()} ${currency}`;
     $('stCardCredit').innerText = `${totalCredit.toLocaleString()} ${currency}`;
     $('stCardBalance').innerText = `${runningBalance.toLocaleString()} ${currency}`;
     $('stTotalCount').innerText = records.length;
+    $('pdfStatementSub').innerText = `اسم الجهة: ${entity} | العملة: ${currency}`;
   };
 
   window.resetStatementFilters = function() {
-    $('stEntityName').value = ''; $('stFileCode').value = ''; $('stFromDate').value = ''; $('stToDate').value = '';
+    $('stEntityName').value = '';
+    $('stCurrency').value = 'EGP';
+    $('stFileCode').value = '';
+    $('stFromDate').value = '';
+    $('stToDate').value = '';
     window.renderRunningStatement();
   };
 
-  window.exportStatementToExcel = function() {
-    const entity = $('stEntityName').value.trim();
-    if (!entity) return showToast('يرجى تحديد جهة وعرض الكشف أولاً', 'error');
-    const currency = $('stCurrency').value;
-    const filterFileCode = $('stFileCode').value.trim().toLowerCase();
-    const fromDate = $('stFromDate').value;
-    const toDate = $('stToDate').value;
-
-    let records = App.currentCredit.filter(item => 
-      (item.entity || '').trim().toLowerCase().includes(entity.toLowerCase()) &&
-      (item.currency || 'EGP').toUpperCase() === currency.toUpperCase()
-    );
-
-    if (filterFileCode) records = records.filter(r => (r.fileCode || '').toLowerCase().includes(filterFileCode));
-    if (fromDate) records = records.filter(r => (r.createdAt ? new Date(r.createdAt.seconds * 1000).toISOString().slice(0,10) : '') >= fromDate);
-    if (toDate) records = records.filter(r => (r.createdAt ? new Date(r.createdAt.seconds * 1000).toISOString().slice(0,10) : '') <= toDate);
-
-    if (records.length === 0) return showToast('لا توجد بيانات مطابقة للتصدير', 'error');
-
-    let running = 0;
-    const cleanData = records.map((item) => {
-      const amt = parseFloat(item.amount) || 0;
-      const debit = item.type === 'deposit' ? amt : 0;
-      const credit = item.type === 'deduction' ? amt : 0;
-      running += (debit - credit);
-
-      return {
-        "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-',
-        "رقم الملف": item.fileCode || '',
-        "البيان": item.description || '',
-        "مدين (لنا)": debit,
-        "دائن (علينات)": credit,
-        "الرصيد التراكمي": running,
-        "العملة": currency
-      };
-    });
-
-    const ws = XLSX.utils.json_to_sheet(cleanData);
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "كشف حساب");
-    XLSX.writeFile(wb, `Statement_${entity.replace(/\\s+/g, '_')}_${currency}.xlsx`);
-  };
-
-  // UI Tabs Control Global Handlers
-  window.openTab = function(evt, tabName) {
-    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
-    $(tabName).classList.add('active');
-    evt.currentTarget.classList.add('active');
-  };
-
-  window.toggleTaxDiscountMenu = function(e) {
-    const sub = $('taxDiscountSubMenu');
-    const isVisible = sub.style.display === 'flex';
-    sub.style.display = isVisible ? 'none' : 'flex';
-    $('taxArrowIcon').innerText = isVisible ? '▼' : '▲';
-    openTab(e, 'taxDiscountTab');
-  };
-
-  window.toggleCreditMenu = function(e) {
-    const sub = $('creditSubMenu');
-    const isVisible = sub.style.display === 'flex';
-    sub.style.display = isVisible ? 'none' : 'flex';
-    $('creditArrowIcon').innerText = isVisible ? '▼' : '▲';
-    openTab(e, 'creditTab');
-  };
-
-  window.toggleAviationMenu = function(e) {
-    const sub = $('aviationSubMenu');
-    const isVisible = sub.style.display === 'flex';
-    sub.style.display = isVisible ? 'none' : 'flex';
-    $('aviationArrowIcon').innerText = isVisible ? '▼' : '▲';
-    openTab(e, 'aviationTab');
-  };
-
-  window.toggleTicketsMenu = function(e) {
-    const sub = $('ticketsSubMenu');
-    const isVisible = sub.style.display === 'flex';
-    sub.style.display = isVisible ? 'none' : 'flex';
-    $('ticketsArrowIcon').innerText = isVisible ? '▼' : '▲';
-    openTab(e, 'ticketsTab');
-  };
-
-  window.toggleSettlementMenu = function(e) {
-    const sub = $('settlementSubMenu');
-    const isVisible = sub.style.display === 'flex';
-    sub.style.display = isVisible ? 'none' : 'flex';
-    $('settlementArrowIcon').innerText = isVisible ? '▼' : '▲';
-    openTab(e, 'settlementTab');
-  };
-
-  window.openSubTab = function(evt, subTabName) {
-    const parentTab = evt.currentTarget.closest('.tab-content') || evt.currentTarget.parentElement.parentElement;
-    const parentContainer = evt.currentTarget.parentElement;
-    
-    parentContainer.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
-    evt.currentTarget.classList.add('active');
-
-    const activeMainTab = document.querySelector('.tab-content.active');
-    if (activeMainTab) {
-      activeMainTab.querySelectorAll('.sub-tab-content').forEach(st => st.classList.remove('active'));
-      const targetSub = activeMainTab.querySelector(`#${subTabName}`);
-      if (targetSub) targetSub.classList.add('active');
-    }
-  };
-
-  // Helper filters for tables
+  // Helper UI functions
   window.filterSuppliersTable = function() {
-    const q = $('searchSupplier').value.toLowerCase();
-    document.querySelectorAll('#suppliersTable tbody tr').forEach(row => {
-      row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+    const val = $('searchSupplier').value.toLowerCase().trim();
+    document.querySelectorAll('#suppliersTable tbody tr').forEach(tr => {
+      tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none';
     });
   };
 
   window.filterCreditTable = function() {
-    const q = $('searchCredit').value.toLowerCase();
-    document.querySelectorAll('#creditTable tbody tr').forEach(row => {
-      row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+    const val = $('searchCredit').value.toLowerCase().trim();
+    document.querySelectorAll('#creditTable tbody tr').forEach(tr => {
+      tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none';
     });
   };
 
   window.filterEntitySummaryTable = function() {
-    const q = $('searchEntitySummary').value.toLowerCase();
-    document.querySelectorAll('#entitySummaryTable tbody tr').forEach(row => {
-      row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+    const val = $('searchEntitySummary').value.toLowerCase().trim();
+    document.querySelectorAll('#entitySummaryTable tbody tr').forEach(tr => {
+      tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none';
     });
   };
 
   window.filterAviationTable = function() {
-    const q = $('searchAviation').value.toLowerCase();
-    document.querySelectorAll('#aviationTable tbody tr').forEach(row => {
-      row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+    const val = $('searchAviation').value.toLowerCase().trim();
+    document.querySelectorAll('#aviationTable tbody tr').forEach(tr => {
+      tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none';
     });
   };
 
   window.filterTicketsTable = function() {
-    const q = $('searchTickets').value.toLowerCase();
-    document.querySelectorAll('#ticketsTable tbody tr').forEach(row => {
-      row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+    const val = $('searchTickets').value.toLowerCase().trim();
+    document.querySelectorAll('#ticketsTable tbody tr').forEach(tr => {
+      tr.style.display = tr.innerText.toLowerCase().includes(val) ? '' : 'none';
     });
   };
 
   window.filterSettlementsTable = function() {
-    const select = $('operatorFilterSelect');
-    const selectedOp = select ? select.value.toLowerCase().trim() : '';
-    const q = $('searchSettlements') ? $('searchSettlements').value.toLowerCase().trim() : '';
+    const opVal = $('operatorFilterSelect') ? $('operatorFilterSelect').value.toLowerCase().trim() : '';
+    const textVal = $('searchSettlements') ? $('searchSettlements').value.toLowerCase().trim() : '';
 
     const printFilterText = $('settlementPrintFilter');
     if (printFilterText) {
-      printFilterText.innerText = selectedOp ? `تصفية: الأوبريتور/المرشد [ ${select.value} ]` : 'تصفية: جميع الأوبريتورز';
+      printFilterText.innerText = opVal ? `تصفية الأوبريتور: ${$('operatorFilterSelect').value}` : 'تصفية: جميع الأوبريتورز';
     }
 
-    document.querySelectorAll('#settlementsTable tbody tr').forEach(row => {
-      const rowGuide = (row.getAttribute('data-guide') || '').toLowerCase().trim();
-      const rowText = row.innerText.toLowerCase();
+    document.querySelectorAll('#settlementsTable tbody tr').forEach(tr => {
+      const guideName = (tr.getAttribute('data-guide') || '').toLowerCase();
+      const textMatch = !textVal || tr.innerText.toLowerCase().includes(textVal);
+      const opMatch = !opVal || guideName === opVal;
 
-      const matchesOp = !selectedOp || rowGuide === selectedOp;
-      const matchesSearch = !q || rowText.includes(q);
-
-      if (matchesOp && matchesSearch) {
-        row.style.display = '';
+      if (textMatch && opMatch) {
+        tr.style.display = '';
       } else {
-        row.style.display = 'none';
+        tr.style.display = 'none';
       }
     });
 
@@ -2135,60 +2118,127 @@
   };
 
   window.filterArchiveSettlementsTable = function() {
-    const q = $('searchArchiveSettlements') ? $('searchArchiveSettlements').value.toLowerCase().trim() : '';
-    document.querySelectorAll('#settlementsArchiveTable tbody tr').forEach(row => {
-      row.style.display = (!q || row.innerText.toLowerCase().includes(q)) ? '' : 'none';
+    const opVal = $('archiveOperatorFilterSelect') ? $('archiveOperatorFilterSelect').value.toLowerCase().trim() : '';
+    const textVal = $('searchArchiveSettlements') ? $('searchArchiveSettlements').value.toLowerCase().trim() : '';
+
+    document.querySelectorAll('#settlementsArchiveTable tbody tr').forEach(tr => {
+      const guideName = (tr.getAttribute('data-guide') || '').toLowerCase();
+      const textMatch = !textVal || tr.innerText.toLowerCase().includes(textVal);
+      const opMatch = !opVal || guideName === opVal;
+
+      if (textMatch && opMatch) {
+        tr.style.display = '';
+      } else {
+        tr.style.display = 'none';
+      }
     });
+
+    App.updateArchiveSettlementTotalCommission();
   };
 
-  // PDF Export functions wrapper
+  // Export PDF & Print Actions
   window.downloadMasterDashboardPDF = function() {
     const element = $('printableMasterDashboard');
-    html2pdf().set({ margin: 10, filename: 'Master_Dashboard.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+    html2pdf().from(element).set({ margin: 10, filename: 'Master_Dashboard_Report.pdf', html2canvas: { scale: 2 }, jsPDF: { orientation: 'landscape' } }).save();
   };
 
+  window.printSuppliersList = function() { window.print(); };
   window.downloadSuppliersPDF = function() {
     const element = $('printableSuppliersArea');
-    html2pdf().set({ margin: 10, filename: 'Suppliers_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(element).save();
+    html2pdf().from(element).set({ margin: 10, filename: 'Suppliers_Report.pdf', html2canvas: { scale: 2 } }).save();
   };
 
+  window.printDashboard = function() { window.print(); };
   window.downloadDashboardPDF = function() {
     const element = $('printableArea');
-    html2pdf().set({ margin: 10, filename: 'Credit_Dashboard.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+    html2pdf().from(element).set({ margin: 10, filename: 'Credit_Dashboard_Report.pdf', html2canvas: { scale: 2 } }).save();
+  };
+
+  window.exportStatementToExcel = function() {
+    const table = $('statementRunningTable');
+    if (!table) return;
+    const wb = XLSX.utils.table_to_book(table);
+    XLSX.writeFile(wb, `Statement_${$('stEntityName').value.trim() || 'Details'}.xlsx`);
   };
 
   window.downloadStatementPDF = function() {
     const element = $('printableStatementArea');
-    html2pdf().set({ margin: 10, filename: 'Account_Statement.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+    html2pdf().from(element).set({ margin: 10, filename: 'Statement_Report.pdf', html2canvas: { scale: 2 } }).save();
   };
 
   window.downloadAviationPDF = function() {
     const element = $('printableAviationArea');
-    html2pdf().set({ margin: 10, filename: 'Aviation_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(element).save();
+    html2pdf().from(element).set({ margin: 10, filename: 'Aviation_Report.pdf', html2canvas: { scale: 2 } }).save();
   };
 
   window.downloadTicketsPDF = function() {
     const element = $('printableTicketsArea');
-    html2pdf().set({ margin: 10, filename: 'Tickets_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(element).save();
+    html2pdf().from(element).set({ margin: 10, filename: 'Tickets_Report.pdf', html2canvas: { scale: 2 } }).save();
   };
 
-  window.downloadSettlementsPDF = function() {
-    const element = $('printableSettlementArea');
-    html2pdf().set({ margin: 10, filename: 'Settlements_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(element).save();
-  };
-
-  window.printSuppliersList = function() { window.print(); };
-  window.printDashboard = function() { window.print(); };
   window.printSettlementsList = function() {
     document.body.classList.add('print-settlements');
     window.print();
     document.body.classList.remove('print-settlements');
   };
 
+  window.downloadSettlementsPDF = function() {
+    const element = $('printableSettlementArea');
+    html2pdf().from(element).set({ margin: 10, filename: 'Settlements_Report.pdf', html2canvas: { scale: 2 }, jsPDF: { orientation: 'landscape' } }).save();
+  };
+
+  // Tab System Controls
+  window.openTab = function(evt, tabId) {
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
+    $(tabId).classList.add('active');
+    if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
+  };
+
+  window.toggleTaxDiscountMenu = function(evt) {
+    const sub = $('taxDiscountSubMenu');
+    sub.style.display = sub.style.display === 'none' ? 'flex' : 'none';
+    window.openTab(evt, 'taxDiscountTab');
+  };
+
+  window.toggleCreditMenu = function(evt) {
+    const sub = $('creditSubMenu');
+    sub.style.display = sub.style.display === 'none' ? 'flex' : 'none';
+    window.openTab(evt, 'creditTab');
+  };
+
+  window.toggleAviationMenu = function(evt) {
+    const sub = $('aviationSubMenu');
+    sub.style.display = sub.style.display === 'none' ? 'flex' : 'none';
+    window.openTab(evt, 'aviationTab');
+  };
+
+  window.toggleTicketsMenu = function(evt) {
+    const sub = $('ticketsSubMenu');
+    sub.style.display = sub.style.display === 'none' ? 'flex' : 'none';
+    window.openTab(evt, 'ticketsTab');
+  };
+
+  window.toggleSettlementMenu = function(evt) {
+    const sub = $('settlementSubMenu');
+    sub.style.display = sub.style.display === 'none' ? 'flex' : 'none';
+    window.openTab(evt, 'settlementTab');
+  };
+
+  window.openSubTab = function(evt, subTabId) {
+    const parent = evt.currentTarget.parentElement;
+    parent.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+    evt.currentTarget.classList.add('active');
+
+    const tabContent = parent.parentElement;
+    tabContent.querySelectorAll('.sub-tab-content').forEach(sc => sc.classList.remove('active'));
+    $(subTabId).classList.add('active');
+  };
+
   window.App = App;
 
-  // Initialize Firebase listeners on app boot
-  document.addEventListener('DOMContentLoaded', () => {
+  // Initialize Data Listeners
+  window.addEventListener('DOMContentLoaded', () => {
     App.listenToSuppliers();
     App.listenToCredit();
     App.listenToAviation();
