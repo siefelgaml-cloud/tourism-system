@@ -821,6 +821,9 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h3>📁 أرشيف التصفيات المعتمدة</h3>
             <div class="btn-group no-print" style="margin:0;">
+              <button class="print-btn" onclick="printArchiveSettlementsList()">🖨️ طباعة الأرشيف</button>
+              <button class="pdf-btn" onclick="downloadArchiveSettlementsPDF()">📄 PDF للأرشيف</button>
+              <button class="excel-btn" onclick="App.exportArchiveSettlementsList()">📊 تصدير Excel</button>
               <input type="text" id="searchArchiveSettlements" placeholder="🔍 بحث بالأرشيف..." onkeyup="filterArchiveSettlementsTable()" style="max-width:200px;">
             </div>
           </div>
@@ -838,6 +841,12 @@
           </div>
 
           <div id="printableSettlementArchiveArea">
+            <div class="pdf-report-header">
+              <h2>تقرير أرشيف التصفيات المعتمدة</h2>
+              <p>منظومة الحسابات السياحية</p>
+              <p id="archiveSettlementPrintFilter" style="font-weight:700; color:#ffffff; margin-top:6px;">تصفية: جميع الأوبريتورز</p>
+            </div>
+
             <!-- بطاقة إجمالي مبلغ العمولة الخاصة بالأرشيف -->
             <div class="statement-cards-row" style="margin-bottom:15px;">
               <div class="st-card commission">
@@ -1053,6 +1062,11 @@
     const select = document.getElementById("operatorFilterSelect");
     const selectedOperator = select ? select.value.toLowerCase().trim() : "";
 
+    const printFilterElem = document.getElementById("settlementPrintFilter");
+    if (printFilterElem) {
+      printFilterElem.innerText = selectedOperator ? `تصفية الأوبريتور: ${select.value}` : 'تصفية: جميع الأوبريتورز';
+    }
+
     const trs = document.querySelectorAll("#settlementsTable tbody tr");
     trs.forEach(tr => {
       if (tr.children.length === 1) return; // Skip empty/loading state row
@@ -1078,6 +1092,11 @@
     const select = document.getElementById("archiveOperatorFilterSelect");
     const selectedOperator = select ? select.value.toLowerCase().trim() : "";
 
+    const archivePrintFilterElem = document.getElementById("archiveSettlementPrintFilter");
+    if (archivePrintFilterElem) {
+      archivePrintFilterElem.innerText = selectedOperator ? `تصفية الأوبريتور للأرشيف: ${select.value}` : 'تصفية الأرشيف: جميع الأوبريتورز';
+    }
+
     const trs = document.querySelectorAll("#settlementsArchiveTable tbody tr");
     trs.forEach(tr => {
       if (tr.children.length === 1) return; // Skip empty state row
@@ -1095,6 +1114,24 @@
     if (window.App && window.App.updateArchiveSettlementTotalCommission) {
       window.App.updateArchiveSettlementTotalCommission();
     }
+  }
+
+  // طباعة الأرشيف
+  function printArchiveSettlementsList() {
+    window.print();
+  }
+
+  // تحميل PDF للأرشيف
+  function downloadArchiveSettlementsPDF() {
+    const element = document.getElementById('printableSettlementArchiveArea');
+    const opt = {
+      margin:       0.5,
+      filename:     'Settlement_Archive_Report.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+    };
+    html2pdf().set(opt).from(element).save();
   }
 </script>
 
@@ -1912,99 +1949,135 @@
         const commissionAmount = Math.max(0, netAfterTax * 0.10);
 
         return {
-          "م": idx+1, 
-          "كود الملف": item.fileCode || '', 
+          "م": idx + 1,
+          "كود الملف": item.fileCode || '',
           "اسم الأوبريتور": item.guideName || '',
-          "الإيرادات": revenue, 
+          "الإيرادات": revenue,
           "المصروفات": expenses,
           "الربح": profit,
           "الصافي بعد الضريبة": Number(netAfterTax.toFixed(2)),
-          "نسبة العموله": "10%",
-          "مبلغ العموله": Number(commissionAmount.toFixed(2)),
+          "نسبة العمولة": "10%",
+          "مبلغ العمولة": Number(commissionAmount.toFixed(2)),
           "ملاحظات": item.notes || '',
           "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'
         };
       });
+
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "تصفيات الملفات");
-      XLSX.writeFile(wb, "File_Settlements.xlsx");
+      XLSX.writeFile(wb, "Settlements_List.xlsx");
     },
 
-    // 6. MASTER DASHBOARD CALCULATIONS
+    // تصدير الأرشيف إلى إكسيل
+    exportArchiveSettlementsList() {
+      if (this.currentSettlements.length === 0) return showToast('لا توجد بيانات للأرشيف', 'error');
+      const selectedOperator = $('archiveOperatorFilterSelect') ? $('archiveOperatorFilterSelect').value.toLowerCase().trim() : '';
+      const filterText = $('searchArchiveSettlements') ? $('searchArchiveSettlements').value.toLowerCase().trim() : '';
+
+      const filtered = this.currentSettlements.filter(item => {
+        if (item.status !== 'approved') return false; // تصدير الأرشيف المعتمد فقط
+        const guide = (item.guideName || '').toLowerCase().trim();
+        const matchesOp = !selectedOperator || guide === selectedOperator;
+        const matchesText = !filterText || JSON.stringify(item).toLowerCase().includes(filterText);
+        return matchesOp && matchesText;
+      });
+
+      if (filtered.length === 0) return showToast('لا توجد بيانات بالأرشيف للتصدير وفق الفلتر المحدد', 'error');
+
+      const data = filtered.map((item, idx) => {
+        const revenue = parseFloat(item.revenue) || 0;
+        const expenses = parseFloat(item.expenses) || 0;
+        const profit = revenue - expenses;
+        const netAfterTax = profit / 1.14;
+        const commissionAmount = Math.max(0, netAfterTax * 0.10);
+
+        return {
+          "م": idx + 1,
+          "كود الملف": item.fileCode || '',
+          "اسم الأوبريتور": item.guideName || '',
+          "الإيرادات": revenue,
+          "المصروفات": expenses,
+          "الربح": profit,
+          "الصافي بعد الضريبة": Number(netAfterTax.toFixed(2)),
+          "نسبة العمولة": "10%",
+          "مبلغ العمولة": Number(commissionAmount.toFixed(2)),
+          "حالة الملف": "معتمد بالأرشيف",
+          "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'
+        };
+      });
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "أرشيف التصفيات");
+      XLSX.writeFile(wb, "Settlements_Archive_List.xlsx");
+    },
+
+    // MASTER DASHBOARD UPDATE
     updateMasterDashboard() {
       $('mDashTotalSuppliers').innerText = this.currentSuppliers.length;
 
-      let egpNet = 0, usdNet = 0, eurNet = 0;
-      this.currentCredit.forEach(item => {
-        const curr = (item.currency || 'EGP').toUpperCase();
-        const amt = parseFloat(item.amount) || 0;
-        const val = item.type === 'deposit' ? amt : -amt;
-        if (curr === 'EGP') egpNet += val;
-        else if (curr === 'USD') usdNet += val;
-        else if (curr === 'EUR') eurNet += val;
+      let totalEGP = 0, totalUSD = 0, totalEUR = 0;
+      this.currentCredit.forEach(c => {
+        const amt = parseFloat(c.amount) || 0;
+        const curr = (c.currency || 'EGP').toUpperCase();
+        const factor = c.type === 'deposit' ? 1 : -1;
+        if (curr === 'EGP') totalEGP += (amt * factor);
+        else if (curr === 'USD') totalUSD += (amt * factor);
+        else if (curr === 'EUR') totalEUR += (amt * factor);
       });
-      $('mDashCreditEGP').innerText = `${egpNet.toLocaleString()} EGP`;
-      $('mDashCreditUSD').innerText = `${usdNet.toLocaleString()} USD`;
-      if ($('mDashCreditEUR')) $('mDashCreditEUR').innerText = `${eurNet.toLocaleString()} EUR`;
 
-      const currencyTotals = (records, valueFor) => records.reduce((totals, record) => {
-        const currency = (record.currency || 'USD').toUpperCase();
-        totals[currency] = (totals[currency] || 0) + (Number(valueFor(record)) || 0);
-        return totals;
-      }, {});
-      const renderCurrencyTotals = (totals) => Object.entries(totals).sort(([a], [b]) => a.localeCompare(b))
-        .map(([currency, value]) => `${value.toLocaleString()} ${currency}`).join(' | ') || '0';
+      $('mDashCreditEGP').innerText = totalEGP.toLocaleString();
+      $('mDashCreditUSD').innerText = totalUSD.toLocaleString();
+      $('mDashCreditEUR').innerText = totalEUR.toLocaleString();
 
-      const aviationTotals = currencyTotals(this.currentAviation, a => a.cost);
-      const ticketTotals = currencyTotals(this.currentTickets, t => (parseInt(t.quantity) || 0) * (parseFloat(t.unitPrice) || 0));
-      $('mDashTotalAviation').innerText = renderCurrencyTotals(aviationTotals);
-      $('mDashTotalTickets').innerText = renderCurrencyTotals(ticketTotals);
+      let totalAviationVal = this.currentAviation.reduce((acc, a) => acc + (parseFloat(a.cost) || 0), 0);
+      $('mDashTotalAviation').innerText = totalAviationVal.toLocaleString();
 
-      let totalProfit = 0;
-      this.currentSettlements.forEach(s => totalProfit += ((parseFloat(s.revenue)||0) - (parseFloat(s.expenses)||0)));
-      $('mDashTotalSettlementProfit').innerText = `${totalProfit.toLocaleString()} $`;
+      let totalTicketsVal = this.currentTickets.reduce((acc, t) => acc + ((parseFloat(t.quantity) || 0) * (parseFloat(t.unitPrice) || 0)), 0);
+      $('mDashTotalTickets').innerText = totalTicketsVal.toLocaleString();
 
-      const tbody = $('masterDashboardTbody');
-      tbody.innerHTML = `
-        <tr>
-          <td><strong>📋 سجل الموردين والخصم</strong></td>
-          <td>${this.currentSuppliers.length} مورد</td>
-          <td>-</td>
-          <td>-</td>
-          <td><span class="badge badge-hotel">نشط</span></td>
-        </tr>
-        <tr>
-          <td><strong>💳 حركات الكريديت</strong></td>
-          <td>${this.currentCredit.length} حركة</td>
-          <td>${egpNet.toLocaleString()} EGP</td>
-          <td>-</td>
-          <td>
-            <span class="badge badge-deposit">${usdNet.toLocaleString()} USD</span>
-            <span class="badge badge-advance" style="background:#fefce8; color:#ca8a04;">${eurNet.toLocaleString()} EUR</span>
-          </td>
-        </tr>
-        <tr>
-          <td><strong>✈️ حجوزات الطيران</strong></td>
-          <td>${this.currentAviation.length} حجز</td>
-          <td>-</td>
-          <td style="color:#b91c1c;">${renderCurrencyTotals(aviationTotals)}</td>
-          <td><span class="badge badge-deduction">مصروفات</span></td>
-        </tr>
-        <tr>
-          <td><strong>🎟️ مخزون التذاكر</strong></td>
-          <td>${this.currentTickets.length} مزار</td>
-          <td>${renderCurrencyTotals(ticketTotals)}</td>
-          <td>-</td>
-          <td><span class="badge badge-advance">أصول متوفرة</span></td>
-        </tr>
-        <tr>
-          <td><strong>📄 تصفيات الملفات</strong></td>
-          <td>${this.currentSettlements.length} ملف</td>
-          <td style="color:#15803d;">إيراد شامل</td>
-          <td style="color:#b91c1c;">مصروف شامل</td>
-          <td><span class="badge ${totalProfit >= 0 ? 'badge-profit' : 'badge-loss'}">${totalProfit.toLocaleString()} $ صافي</span></td>
-        </tr>
-      `;
+      let totalSettlementProfit = this.currentSettlements.reduce((acc, s) => acc + ((parseFloat(s.revenue) || 0) - (parseFloat(s.expenses) || 0)), 0);
+      $('mDashTotalSettlementProfit').innerText = totalSettlementProfit.toLocaleString();
+
+      const masterTbody = $('masterDashboardTbody');
+      if (masterTbody) {
+        masterTbody.innerHTML = `
+          <tr>
+            <td><strong>🏢 الخصم والإضافة</strong></td>
+            <td>${this.currentSuppliers.length} موردين</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td><strong>💳 الكريديت (EGP)</strong></td>
+            <td>${this.currentCredit.length} حركات</td>
+            <td style="color:#15803d;">${this.currentCredit.filter(c => (c.currency||'EGP')==='EGP' && c.type==='deposit').reduce((a,b)=>a+(parseFloat(b.amount)||0),0).toLocaleString()}</td>
+            <td style="color:#b91c1c;">${this.currentCredit.filter(c => (c.currency||'EGP')==='EGP' && c.type==='deduction').reduce((a,b)=>a+(parseFloat(b.amount)||0),0).toLocaleString()}</td>
+            <td style="font-weight:800;">${totalEGP.toLocaleString()} EGP</td>
+          </tr>
+          <tr>
+            <td><strong>✈️ الطيران</strong></td>
+            <td>${this.currentAviation.length} حجوزات</td>
+            <td>-</td>
+            <td style="color:#b91c1c;">${totalAviationVal.toLocaleString()}</td>
+            <td style="font-weight:800; color:#5b21b6;">-${totalAviationVal.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td><strong>🎟️ التذاكر والمزارات</strong></td>
+            <td>${this.currentTickets.length} أصل/مزار</td>
+            <td style="color:#15803d;">${totalTicketsVal.toLocaleString()}</td>
+            <td>-</td>
+            <td style="font-weight:800; color:#15803d;">${totalTicketsVal.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td><strong>📄 تصفيات الملفات</strong></td>
+            <td>${this.currentSettlements.length} ملفات</td>
+            <td style="color:#15803d;">${this.currentSettlements.reduce((a,b)=>a+(parseFloat(b.revenue)||0),0).toLocaleString()}</td>
+            <td style="color:#b91c1c;">${this.currentSettlements.reduce((a,b)=>a+(parseFloat(b.expenses)||0),0).toLocaleString()}</td>
+            <td style="font-weight:800; color:${totalSettlementProfit>=0?'#15803d':'#b91c1c'};">${totalSettlementProfit.toLocaleString()}</td>
+          </tr>
+        `;
+      }
     },
 
     init() {
@@ -2017,179 +2090,15 @@
   };
 
   window.App = App;
-  App.init();
+  window.filterSettlementsTable = filterSettlementsTable;
+  window.filterArchiveSettlementsTable = filterArchiveSettlementsTable;
+  window.printArchiveSettlementsList = printArchiveSettlementsList;
+  window.downloadArchiveSettlementsPDF = downloadArchiveSettlementsPDF;
 
-  // SEARCH AUTOCOMPLETE IN STATEMENT TAB
-  window.searchStatementEntities = function() {
-    const queryText = $('stEntityName').value.trim().toLowerCase();
-    const container = $('stEntitySuggestions');
-
-    if (!queryText) {
-      container.style.display = 'none';
-      container.innerHTML = '';
-      return;
-    }
-
-    const matchingEntitiesMap = new Map();
-    App.currentCredit.forEach(item => {
-      const name = (item.entity || '').trim();
-      const curr = (item.currency || 'EGP').toUpperCase();
-
-      if (name.toLowerCase().includes(queryText)) {
-        const key = `${name}___${curr}`;
-        if (!matchingEntitiesMap.has(key)) {
-          matchingEntitiesMap.set(key, { name, currency: curr, count: 1 });
-        } else {
-          matchingEntitiesMap.get(key).count++;
-        }
-      }
-    });
-
-    if (matchingEntitiesMap.size === 0) {
-      container.innerHTML = '<div style="padding:12px; text-align:center; color:#64748b;">لا توجد نتائج مطابقة</div>';
-      container.style.display = 'block';
-      return;
-    }
-
-    let html = '';
-    matchingEntitiesMap.forEach((val) => {
-      html += `
-        <div class="suggestion-item" onclick="selectStatementEntity('${escapeHTML(val.name)}', '${escapeHTML(val.currency)}')">
-          <span>🏢 <strong>${escapeHTML(val.name)}</strong></span>
-          <span class="badge badge-hotel">${escapeHTML(val.currency)} (${val.count})</span>
-        </div>
-      `;
-    });
-
-    container.innerHTML = html;
-    container.style.display = 'block';
-  };
-
-  window.selectStatementEntity = function(name, currency) {
-    $('stEntityName').value = name;
-    $('stCurrency').value = currency;
-    $('stEntitySuggestions').style.display = 'none';
-    renderRunningStatement();
-  };
-
-  window.renderRunningStatement = function() {
-    const entityName = $('stEntityName').value.trim();
-    const currency = $('stCurrency').value;
-    const fileCode = $('stFileCode').value.trim().toLowerCase();
-    const fromDate = $('stFromDate').value;
-    const toDate = $('stToDate').value;
-
-    if (!entityName) {
-      showToast('يرجى كتابة اسم الفندق أو الجهة أولاً', 'error');
-      return;
-    }
-
-    $('stInfoEntity').innerText = entityName;
-    $('stInfoCurrency').innerText = currency;
-    $('stInfoFromDate').innerText = fromDate || 'الكل';
-    $('stInfoToDate').innerText = toDate || 'الآن';
-    $('pdfStatementSub').innerText = `اسم الجهة: ${entityName} (${currency})`;
-
-    let filtered = App.currentCredit.filter(item => {
-      const matchEntity = (item.entity || '').trim().toLowerCase() === entityName.toLowerCase();
-      const matchCurr = (item.currency || 'EGP').toUpperCase() === currency.toUpperCase();
-      const matchFile = !fileCode || (item.fileCode || '').toLowerCase().includes(fileCode);
-
-      let matchDate = true;
-      if (item.createdAt) {
-        const itemDate = new Date(item.createdAt.seconds * 1000);
-        if (fromDate && itemDate < new Date(fromDate)) matchDate = false;
-        if (toDate) {
-          const endDate = new Date(toDate);
-          endDate.setHours(23, 59, 59, 999);
-          if (itemDate > endDate) matchDate = false;
-        }
-      }
-
-      return matchEntity && matchCurr && matchFile && matchDate;
-    });
-
-    const tbody = $('statementRunningTbody');
-    if (filtered.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">لا توجد حركات مسجلة لهذا الحساب بالتصفيات المحددة</td></tr>';
-      $('stCardDebit').innerText = '0';
-      $('stCardCredit').innerText = '0';
-      $('stCardBalance').innerText = '0';
-      $('stTotalCount').innerText = '0';
-      return;
-    }
-
-    let totalDebit = 0;
-    let totalCredit = 0;
-    let runningBalance = 0;
-    let htmlBuffer = '';
-
-    filtered.forEach(item => {
-      const amount = parseFloat(item.amount) || 0;
-      let debit = 0;
-      let credit = 0;
-
-      if (item.type === 'deposit') {
-        debit = amount;
-        totalDebit += amount;
-        runningBalance += amount;
-      } else {
-        credit = amount;
-        totalCredit += amount;
-        runningBalance -= amount;
-      }
-
-      const dateStr = item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
-
-      htmlBuffer += `
-        <tr>
-          <td>${dateStr}</td>
-          <td style="text-align:right;"><strong>${escapeHTML(item.description || '-')}</strong> ${item.fileCode ? `(${escapeHTML(item.fileCode)})` : ''}</td>
-          <td style="color:#16a34a; font-weight:700;">${debit ? debit.toLocaleString() : '-'}</td>
-          <td style="color:#dc2626; font-weight:700;">${credit ? credit.toLocaleString() : '-'}</td>
-          <td style="font-weight:800; color:${runningBalance >= 0 ? '#2563eb' : '#dc2626'};">${runningBalance.toLocaleString()}</td>
-        </tr>
-      `;
-    });
-
-    htmlBuffer += `
-      <tr class="total-row">
-        <td colspan="2">الإجماليات والـ Balance النهائي</td>
-        <td style="color:#16a34a;">${totalDebit.toLocaleString()}</td>
-        <td style="color:#dc2626;">${totalCredit.toLocaleString()}</td>
-        <td style="color:${runningBalance >= 0 ? '#2563eb' : '#dc2626'};">${runningBalance.toLocaleString()} ${currency}</td>
-      </tr>
-    `;
-
-    tbody.innerHTML = htmlBuffer;
-    $('stCardDebit').innerText = totalDebit.toLocaleString();
-    $('stCardCredit').innerText = totalCredit.toLocaleString();
-    $('stCardBalance').innerText = `${runningBalance.toLocaleString()} ${currency}`;
-    $('stTotalCount').innerText = filtered.length;
-  };
-
-  window.resetStatementFilters = function() {
-    $('stEntityName').value = '';
-    $('stFileCode').value = '';
-    $('stFromDate').value = '';
-    $('stToDate').value = '';
-    $('stEntitySuggestions').style.display = 'none';
-    $('statementRunningTbody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">قم باختيار الفندق/الجهة والضغط على (🔍 بحث) لعرض كشف الحساب</td></tr>';
-    $('stCardDebit').innerText = '0';
-    $('stCardCredit').innerText = '0';
-    $('stCardBalance').innerText = '0';
-    $('stInfoEntity').innerText = '-';
-    $('stInfoCurrency').innerText = '-';
-    $('stTotalCount').innerText = '0';
-  };
-
-  document.addEventListener('click', (e) => {
-    const container = $('stEntitySuggestions');
-    const input = $('stEntityName');
-    if (container && !container.contains(e.target) && e.target !== input) {
-      container.style.display = 'none';
-    }
+  document.addEventListener("DOMContentLoaded", () => {
+    App.init();
   });
 </script>
+
 </body>
 </html>
