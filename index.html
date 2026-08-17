@@ -115,6 +115,17 @@
     .unapprove-btn:hover { background: #334155; }
     .search-btn { background: #2563eb; color: white; }
     .search-btn:hover:not(:disabled) { background: #1d4ed8; }
+    .add-more-btn { background: #0284c7; color: white; padding: 8px 14px; font-size: 13px; border-radius: 8px; }
+    .add-more-btn:hover { background: #0369a1; }
+
+    .ticket-item-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 15px;
+      position: relative;
+    }
 
     .statement-container { background: #f8fafc; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; }
     .statement-header-banner {
@@ -669,26 +680,37 @@
       <!-- ================= TICKETS TAB ================= -->
       <div id="ticketsTab" class="tab-content">
         <div id="addTicketSubTab" class="sub-tab-content active">
-          <h3>إضافة تذكرة / مخزون مزارات</h3>
-          <div class="form-row">
-            <div class="form-group"><label>اسم المزار / الفعالية</label><input type="text" id="ticketName" placeholder="مثال: الأهرامات / معبد الكرنك"></div>
-            <div class="form-group"><label>الكمية المتوفرة</label><input type="number" id="ticketQty" placeholder="العدد"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>سعر التذكرة والعملة</label>
-              <div class="amount-input-group">
-                <input type="number" id="ticketUnitPrice" placeholder="سعر التذكرة..." step="any">
-                <select id="ticketCurrency">
-                  <option value="USD">USD</option>
-                  <option value="EGP">EGP</option>
-                  <option value="EUR">EUR</option>
-                </select>
+          <h3>إضافة حركة تذاكر / مزارات</h3>
+          <div id="ticketItemsContainer">
+            <div class="ticket-item-card">
+              <div class="form-row">
+                <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select class="ticket-action"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
+                <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" class="ticket-file-code" placeholder="EG-2026-10" required></div>
               </div>
+              <div class="form-row">
+                <div class="form-group"><label>اسم المزار / الفعالية</label><input type="text" class="ticket-name" placeholder="مثال: الأهرامات / معبد الكرنك"></div>
+                <div class="form-group"><label>اسم المندوب / المرشد</label><input type="text" class="ticket-guide" placeholder="اسم المندوب أو المرشد"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label>الكمية</label><input type="number" class="ticket-qty" placeholder="العدد"></div>
+                <div class="form-group">
+                  <label>سعر التذكرة والعملة</label>
+                  <div class="amount-input-group">
+                    <input type="number" class="ticket-unit-price" placeholder="سعر التذكرة..." step="any">
+                    <select class="ticket-currency">
+                      <option value="USD">USD</option>
+                      <option value="EGP">EGP</option>
+                      <option value="EUR">EUR</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
             </div>
           </div>
-          <div class="btn-group">
-            <button class="submit-btn" id="btnSaveTicket" onclick="App.saveTicket()">حفظ التذكرة</button>
+          <div class="btn-group" style="justify-content: space-between; align-items: center;">
+            <button type="button" class="add-more-btn" onclick="App.addTicketRow()">➕ إضافة تذكرة أخرى</button>
+            <button class="submit-btn" id="btnSaveTicket" onclick="App.saveTicket()">حفظ التذاكر</button>
           </div>
         </div>
 
@@ -711,17 +733,21 @@
                 <thead>
                   <tr>
                     <th>#</th>
+                    <th>الحركة</th>
+                    <th>رقم الملف</th>
                     <th>اسم المزار</th>
+                    <th>المندوب/المرشد</th>
                     <th>الكمية</th>
                     <th>سعر الوحدة</th>
                     <th>إجمالي القيمة</th>
                     <th>العملة</th>
+                    <th>الملاحظات</th>
                     <th>التاريخ</th>
                     <th class="no-print">إجراءات</th>
                   </tr>
                 </thead>
                 <tbody id="ticketsTableBody">
-                  <tr><td colspan="8" style="text-align:center;">جاري التحميل...</td></tr>
+                  <tr><td colspan="12" style="text-align:center;">جاري التحميل...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -940,19 +966,29 @@
   <div class="modal-content">
     <h3>تعديل تذكرة المزار</h3>
     <input type="hidden" id="editTicketId">
-    <div class="form-group"><label>اسم المزار</label><input type="text" id="editTicketName"></div>
-    <div class="form-group"><label>الكمية</label><input type="number" id="editTicketQty"></div>
-    <div class="form-group">
-      <label>سعر التذكرة والعملة</label>
-      <div class="amount-input-group">
-        <input type="number" id="editTicketUnitPrice" step="any">
-        <select id="editTicketCurrency">
-          <option value="USD">USD</option>
-          <option value="EGP">EGP</option>
-          <option value="EUR">EUR</option>
-        </select>
+    <div class="form-row">
+      <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select id="editTicketAction"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
+      <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" id="editTicketFileCode"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>اسم المزار</label><input type="text" id="editTicketName"></div>
+      <div class="form-group"><label>اسم المندوب / المرشد</label><input type="text" id="editTicketGuide"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>الكمية</label><input type="number" id="editTicketQty"></div>
+      <div class="form-group">
+        <label>سعر التذكرة والعملة</label>
+        <div class="amount-input-group">
+          <input type="number" id="editTicketUnitPrice" step="any">
+          <select id="editTicketCurrency">
+            <option value="USD">USD</option>
+            <option value="EGP">EGP</option>
+            <option value="EUR">EUR</option>
+          </select>
+        </div>
       </div>
     </div>
+    <div class="form-group"><label>ملاحظات</label><textarea id="editTicketNotes"></textarea></div>
     <div class="btn-group" style="justify-content:flex-end;">
       <button class="submit-btn" onclick="App.saveEditedTicket()">حفظ التعديلات</button>
       <button class="print-btn" onclick="App.closeTicketEditModal()">إلغاء</button>
@@ -1586,7 +1622,7 @@
         const tbody = $('ticketsTableBody');
         this.currentTickets = [];
         if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا يوجد مخزون تذاكر</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا يوجد مخزون تذاكر</td></tr>';
           this.updateMasterDashboard();
           return;
         }
@@ -1601,15 +1637,20 @@
           const unitPrice = parseFloat(data.unitPrice) || 0;
           const totalVal = qty * unitPrice;
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
+          const actionBadge = (data.action || 'اضافة') === 'صرف' ? '<span class="badge badge-deduction">صرف</span>' : '<span class="badge badge-deposit">إضافة</span>';
 
           htmlBuffer += `
             <tr>
               <td>${idx++}</td>
-              <td><strong>${escapeHTML(data.ticketName)}</strong></td>
+              <td>${actionBadge}</td>
+              <td><strong style="color:#2563eb;">${escapeHTML(data.fileCode || '-')}</strong></td>
+              <td><strong>${escapeHTML(data.ticketName || '-')}</strong></td>
+              <td>${escapeHTML(data.guideName || '-')}</td>
               <td><span class="badge badge-hotel">${qty}</span></td>
               <td>${unitPrice.toLocaleString()}</td>
               <td style="font-weight:700; color:#15803d;">${totalVal.toLocaleString()}</td>
               <td>${escapeHTML(data.currency || 'USD')}</td>
+              <td>${escapeHTML(data.notes || '-')}</td>
               <td>${dateStr}</td>
               <td class="no-print">
                 <button class="edit-btn" onclick="App.openTicketEditModal('${docSnap.id}')">تعديل</button>
@@ -1623,23 +1664,100 @@
       });
     },
 
+    addTicketRow() {
+      const container = $('ticketItemsContainer');
+      const card = document.createElement('div');
+      card.className = 'ticket-item-card';
+      card.innerHTML = `
+        <button type="button" class="delete-btn" style="position:absolute; top:10px; left:10px;" onclick="this.parentElement.remove()">حذف</button>
+        <div class="form-row">
+          <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select class="ticket-action"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
+          <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" class="ticket-file-code" placeholder="EG-2026-10" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>اسم المزار / الفعالية</label><input type="text" class="ticket-name" placeholder="مثال: الأهرامات / معبد الكرنك"></div>
+          <div class="form-group"><label>اسم المندوب / المرشد</label><input type="text" class="ticket-guide" placeholder="اسم المندوب أو المرشد"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>الكمية</label><input type="number" class="ticket-qty" placeholder="العدد"></div>
+          <div class="form-group">
+            <label>سعر التذكرة والعملة</label>
+            <div class="amount-input-group">
+              <input type="number" class="ticket-unit-price" placeholder="سعر التذكرة..." step="any">
+              <select class="ticket-currency">
+                <option value="USD">USD</option>
+                <option value="EGP">EGP</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
+      `;
+      container.appendChild(card);
+    },
+
     async saveTicket() {
-      const ticketName = $('ticketName').value.trim();
-      const quantity = Number($('ticketQty').value);
-      const unitPrice = Number($('ticketUnitPrice').value);
-      const currency = $('ticketCurrency').value;
+      const cards = document.querySelectorAll('#ticketItemsContainer .ticket-item-card');
+      const ticketsToSave = [];
 
-      if (!ticketName || quantity <= 0 || unitPrice <= 0) return showToast('يرجى ملء اسم المزار والكمية والسعر', 'error');
+      for (let card of cards) {
+        const action = card.querySelector('.ticket-action').value;
+        const fileCode = card.querySelector('.ticket-file-code').value.trim();
+        const ticketName = card.querySelector('.ticket-name').value.trim();
+        const guideName = card.querySelector('.ticket-guide').value.trim();
+        const quantity = Number(card.querySelector('.ticket-qty').value);
+        const unitPrice = Number(card.querySelector('.ticket-unit-price').value);
+        const currency = card.querySelector('.ticket-currency').value;
+        const notes = card.querySelector('.ticket-notes').value.trim();
 
-      if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(unitPrice) || unitPrice <= 0) return showToast('الكمية يجب أن تكون عددًا صحيحًا والسعر موجبًا', 'error');
+        if (!fileCode) return showToast('رقم الملف حقل إجباري لجميع التذاكر', 'error');
+        if (!ticketName || quantity <= 0 || unitPrice <= 0) return showToast('يرجى ملء اسم المزار والكمية والسعر بشكل صحيح', 'error');
+        if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(unitPrice) || unitPrice <= 0) {
+          return showToast('الكمية يجب أن تكون عددًا صحيحًا والسعر موجبًا', 'error');
+        }
+
+        ticketsToSave.push({ action, fileCode, ticketName, guideName, quantity, unitPrice, currency, notes, isDeleted: false, createdAt: new Date() });
+      }
+
       const btn = $('btnSaveTicket');
       btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
-        await addDoc(collection(db, "attractions_tickets"), { ticketName, quantity, unitPrice, currency, isDeleted: false, createdAt: new Date() });
-        showToast('تم إضافة التذكرة للمخزون!', 'success');
-        $('ticketName').value = ''; $('ticketQty').value = ''; $('ticketUnitPrice').value = '';
+        for (let tData of ticketsToSave) {
+          await addDoc(collection(db, "attractions_tickets"), tData);
+        }
+        showToast('تم إضافة التذاكر بنجاح!', 'success');
+        
+        // إعادة تهيئة الخانات
+        $('ticketItemsContainer').innerHTML = `
+          <div class="ticket-item-card">
+            <div class="form-row">
+              <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select class="ticket-action"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
+              <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" class="ticket-file-code" placeholder="EG-2026-10" required></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>اسم المزار / الفعالية</label><input type="text" class="ticket-name" placeholder="مثال: الأهرامات / معبد الكرنك"></div>
+              <div class="form-group"><label>اسم المندوب / المرشد</label><input type="text" class="ticket-guide" placeholder="اسم المندوب أو المرشد"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>الكمية</label><input type="number" class="ticket-qty" placeholder="العدد"></div>
+              <div class="form-group">
+                <label>سعر التذكرة والعملة</label>
+                <div class="amount-input-group">
+                  <input type="number" class="ticket-unit-price" placeholder="سعر التذكرة..." step="any">
+                  <select class="ticket-currency">
+                    <option value="USD">USD</option>
+                    <option value="EGP">EGP</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
+          </div>
+        `;
       } catch (e) { showToast(e.message, 'error'); }
-      finally { btn.disabled = false; btn.innerText = 'حفظ التذكرة'; }
+      finally { btn.disabled = false; btn.innerText = 'حفظ التذاكر'; }
     },
 
     async deleteTicket(id) {
@@ -1651,10 +1769,14 @@
       const item = this.currentTickets.find(t => t.id === id);
       if (!item) return;
       $('editTicketId').value = id;
+      $('editTicketAction').value = item.action || 'اضافة';
+      $('editTicketFileCode').value = item.fileCode || '';
       $('editTicketName').value = item.ticketName || '';
+      $('editTicketGuide').value = item.guideName || '';
       $('editTicketQty').value = item.quantity || 0;
       $('editTicketUnitPrice').value = item.unitPrice || 0;
       $('editTicketCurrency').value = item.currency || 'USD';
+      $('editTicketNotes').value = item.notes || '';
       $('editTicketModal').style.display = 'flex';
     },
 
@@ -1662,15 +1784,21 @@
 
     async saveEditedTicket() {
       const id = $('editTicketId').value;
+      const action = $('editTicketAction').value;
+      const fileCode = $('editTicketFileCode').value.trim();
       const ticketName = $('editTicketName').value.trim();
+      const guideName = $('editTicketGuide').value.trim();
       const quantity = Number($('editTicketQty').value);
       const unitPrice = Number($('editTicketUnitPrice').value);
       const currency = $('editTicketCurrency').value;
+      const notes = $('editTicketNotes').value.trim();
 
+      if (!fileCode) return showToast('رقم الملف حقل إجباري', 'error');
       if (!ticketName || quantity <= 0 || unitPrice <= 0) return showToast('يرجى ملء البيانات بشكل صحيح', 'error');
       if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(unitPrice) || unitPrice <= 0) return showToast('الكمية يجب أن تكون عددًا صحيحًا والسعر موجبًا', 'error');
+      
       try {
-        await updateDoc(doc(db, "attractions_tickets", id), { ticketName, quantity, unitPrice, currency });
+        await updateDoc(doc(db, "attractions_tickets", id), { action, fileCode, ticketName, guideName, quantity, unitPrice, currency, notes });
         showToast('تم تعديل التذكرة!', 'success');
         this.closeTicketEditModal();
       } catch (e) { showToast(e.message, 'error'); }
@@ -1679,9 +1807,9 @@
     exportTicketsList() {
       if (this.currentTickets.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
       const data = this.currentTickets.map((item, idx) => ({
-        "م": idx+1, "اسم المزار": item.ticketName || '', "الكمية": item.quantity || 0,
+        "م": idx+1, "الحركة": item.action || 'اضافة', "رقم الملف": item.fileCode || '', "اسم المزار": item.ticketName || '', "المندوب/المرشد": item.guideName || '', "الكمية": item.quantity || 0,
         "سعر الوحدة": item.unitPrice || 0, "إجمالي القيمة": (item.quantity || 0) * (item.unitPrice || 0),
-        "العملة": item.currency || 'USD',
+        "العملة": item.currency || 'USD', "ملاحظات": item.notes || '',
         "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'
       }));
       const ws = XLSX.utils.json_to_sheet(data);
@@ -1918,7 +2046,7 @@
 
       if (!fileCode) return showToast('يرجى إدخال كود الملف', 'error');
       if (!Number.isFinite(revenue) || !Number.isFinite(expenses) || revenue < 0 || expenses < 0) return showToast('الإيرادات والمصروفات يجب أن تكون أرقامًا غير سالبة', 'error');
-      if (this.isDuplicate(this.currentSettlements, 'fileCode', fileCode, id)) return showToast('كود الملف مسجل بالفعل في التصفيات', 'error');
+      if (this.isDuplicate(this.currentSettlements, 'fileCode', fileCode, id)) return showToast('كود الملف مسجل بالفعل', 'error');
 
       try {
         await updateDoc(doc(db, "file_settlements", id), { fileCode, guideName, revenue, expenses, notes });
@@ -1927,132 +2055,86 @@
       } catch (e) { showToast(e.message, 'error'); }
     },
 
-    exportSettlementsList() {
-      if (this.currentSettlements.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const activeSettlements = this.currentSettlements.filter(s => s.status !== 'approved');
-      const data = activeSettlements.map((item, idx) => {
-        const profit = (item.revenue || 0) - (item.expenses || 0);
-        const net = profit / 1.14;
-        const comm = Math.max(0, net * 0.10);
-        return {
-          "م": idx+1, "كود الملف": item.fileCode || '', "اسم الأوبريتور": item.guideName || '',
-          "الإيرادات": item.revenue || 0, "المصروفات": item.expenses || 0,
-          "الربح": profit, "الصافي بعد الضريبة": net, "نسبة العمولة": "10%", "مبلغ العمولة": comm,
-          "ملاحظات": item.notes || '',
-          "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'
-        };
-      });
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "التصفيات الجارية");
-      XLSX.writeFile(wb, "Active_Settlements.xlsx");
-    },
-
-    exportArchiveSettlementsList() {
-      if (this.currentSettlements.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const archiveSettlements = this.currentSettlements.filter(s => s.status === 'approved');
-      const data = archiveSettlements.map((item, idx) => {
-        const profit = (item.revenue || 0) - (item.expenses || 0);
-        const net = profit / 1.14;
-        const comm = Math.max(0, net * 0.10);
-        return {
-          "م": idx+1, "كود الملف": item.fileCode || '', "اسم الأوبريتور": item.guideName || '',
-          "الإيرادات": item.revenue || 0, "المصروفات": item.expenses || 0,
-          "الربح": profit, "الصافي بعد الضريبة": net, "نسبة العمولة": "10%", "مبلغ العمولة": comm,
-          "الحالة": "معتمد بالأرشيف",
-          "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'
-        };
-      });
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "أرشيف التصفيات");
-      XLSX.writeFile(wb, "Archive_Settlements.xlsx");
-    },
-
-    // 6. MASTER DASHBOARD UPDATE
     updateMasterDashboard() {
       $('mDashTotalSuppliers').innerText = this.currentSuppliers.length;
-
+      
       let creditEGP = 0, creditUSD = 0, creditEUR = 0;
       this.currentCredit.forEach(c => {
         const amt = parseFloat(c.amount) || 0;
-        const sign = c.type === 'deposit' ? 1 : -1;
-        if ((c.currency || 'EGP') === 'EGP') creditEGP += amt * sign;
-        else if (c.currency === 'USD') creditUSD += amt * sign;
-        else if (c.currency === 'EUR') creditEUR += amt * sign;
+        const factor = c.type === 'deposit' ? 1 : -1;
+        if (c.currency === 'USD') creditUSD += (amt * factor);
+        else if (c.currency === 'EUR') creditEUR += (amt * factor);
+        else creditEGP += (amt * factor);
       });
 
       $('mDashCreditEGP').innerText = creditEGP.toLocaleString();
       $('mDashCreditUSD').innerText = creditUSD.toLocaleString();
       $('mDashCreditEUR').innerText = creditEUR.toLocaleString();
 
-      let totalAviation = 0;
-      this.currentAviation.forEach(a => totalAviation += parseFloat(a.cost) || 0);
+      let totalAviation = this.currentAviation.reduce((acc, curr) => acc + (parseFloat(curr.cost) || 0), 0);
       $('mDashTotalAviation').innerText = totalAviation.toLocaleString();
 
-      let totalTickets = 0;
-      this.currentTickets.forEach(t => totalTickets += (parseInt(t.quantity) || 0) * (parseFloat(t.unitPrice) || 0));
+      let totalTickets = this.currentTickets.reduce((acc, curr) => acc + ((parseFloat(curr.quantity) || 0) * (parseFloat(curr.unitPrice) || 0)), 0);
       $('mDashTotalTickets').innerText = totalTickets.toLocaleString();
 
-      let totalCommissions = 0;
-      this.currentSettlements.forEach(s => {
-        const profit = (parseFloat(s.revenue) || 0) - (parseFloat(s.expenses) || 0);
-        const net = profit / 1.14;
-        totalCommissions += Math.max(0, net * 0.10);
-      });
+      let totalCommissions = this.currentSettlements.reduce((acc, curr) => {
+        const rev = parseFloat(curr.revenue) || 0;
+        const exp = parseFloat(curr.expenses) || 0;
+        const net = Math.max(0, (rev - exp) / 1.14);
+        return acc + (net * 0.10);
+      }, 0);
       $('mDashTotalSettlementCommissions').innerText = totalCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-      // Populate Table
       const tbody = $('masterDashboardTbody');
       tbody.innerHTML = `
         <tr>
-          <td><strong>سجل الموردين (الخصم والإضافة)</strong></td>
+          <td><strong>خصم وإضافة (الموردين)</strong></td>
           <td>${this.currentSuppliers.length}</td>
           <td>-</td>
           <td>-</td>
-          <td><span class="badge badge-hotel">مسجلين: ${this.currentSuppliers.length}</span></td>
+          <td><span class="badge badge-hotel">${this.currentSuppliers.length} مورد</span></td>
         </tr>
         <tr>
-          <td><strong>أرصدة الكريديت (EGP)</strong></td>
-          <td>${this.currentCredit.filter(c => (c.currency || 'EGP') === 'EGP').length}</td>
-          <td>${this.currentCredit.filter(c => (c.currency || 'EGP') === 'EGP' && c.type === 'deposit').reduce((a,b) => a + Number(b.amount||0), 0).toLocaleString()}</td>
-          <td>${this.currentCredit.filter(c => (c.currency || 'EGP') === 'EGP' && c.type === 'deduction').reduce((a,b) => a + Number(b.amount||0), 0).toLocaleString()}</td>
-          <td><strong>${creditEGP.toLocaleString()} EGP</strong></td>
+          <td><strong>أرصدة الكريديت</strong></td>
+          <td>${this.currentCredit.length}</td>
+          <td>-</td>
+          <td>-</td>
+          <td><span class="badge badge-deposit">${creditEGP.toLocaleString()} EGP</span></td>
         </tr>
         <tr>
           <td><strong>حجوزات الطيران</strong></td>
           <td>${this.currentAviation.length}</td>
           <td>-</td>
-          <td>${totalAviation.toLocaleString()}</td>
-          <td><span class="badge badge-deduction">إجمالي المصروف: ${totalAviation.toLocaleString()}</span></td>
+          <td style="color:#b91c1c;">${totalAviation.toLocaleString()}</td>
+          <td><span class="badge badge-deduction">${totalAviation.toLocaleString()}</span></td>
         </tr>
         <tr>
-          <td><strong>مخزون التذاكر والمزارات</strong></td>
+          <td><strong>مخزون التذاكر</strong></td>
           <td>${this.currentTickets.length}</td>
           <td>-</td>
           <td>-</td>
-          <td><span class="badge badge-deposit">قيمة المخزون: ${totalTickets.toLocaleString()}</span></td>
+          <td><span class="badge badge-advance">${totalTickets.toLocaleString()}</span></td>
         </tr>
         <tr>
-          <td><strong>تصفيات الملفات والأوبريتور</strong></td>
+          <td><strong>تصفيات الأوبريتور</strong></td>
           <td>${this.currentSettlements.length}</td>
-          <td>${this.currentSettlements.reduce((a,b) => a + Number(b.revenue||0), 0).toLocaleString()}</td>
-          <td>${this.currentSettlements.reduce((a,b) => a + Number(b.expenses||0), 0).toLocaleString()}</td>
-          <td><span class="badge badge-profit">عمولات: ${totalCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></td>
+          <td>-</td>
+          <td>-</td>
+          <td><span class="badge badge-profit">${totalCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} عمولات</span></td>
         </tr>
       `;
-    },
-
-    init() {
-      this.listenToSuppliers();
-      this.listenToCredit();
-      this.listenToAviation();
-      this.listenToTickets();
-      this.listenToSettlements();
     }
   };
 
   window.App = App;
-  document.addEventListener("DOMContentLoaded", () => App.init());
-</script>
 
+  document.addEventListener("DOMContentLoaded", () => {
+    App.listenToSuppliers();
+    App.listenToCredit();
+    App.listenToAviation();
+    App.listenToTickets();
+    App.listenToSettlements();
+  });
+</script>
 </body>
 </html>
