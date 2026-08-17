@@ -168,7 +168,6 @@
     .running-table tr:hover td { background: #f8fafc; }
     .running-table .total-row td { background: #f1f5f9; font-weight: 800; font-size: 15px; border-top: 2px solid #cbd5e1; }
 
-    /* Master Dashboard styles */
     .dashboard-grid { display: flex; gap: 18px; margin-bottom: 25px; flex-wrap: wrap; }
     .dash-card {
       flex: 1; min-width: 210px; padding: 20px;
@@ -255,12 +254,6 @@
       #printableArea, #printableSuppliersArea, #printableStatementArea, #printableAviationArea, #printableTicketsArea, #printableSettlementArea, #printableSettlementArchiveArea { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
       .no-print { display: none !important; }
       .pdf-report-header { display: block !important; }
-      body.print-settlements * { visibility: hidden; }
-      body.print-settlements #printableSettlementArea,
-      body.print-settlements #printableSettlementArea * { visibility: visible; }
-      body.print-settlements #printableSettlementArea {
-        position: absolute; left: 0; top: 0; width: 100%; padding: 10px;
-      }
     }
   </style>
 </head>
@@ -757,7 +750,7 @@
 
       <!-- ================= SETTLEMENT TAB ================= -->
       <div id="settlementTab" class="tab-content">
-        <!-- 1. إضافة تصفية ملف (صفحة مستقلة) -->
+        <!-- 1. إضافة تصفية ملف -->
         <div id="addSettlementSubTab" class="sub-tab-content active">
           <h3>إضافة تصفية ملف جديد</h3>
           <div class="form-row">
@@ -774,7 +767,7 @@
           </div>
         </div>
 
-        <!-- 2. سجل تصفيات الملفات الجارية (صفحة مستقلة) -->
+        <!-- 2. سجل تصفيات الملفات الجارية -->
         <div id="settlementListSubTab" class="sub-tab-content">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h3>سجل تصفيات الملفات (الجارية)</h3>
@@ -786,7 +779,6 @@
             </div>
           </div>
 
-          <!-- شريط التصفية والملخص بالعمولات -->
           <div class="filter-panel no-print" style="margin-bottom:15px;">
             <div class="form-row" style="margin-bottom:0; align-items:center;">
               <div class="form-group" style="margin-bottom:0;">
@@ -805,7 +797,6 @@
               <p id="settlementPrintFilter" style="font-weight:700; color:#ffffff; margin-top:6px;">جميع الأوبريتورز</p>
             </div>
 
-            <!-- بطاقة إجمالي مبلغ العمولة -->
             <div class="statement-cards-row" style="margin-bottom:15px;">
               <div class="st-card commission">
                 <div class="st-card-info">
@@ -842,7 +833,7 @@
           </div>
         </div>
 
-        <!-- 3. الأرشيف (التصفيات المعتمدة) (صفحة مستقلة) -->
+        <!-- 3. الأرشيف (التصفيات المعتمدة) -->
         <div id="settlementArchiveSubTab" class="sub-tab-content">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h3>📁 أرشيف التصفيات المعتمدة</h3>
@@ -854,7 +845,6 @@
             </div>
           </div>
 
-          <!-- شريط تصفية الأوبريتور في الأرشيف -->
           <div class="filter-panel no-print" style="margin-bottom:15px;">
             <div class="form-row" style="margin-bottom:0; align-items:center;">
               <div class="form-group" style="margin-bottom:0;">
@@ -873,7 +863,6 @@
               <p id="archiveSettlementPrintFilter" style="font-weight:700; color:#ffffff; margin-top:6px;">جميع الأوبريتورز</p>
             </div>
 
-            <!-- بطاقة إجمالي مبلغ العمولة الخاصة بالأرشيف -->
             <div class="statement-cards-row" style="margin-bottom:15px;">
               <div class="st-card commission">
                 <div class="st-card-info">
@@ -1105,7 +1094,7 @@
 
     const trs = document.querySelectorAll("#settlementsTable tbody tr");
     trs.forEach(tr => {
-      if (tr.children.length === 1) return; // Skip empty/loading state row
+      if (tr.children.length === 1) return;
       const guideName = (tr.getAttribute("data-guide") || "").toLowerCase().trim();
       const textMatch = tr.innerText.toLowerCase().includes(filter);
       const operatorMatch = !selectedOperator || guideName === selectedOperator;
@@ -1135,7 +1124,7 @@
 
     const trs = document.querySelectorAll("#settlementsArchiveTable tbody tr");
     trs.forEach(tr => {
-      if (tr.children.length === 1) return; // Skip empty state row
+      if (tr.children.length === 1) return;
       const guideName = (tr.getAttribute("data-guide") || "").toLowerCase().trim();
       const textMatch = tr.innerText.toLowerCase().includes(filter);
       const operatorMatch = !selectedOperator || guideName === selectedOperator;
@@ -1152,12 +1141,10 @@
     }
   }
 
-  // طباعة الأرشيف
   function printArchiveSettlementsList() {
     window.print();
   }
 
-  // تحميل PDF للأرشيف
   function downloadArchiveSettlementsPDF() {
     const element = document.getElementById('printableSettlementArchiveArea');
     const opt = {
@@ -1168,6 +1155,134 @@
       jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
     };
     html2pdf().set(opt).from(element).save();
+  }
+
+  function printSuppliersList() { window.print(); }
+  function downloadSuppliersPDF() {
+    const element = document.getElementById('printableSuppliersArea');
+    html2pdf().set({ margin: 0.5, filename: 'Suppliers_Report.pdf', jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } }).from(element).save();
+  }
+  function printDashboard() { window.print(); }
+  function downloadDashboardPDF() {
+    const element = document.getElementById('printableArea');
+    html2pdf().set({ margin: 0.5, filename: 'Credit_Dashboard.pdf', jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } }).from(element).save();
+  }
+  function downloadMasterDashboardPDF() {
+    const element = document.getElementById('printableMasterDashboard');
+    html2pdf().set({ margin: 0.5, filename: 'Master_Dashboard.pdf', jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } }).from(element).save();
+  }
+  function downloadAviationPDF() {
+    const element = document.getElementById('printableAviationArea');
+    html2pdf().set({ margin: 0.5, filename: 'Aviation_Report.pdf', jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } }).from(element).save();
+  }
+  function downloadTicketsPDF() {
+    const element = document.getElementById('printableTicketsArea');
+    html2pdf().set({ margin: 0.5, filename: 'Tickets_Report.pdf', jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } }).from(element).save();
+  }
+  function printSettlementsList() { window.print(); }
+  function downloadSettlementsPDF() {
+    const element = document.getElementById('printableSettlementArea');
+    html2pdf().set({ margin: 0.5, filename: 'Settlements_Report.pdf', jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } }).from(element).save();
+  }
+  function downloadStatementPDF() {
+    const element = document.getElementById('printableStatementArea');
+    html2pdf().set({ margin: 0.5, filename: 'Account_Statement.pdf', jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } }).from(element).save();
+  }
+  function exportStatementToExcel() {
+    const table = document.getElementById('statementRunningTable');
+    if (!table) return;
+    const wb = XLSX.utils.table_to_book(table, {sheet: "كشف الحساب"});
+    XLSX.writeFile(wb, "Account_Statement.xlsx");
+  }
+  function resetStatementFilters() {
+    document.getElementById('stEntityName').value = '';
+    document.getElementById('stFileCode').value = '';
+    document.getElementById('stFromDate').value = '';
+    document.getElementById('stToDate').value = '';
+    document.getElementById('statementRunningTbody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">قم باختيار الفندق/الجهة والضغط على (🔍 بحث) لعرض كشف الحساب</td></tr>';
+  }
+  function searchStatementEntities() {
+    const queryVal = document.getElementById('stEntityName').value.trim().toLowerCase();
+    const dropdown = document.getElementById('stEntitySuggestions');
+    if (!queryVal) { dropdown.style.display = 'none'; return; }
+    
+    const matched = [...new Set(window.App.currentCredit.map(c => c.entity))]
+      .filter(e => e && e.toLowerCase().includes(queryVal));
+
+    if (matched.length === 0) { dropdown.style.display = 'none'; return; }
+
+    dropdown.innerHTML = matched.map(m => `<div class="suggestion-item" onclick="selectStatementEntity('${escapeHTML(m)}')"><span>${escapeHTML(m)}</span></div>`).join('');
+    dropdown.style.display = 'block';
+  }
+  function selectStatementEntity(name) {
+    document.getElementById('stEntityName').value = name;
+    document.getElementById('stEntitySuggestions').style.display = 'none';
+  }
+  function renderRunningStatement() {
+    const entity = document.getElementById('stEntityName').value.trim();
+    const currency = document.getElementById('stCurrency').value;
+    const fileCode = document.getElementById('stFileCode').value.trim().toLowerCase();
+    const fromDate = document.getElementById('stFromDate').value;
+    const toDate = document.getElementById('stToDate').value;
+
+    if (!entity) { alert('يرجى اختيار اسم الجهة أو الفندق أولاً'); return; }
+
+    document.getElementById('stInfoEntity').innerText = entity;
+    document.getElementById('stInfoCurrency').innerText = currency;
+    document.getElementById('pdfStatementSub').innerText = `اسم الجهة: ${entity} | العملة: ${currency}`;
+
+    const records = window.App.currentCredit.filter(c => {
+      if (c.isDeleted) return false;
+      if (c.entity.trim().toLowerCase() !== entity.toLowerCase()) return false;
+      if ((c.currency || 'EGP').toUpperCase() !== currency) return false;
+      if (fileCode && !(c.fileCode || '').toLowerCase().includes(fileCode)) return false;
+      if (fromDate && c.arrivalDate && c.arrivalDate < fromDate) return false;
+      if (toDate && c.arrivalDate && c.arrivalDate > toDate) return false;
+      return true;
+    }).sort((a,b) => new Date(a.arrivalDate || 0) - new Date(b.arrivalDate || 0));
+
+    let runningBalance = 0;
+    let totalDebit = 0;
+    let totalCredit = 0;
+    let html = '';
+
+    records.forEach((r, idx) => {
+      const amt = parseFloat(r.amount) || 0;
+      const isDeposit = r.type === 'deposit';
+      const debitVal = isDeposit ? amt : 0;
+      const creditVal = !isDeposit ? amt : 0;
+
+      totalDebit += debitVal;
+      totalCredit += creditVal;
+      runningBalance += (debitVal - creditVal);
+
+      html += `
+        <tr>
+          <td>${formatDateDMY(r.arrivalDate)}</td>
+          <td>${escapeHTML(r.description || r.fileCode || '-')}</td>
+          <td style="color:#16a34a; font-weight:700;">${debitVal ? debitVal.toLocaleString() : '-'}</td>
+          <td style="color:#dc2626; font-weight:700;">${creditVal ? creditVal.toLocaleString() : '-'}</td>
+          <td style="color:#2563eb; font-weight:800;">${runningBalance.toLocaleString()}</td>
+        </tr>
+      `;
+    });
+
+    if (records.length === 0) {
+      html = '<tr><td colspan="5" style="text-align:center; color:#64748b;">لا توجد حركات مطابقة للبحث</td></tr>';
+    }
+
+    document.getElementById('statementRunningTbody').innerHTML = html;
+    document.getElementById('stCardDebit').innerText = totalDebit.toLocaleString();
+    document.getElementById('stCardCredit').innerText = totalCredit.toLocaleString();
+    document.getElementById('stCardBalance').innerText = runningBalance.toLocaleString();
+    document.getElementById('stTotalCount').innerText = records.length;
+  }
+
+  function formatDateDMY(iso) {
+    if (!iso) return '-';
+    const parts = iso.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return iso;
   }
 </script>
 
@@ -1191,7 +1306,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const deleteDoc = async (documentReference) => updateDoc(documentReference, {
+  const deleteDocAsync = async (documentReference) => updateDoc(documentReference, {
     isDeleted: true,
     deletedAt: new Date()
   });
@@ -1221,13 +1336,6 @@
     }, duration);
   };
 
-  const formatDateDMY = (iso) => {
-    if (!iso) return '-';
-    const parts = iso.split('-');
-    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    return iso;
-  };
-
   const App = {
     currentSuppliers: [],
     currentCredit: [],
@@ -1242,10 +1350,6 @@
     isDuplicate(records, field, value, excludeId = '') {
       const key = this.normalizeKey(value);
       return Boolean(key) && records.some(record => !record.isDeleted && record.id !== excludeId && this.normalizeKey(record[field]) === key);
-    },
-
-    async softDelete(collectionName, id) {
-      await updateDoc(doc(db, collectionName, id), { isDeleted: true, deletedAt: new Date() });
     },
 
     // 1. SUPPLIERS
@@ -1318,7 +1422,7 @@
 
     async deleteSupplier(id) {
       if (!confirm('تأكيد حذف المورد؟')) return;
-      try { await deleteDoc(doc(db, "tax_discount_records", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
+      try { await deleteDocAsync(doc(db, "tax_discount_records", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
     },
 
     openEditModal(id) {
@@ -1434,7 +1538,7 @@
 
     async deleteCredit(id) {
       if (!confirm('تأكيد الحذف؟')) return;
-      try { await deleteDoc(doc(db, "credit_balances", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
+      try { await deleteDocAsync(doc(db, "credit_balances", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
     },
 
     exportCreditList() {
@@ -1565,7 +1669,7 @@
 
     async deleteAviation(id) {
       if (!confirm('تأكيد حذف حجز الطيران؟')) return;
-      try { await deleteDoc(doc(db, "aviation_bookings", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
+      try { await deleteDocAsync(doc(db, "aviation_bookings", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
     },
 
     openAviationEditModal(id) {
@@ -1728,7 +1832,6 @@
         }
         showToast('تم إضافة التذاكر بنجاح!', 'success');
         
-        // إعادة تهيئة الخانات
         $('ticketItemsContainer').innerHTML = `
           <div class="ticket-item-card">
             <div class="form-row">
@@ -1762,7 +1865,7 @@
 
     async deleteTicket(id) {
       if (!confirm('تأكيد حذف التذكرة؟')) return;
-      try { await deleteDoc(doc(db, "attractions_tickets", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
+      try { await deleteDocAsync(doc(db, "attractions_tickets", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
     },
 
     openTicketEditModal(id) {
@@ -1817,7 +1920,7 @@
       XLSX.writeFile(wb, "Tickets_Inventory.xlsx");
     },
 
-    // 5. SETTLEMENTS (تصفية الأوبريتور والملفات)
+    // 5. SETTLEMENTS (تصفية الأوبريتور والملفات والأرشيف)
     listenToSettlements() {
       const q = query(collection(db, "file_settlements"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
@@ -1858,7 +1961,6 @@
 
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
-          // التمييز بين الملفات المعتمدة والملفات النشطة
           if (data.status === 'approved') {
             htmlArchiveBuffer += `
               <tr data-guide="${escapeHTML((data.guideName || '').trim())}" data-commission="${commissionAmount}">
@@ -1868,13 +1970,13 @@
                 <td style="color:#15803d;">${revenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 <td style="color:#b91c1c;">${expenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 <td>${profitBadge}</td>
-                <td style="font-weight:700; color:#0284c7;">${netAfterTax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                <td><span class="badge badge-advance">10%</span></td>
+                <td style="font-weight:700; color:#2563eb;">${netAfterTax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td style="font-weight:700; color:#d97706;">10%</td>
                 <td style="font-weight:700; color:#16a34a;">${commissionAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                <td><span class="badge badge-archive">معتمد بالأرشيف</span></td>
+                <td><span class="badge badge-archive">معتمد</span></td>
                 <td>${dateStr}</td>
                 <td class="no-print">
-                  <button class="unapprove-btn" onclick="App.toggleApproveSettlement('${docSnap.id}', false)">إعادة للتصفيات</button>
+                  <button class="unapprove-btn" onclick="App.unapproveSettlement('${docSnap.id}')">إلغاء الاعتماد</button>
                   <button class="delete-btn" onclick="App.deleteSettlement('${docSnap.id}')">حذف</button>
                 </td>
               </tr>
@@ -1888,13 +1990,13 @@
                 <td style="color:#15803d;">${revenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 <td style="color:#b91c1c;">${expenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 <td>${profitBadge}</td>
-                <td style="font-weight:700; color:#0284c7;">${netAfterTax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                <td><span class="badge badge-advance">10%</span></td>
-                <td style="font-weight:700; color:#16a34a;" class="commission-val">${commissionAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                <td style="text-align:right;">${escapeHTML(data.notes || '-')}</td>
+                <td style="font-weight:700; color:#2563eb;">${netAfterTax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td style="font-weight:700; color:#d97706;">10%</td>
+                <td style="font-weight:700; color:#16a34a;">${commissionAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td>${escapeHTML(data.notes || '-')}</td>
                 <td>${dateStr}</td>
                 <td class="no-print">
-                  <button class="approve-btn" onclick="App.toggleApproveSettlement('${docSnap.id}', true)">معتمد</button>
+                  <button class="approve-btn" onclick="App.approveSettlement('${docSnap.id}')">اعتماد</button>
                   <button class="edit-btn" onclick="App.openSettlementEditModal('${docSnap.id}')">تعديل</button>
                   <button class="delete-btn" onclick="App.deleteSettlement('${docSnap.id}')">حذف</button>
                 </td>
@@ -1903,123 +2005,99 @@
           }
         });
 
-        tbody.innerHTML = htmlActiveBuffer || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات جارية</td></tr>';
+        tbody.innerHTML = htmlActiveBuffer || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات جارية مسجلة</td></tr>';
         archiveTbody.innerHTML = htmlArchiveBuffer || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>';
-
         this.populateOperatorSelect();
-        filterSettlementsTable();
-        filterArchiveSettlementsTable();
+        this.updateSettlementTotalCommission();
+        this.updateArchiveSettlementTotalCommission();
         this.updateMasterDashboard();
       });
-    },
-
-    // الاعتماد ونقل التصفية للأرشيف أو العكس
-    async toggleApproveSettlement(id, approveStatus) {
-      const actionText = approveStatus ? 'اعتماد التصفية ونقلها إلى الأرشيف' : 'إلغاء الاعتماد وإعادة التصفية للسجل النشط';
-      if (!confirm(`تأكيد ${actionText}؟`)) return;
-
-      try {
-        await updateDoc(doc(db, "file_settlements", id), {
-          status: approveStatus ? 'approved' : 'active',
-          approvedAt: approveStatus ? new Date() : null
-        });
-        showToast(approveStatus ? 'تم اعتماد التصفية ونقلها إلى الأرشيف بنجاح!' : 'تمت إعادة التصفية إلى السجل النشط بنجاح!', 'success');
-      } catch (e) {
-        showToast(e.message, 'error');
-      }
     },
 
     populateOperatorSelect() {
       const select = $('operatorFilterSelect');
       const archiveSelect = $('archiveOperatorFilterSelect');
+      if (!select || !archiveSelect) return;
+
+      const operators = [...new Set(this.currentSettlements.map(s => (s.guideName || '').trim()).filter(Boolean))];
       
-      const currentVal = select ? select.value : '';
-      const archiveCurrentVal = archiveSelect ? archiveSelect.value : '';
-      
-      const activeOperators = new Set();
-      const archiveOperators = new Set();
-      
-      this.currentSettlements.forEach(s => {
-        if (s.guideName && s.guideName.trim() !== '') {
-          if (s.status === 'approved') {
-            archiveOperators.add(s.guideName.trim());
-          } else {
-            activeOperators.add(s.guideName.trim());
-          }
-        }
+      const currentVal = select.value;
+      const currentArchiveVal = archiveSelect.value;
+
+      let optionsHTML = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>';
+      operators.forEach(op => {
+        optionsHTML += `<option value="${escapeHTML(op)}">${escapeHTML(op)}</option>`;
       });
 
-      if (select) {
-        let options = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>';
-        activeOperators.forEach(op => {
-          options += `<option value="${escapeHTML(op)}">${escapeHTML(op)}</option>`;
-        });
-        select.innerHTML = options;
-        select.value = currentVal;
-      }
+      select.innerHTML = optionsHTML;
+      archiveSelect.innerHTML = optionsHTML;
 
-      if (archiveSelect) {
-        let archiveOptions = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>';
-        archiveOperators.forEach(op => {
-          archiveOptions += `<option value="${escapeHTML(op)}">${escapeHTML(op)}</option>`;
-        });
-        archiveSelect.innerHTML = archiveOptions;
-        archiveSelect.value = archiveCurrentVal;
-      }
+      select.value = currentVal;
+      archiveSelect.value = currentArchiveVal;
     },
 
     updateSettlementTotalCommission() {
-      let totalCommission = 0;
-      document.querySelectorAll('#settlementsTable tbody tr').forEach(tr => {
-        if (tr.style.display !== 'none') {
-          const commVal = parseFloat(tr.getAttribute('data-commission')) || 0;
-          totalCommission += commVal;
+      const trs = document.querySelectorAll("#settlementsTable tbody tr");
+      let total = 0;
+      trs.forEach(tr => {
+        if (tr.style.display !== "none" && tr.children.length > 1) {
+          const comm = parseFloat(tr.getAttribute("data-commission")) || 0;
+          total += comm;
         }
       });
-      const commElem = $('settlementTotalCommission');
-      if (commElem) {
-        commElem.innerText = `${totalCommission.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      }
+      const elem = $('settlementTotalCommission');
+      if (elem) elem.innerText = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     },
 
     updateArchiveSettlementTotalCommission() {
-      let totalCommission = 0;
-      document.querySelectorAll('#settlementsArchiveTable tbody tr').forEach(tr => {
-        if (tr.style.display !== 'none') {
-          const commVal = parseFloat(tr.getAttribute('data-commission')) || 0;
-          totalCommission += commVal;
+      const trs = document.querySelectorAll("#settlementsArchiveTable tbody tr");
+      let total = 0;
+      trs.forEach(tr => {
+        if (tr.style.display !== "none" && tr.children.length > 1) {
+          const comm = parseFloat(tr.getAttribute("data-commission")) || 0;
+          total += comm;
         }
       });
-      const commElem = $('archiveSettlementTotalCommission');
-      if (commElem) {
-        commElem.innerText = `${totalCommission.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      }
+      const elem = $('archiveSettlementTotalCommission');
+      if (elem) elem.innerText = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     },
 
     async saveSettlement() {
       const fileCode = $('fileCode').value.trim();
       const guideName = $('guideName').value.trim();
-      const revenue = Number($('settlementRevenue').value);
-      const expenses = Number($('settlementExpenses').value);
+      const revenue = parseFloat($('settlementRevenue').value) || 0;
+      const expenses = parseFloat($('settlementExpenses').value) || 0;
       const notes = $('settlementNotes').value.trim();
 
-      if (!fileCode) return showToast('يرجى إدخال كود الملف', 'error');
+      if (!fileCode || !guideName) return showToast('يرجى إدخال كود الملف واسم الأوبريتور', 'error');
 
-      if (!Number.isFinite(revenue) || !Number.isFinite(expenses) || revenue < 0 || expenses < 0) return showToast('الإيرادات والمصروفات يجب أن تكون أرقامًا غير سالبة', 'error');
-      if (this.isDuplicate(this.currentSettlements, 'fileCode', fileCode)) return showToast('كود الملف مسجل بالفعل في التصفيات', 'error');
       const btn = $('btnSaveSettlement');
       btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
         await addDoc(collection(db, "file_settlements"), { fileCode, guideName, revenue, expenses, notes, status: 'active', isDeleted: false, createdAt: new Date() });
-        showToast('تم تسجيل التصفية بنجاح!', 'success');
+        showToast('تم حفظ التصفية بنجاح!', 'success');
         $('fileCode').value = ''; $('guideName').value = ''; $('settlementRevenue').value = ''; $('settlementExpenses').value = ''; $('settlementNotes').value = '';
       } catch (e) { showToast(e.message, 'error'); }
       finally { btn.disabled = false; btn.innerText = 'حفظ التصفية'; }
     },
 
+    async approveSettlement(id) {
+      try {
+        await updateDoc(doc(db, "file_settlements", id), { status: 'approved' });
+        showToast('تم اعتماد التصفية ونقلها للأرشيف!', 'success');
+      } catch (e) { showToast(e.message, 'error'); }
+    },
+
+    async unapproveSettlement(id) {
+      try {
+        await updateDoc(doc(db, "file_settlements", id), { status: 'active' });
+        showToast('تم إلغاء الاعتماد وإرجاع الملف للتصفيات الجارية', 'success');
+      } catch (e) { showToast(e.message, 'error'); }
+    },
+
     async deleteSettlement(id) {
       if (!confirm('تأكيد حذف التصفية؟')) return;
-      try { await deleteDoc(doc(db, "file_settlements", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
+      try { await deleteDocAsync(doc(db, "file_settlements", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
     },
 
     openSettlementEditModal(id) {
@@ -2040,14 +2118,11 @@
       const id = $('editSettlementId').value;
       const fileCode = $('editFileCode').value.trim();
       const guideName = $('editGuideName').value.trim();
-      const revenue = Number($('editSettlementRevenue').value);
-      const expenses = Number($('editSettlementExpenses').value);
+      const revenue = parseFloat($('editSettlementRevenue').value) || 0;
+      const expenses = parseFloat($('editSettlementExpenses').value) || 0;
       const notes = $('editSettlementNotes').value.trim();
 
-      if (!fileCode) return showToast('يرجى إدخال كود الملف', 'error');
-      if (!Number.isFinite(revenue) || !Number.isFinite(expenses) || revenue < 0 || expenses < 0) return showToast('الإيرادات والمصروفات يجب أن تكون أرقامًا غير سالبة', 'error');
-      if (this.isDuplicate(this.currentSettlements, 'fileCode', fileCode, id)) return showToast('كود الملف مسجل بالفعل', 'error');
-
+      if (!fileCode || !guideName) return showToast('يرجى إدخال الحقول المطلوبة', 'error');
       try {
         await updateDoc(doc(db, "file_settlements", id), { fileCode, guideName, revenue, expenses, notes });
         showToast('تم تعديل التصفية بنجاح!', 'success');
@@ -2055,72 +2130,118 @@
       } catch (e) { showToast(e.message, 'error'); }
     },
 
+    exportSettlementsList() {
+      const activeItems = this.currentSettlements.filter(s => s.status !== 'approved');
+      if (activeItems.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
+      const data = activeItems.map((item, idx) => {
+        const rev = parseFloat(item.revenue) || 0;
+        const exp = parseFloat(item.expenses) || 0;
+        const prof = rev - exp;
+        const net = prof / 1.14;
+        const comm = Math.max(0, net * 0.10);
+        return {
+          "م": idx+1, "كود الملف": item.fileCode || '', "اسم الأوبريتور": item.guideName || '',
+          "الإيرادات": rev, "المصروفات": exp, "الربح": prof, "الصافي بعد الضريبة": net,
+          "نسبة العمولة": "10%", "مبلغ العمولة": comm, "ملاحظات": item.notes || ''
+        };
+      });
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "التصفيات الجارية");
+      XLSX.writeFile(wb, "Active_Settlements.xlsx");
+    },
+
+    exportArchiveSettlementsList() {
+      const archiveItems = this.currentSettlements.filter(s => s.status === 'approved');
+      if (archiveItems.length === 0) return showToast('لا توجد بيانات أرشيف للتصدير', 'error');
+      const data = archiveItems.map((item, idx) => {
+        const rev = parseFloat(item.revenue) || 0;
+        const exp = parseFloat(item.expenses) || 0;
+        const prof = rev - exp;
+        const net = prof / 1.14;
+        const comm = Math.max(0, net * 0.10);
+        return {
+          "م": idx+1, "كود الملف": item.fileCode || '', "اسم الأوبريتور": item.guideName || '',
+          "الإيرادات": rev, "المصروفات": exp, "الربح": prof, "الصافي بعد الضريبة": net,
+          "نسبة العمولة": "10%", "مبلغ العمولة": comm, "الحالة": "معتمد"
+        };
+      });
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "أرشيف التصفيات");
+      XLSX.writeFile(wb, "Archive_Settlements.xlsx");
+    },
+
+    // MASTER DASHBOARD CALCULATIONS
     updateMasterDashboard() {
-      $('mDashTotalSuppliers').innerText = this.currentSuppliers.length;
-      
+      const totalSuppliers = this.currentSuppliers.length;
+
       let creditEGP = 0, creditUSD = 0, creditEUR = 0;
       this.currentCredit.forEach(c => {
         const amt = parseFloat(c.amount) || 0;
-        const factor = c.type === 'deposit' ? 1 : -1;
-        if (c.currency === 'USD') creditUSD += (amt * factor);
-        else if (c.currency === 'EUR') creditEUR += (amt * factor);
-        else creditEGP += (amt * factor);
+        const curr = (c.currency || 'EGP').toUpperCase();
+        const val = c.type === 'deposit' ? amt : -amt;
+        if (curr === 'USD') creditUSD += val;
+        else if (curr === 'EUR') creditEUR += val;
+        else creditEGP += val;
       });
 
+      let totalAviation = 0;
+      this.currentAviation.forEach(a => {
+        totalAviation += parseFloat(a.cost) || 0;
+      });
+
+      let totalTicketsVal = 0;
+      this.currentTickets.forEach(t => {
+        totalTicketsVal += (parseInt(t.quantity) || 0) * (parseFloat(t.unitPrice) || 0);
+      });
+
+      let totalSettlementCommissions = 0;
+      this.currentSettlements.forEach(s => {
+        const rev = parseFloat(s.revenue) || 0;
+        const exp = parseFloat(s.expenses) || 0;
+        const net = (rev - exp) / 1.14;
+        totalSettlementCommissions += Math.max(0, net * 0.10);
+      });
+
+      $('mDashTotalSuppliers').innerText = totalSuppliers;
       $('mDashCreditEGP').innerText = creditEGP.toLocaleString();
       $('mDashCreditUSD').innerText = creditUSD.toLocaleString();
       $('mDashCreditEUR').innerText = creditEUR.toLocaleString();
-
-      let totalAviation = this.currentAviation.reduce((acc, curr) => acc + (parseFloat(curr.cost) || 0), 0);
       $('mDashTotalAviation').innerText = totalAviation.toLocaleString();
-
-      let totalTickets = this.currentTickets.reduce((acc, curr) => acc + ((parseFloat(curr.quantity) || 0) * (parseFloat(curr.unitPrice) || 0)), 0);
-      $('mDashTotalTickets').innerText = totalTickets.toLocaleString();
-
-      let totalCommissions = this.currentSettlements.reduce((acc, curr) => {
-        const rev = parseFloat(curr.revenue) || 0;
-        const exp = parseFloat(curr.expenses) || 0;
-        const net = Math.max(0, (rev - exp) / 1.14);
-        return acc + (net * 0.10);
-      }, 0);
-      $('mDashTotalSettlementCommissions').innerText = totalCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      $('mDashTotalTickets').innerText = totalTicketsVal.toLocaleString();
+      $('mDashTotalSettlementCommissions').innerText = totalSettlementCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
       const tbody = $('masterDashboardTbody');
       tbody.innerHTML = `
         <tr>
-          <td><strong>خصم وإضافة (الموردين)</strong></td>
-          <td>${this.currentSuppliers.length}</td>
-          <td>-</td>
-          <td>-</td>
-          <td><span class="badge badge-hotel">${this.currentSuppliers.length} مورد</span></td>
+          <td><strong>📋 الخصم والإضافة (الموردين)</strong></td>
+          <td>${totalSuppliers} مورّدين</td>
+          <td colspan="2">-</td>
+          <td><span class="badge badge-hotel">مسجل بالمنظومة</span></td>
         </tr>
         <tr>
-          <td><strong>أرصدة الكريديت</strong></td>
-          <td>${this.currentCredit.length}</td>
-          <td>-</td>
-          <td>-</td>
-          <td><span class="badge badge-deposit">${creditEGP.toLocaleString()} EGP</span></td>
+          <td><strong>💳 أرصدة الكريديت</strong></td>
+          <td>${this.currentCredit.length} حركة</td>
+          <td style="color:#16a34a;">متعدد العملات</td>
+          <td style="color:#dc2626;">متعدد العملات</td>
+          <td><span class="badge badge-deposit">نشط ومتزن</span></td>
         </tr>
         <tr>
-          <td><strong>حجوزات الطيران</strong></td>
-          <td>${this.currentAviation.length}</td>
-          <td>-</td>
-          <td style="color:#b91c1c;">${totalAviation.toLocaleString()}</td>
-          <td><span class="badge badge-deduction">${totalAviation.toLocaleString()}</span></td>
+          <td><strong>✈️ حجوزات الطيران</strong></td>
+          <td>${this.currentAviation.length} حجز</td>
+          <td colspan="2">إجمالي: ${totalAviation.toLocaleString()}</td>
+          <td><span class="badge badge-cruise">مسجل</span></td>
         </tr>
         <tr>
-          <td><strong>مخزون التذاكر</strong></td>
-          <td>${this.currentTickets.length}</td>
-          <td>-</td>
-          <td>-</td>
-          <td><span class="badge badge-advance">${totalTickets.toLocaleString()}</span></td>
+          <td><strong>🎟️ مخزون التذاكر</strong></td>
+          <td>${this.currentTickets.length} حركة</td>
+          <td colspan="2">إجمالي القيمة: ${totalTicketsVal.toLocaleString()}</td>
+          <td><span class="badge badge-restaurant">متابعة المخزون</span></td>
         </tr>
         <tr>
-          <td><strong>تصفيات الأوبريتور</strong></td>
-          <td>${this.currentSettlements.length}</td>
-          <td>-</td>
-          <td>-</td>
-          <td><span class="badge badge-profit">${totalCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} عمولات</span></td>
+          <td><strong>📄 تصفيات الملفات</strong></td>
+          <td>${this.currentSettlements.length} ملف</td>
+          <td colspan="2">إجمالي العمولات: ${totalSettlementCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td><span class="badge badge-archive">متابعة التصفيات والأرشيف</span></td>
         </tr>
       `;
     }
@@ -2128,13 +2249,12 @@
 
   window.App = App;
 
-  document.addEventListener("DOMContentLoaded", () => {
-    App.listenToSuppliers();
-    App.listenToCredit();
-    App.listenToAviation();
-    App.listenToTickets();
-    App.listenToSettlements();
-  });
+  // Initialize listeners
+  App.listenToSuppliers();
+  App.listenToCredit();
+  App.listenToAviation();
+  App.listenToTickets();
+  App.listenToSettlements();
 </script>
 </body>
 </html>
