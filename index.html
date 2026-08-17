@@ -704,7 +704,12 @@
       <div id="ticketsTab" class="tab-content">
         <!-- 1. إضافة تذكرة مزار -->
         <div id="addTicketSubTab" class="sub-tab-content active">
-          <h3>إضافة حركة تذاكر / مزارات</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h3>إضافة حركة تذاكر / مزارات</h3>
+            <div class="btn-group no-print" style="margin:0;">
+              <button class="excel-btn" onclick="App.exportAddTicketsFormToExcel()">📊 تصدير Excel</button>
+            </div>
+          </div>
           
           <div class="form-row" style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #cbd5e1; margin-bottom: 15px;">
             <div class="form-group" style="margin-bottom:0;"><label>نوع الحركة <span style="color:red;">*</span></label><select id="globalTicketAction"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
@@ -810,6 +815,13 @@
                   <span class="st-card-val" id="tbTotalIssuedQty" style="color:#dc2626;">0</span>
                 </div>
                 <div class="st-card-icon">📤</div>
+              </div>
+              <div class="st-card balance" style="border-right: 5px solid #059669; background: #ecfdf5;">
+                <div class="st-card-info">
+                  <span class="st-card-title">إجمالي الرصيد المتبقي</span>
+                  <span class="st-card-val" id="tbTotalRemainingQty" style="color:#059669;">0</span>
+                </div>
+                <div class="st-card-icon">📊</div>
               </div>
             </div>
 
@@ -1903,6 +1915,31 @@
       XLSX.writeFile(wb, "Tickets_Inventory.xlsx");
     },
 
+    exportAddTicketsFormToExcel() {
+      const qtyInputs = document.querySelectorAll('.ticket-qty-input');
+      const data = [];
+      let idx = 1;
+
+      qtyInputs.forEach(input => {
+        const ticketName = input.getAttribute('data-name');
+        const qty = Number(input.value) || 0;
+        const notesInput = document.querySelector(`.ticket-notes-input[data-name="${ticketName}"]`);
+        const notes = notesInput ? notesInput.value.trim() : '';
+
+        data.push({
+          "م": idx++,
+          "اسم المزار / الفعالية": ticketName,
+          "الكمية": qty,
+          "ملاحظات": notes
+        });
+      });
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "إضافة تذاكر مزارات");
+      XLSX.writeFile(wb, "Add_Tickets_Form.xlsx");
+    },
+
     // 4.1. PAGE: TICKET BALANCES
     renderTicketBalances() {
       const balancesMap = {};
@@ -1928,9 +1965,14 @@
       });
 
       const attractions = Object.keys(balancesMap);
+      const totalRemainingAll = totalAddedAll - totalIssuedAll;
+
       $('tbTotalAttractionsCount').innerText = attractions.length;
       $('tbTotalAddedQty').innerText = totalAddedAll.toLocaleString();
       $('tbTotalIssuedQty').innerText = totalIssuedAll.toLocaleString();
+      if ($('tbTotalRemainingQty')) {
+        $('tbTotalRemainingQty').innerText = totalRemainingAll.toLocaleString();
+      }
 
       const tbody = $('ticketBalancesTableBody');
       if (attractions.length === 0) {
@@ -1969,74 +2011,104 @@
         if (tds.length >= 6) {
           data.push({
             "م": idx + 1,
-            "اسم المزار": tds[1].innerText,
-            "إجمالي المضاف": tds[2].innerText,
-            "إجمالي المصروف": tds[3].innerText,
-            "الرصيد المتبقي": tds[4].innerText,
-            "الحالة": tds[5].innerText
+            "اسم المزار / الفعالية": tds[1].innerText.trim(),
+            "إجمالي المضاف (وارد)": tds[2].innerText.trim(),
+            "إجمالي المصروف (صادر)": tds[3].innerText.trim(),
+            "الرصيد المتبقي (الفعلي)": tds[4].innerText.trim(),
+            "الحالة": tds[5].innerText.trim()
           });
         }
       });
 
       const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "أرصدة التذاكر");
-      XLSX.writeFile(wb, "Ticket_Balances_Summary.xlsx");
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "أرصدة التذاكر");
+      XLSX.writeFile(wb, "Ticket_Balances.xlsx");
     },
 
-    // MASTER DASHBOARD UPDATE
+    // MASTER DASHBOARD
     updateMasterDashboard() {
-      $('mDashTotalSuppliers').innerText = this.currentSuppliers.length;
+      if ($('mDashTotalSuppliers')) $('mDashTotalSuppliers').innerText = this.currentSuppliers.length;
 
-      let netEGP = 0, netUSD = 0, netEUR = 0;
+      let netCredit = { EGP: 0, USD: 0, EUR: 0 };
       this.currentCredit.forEach(c => {
         const curr = (c.currency || 'EGP').toUpperCase();
         const amt = parseFloat(c.amount) || 0;
-        const sign = c.type === 'deposit' ? 1 : -1;
-        if (curr === 'EGP') netEGP += amt * sign;
-        else if (curr === 'USD') netUSD += amt * sign;
-        else if (curr === 'EUR') netEUR += amt * sign;
+        if (netCredit[curr] !== undefined) {
+          if (c.type === 'deposit') netCredit[curr] += amt;
+          else netCredit[curr] -= amt;
+        }
       });
+      if ($('mDashCreditEGP')) $('mDashCreditEGP').innerText = netCredit.EGP.toLocaleString();
+      if ($('mDashCreditUSD')) $('mDashCreditUSD').innerText = netCredit.USD.toLocaleString();
+      if ($('mDashCreditEUR')) $('mDashCreditEUR').innerText = netCredit.EUR.toLocaleString();
 
-      $('mDashCreditEGP').innerText = netEGP.toLocaleString();
-      $('mDashCreditUSD').innerText = netUSD.toLocaleString();
-      $('mDashCreditEUR').innerText = netEUR.toLocaleString();
+      let totalAv = this.currentAviation.reduce((acc, curr) => acc + (parseFloat(curr.cost) || 0), 0);
+      if ($('mDashTotalAviation')) $('mDashTotalAviation').innerText = totalAv.toLocaleString();
 
-      let totalAviation = 0;
-      this.currentAviation.forEach(a => totalAviation += parseFloat(a.cost) || 0);
-      $('mDashTotalAviation').innerText = totalAviation.toLocaleString();
-
-      let availableTickets = 0;
+      let addedTickets = 0, issuedTickets = 0;
       this.currentTickets.forEach(t => {
-        const qty = parseInt(t.quantity) || 0;
-        if ((t.action || 'اضافة') === 'صرف') availableTickets -= qty;
-        else availableTickets += qty;
+        const q = parseInt(t.quantity) || 0;
+        if (t.action === 'صرف') issuedTickets += q;
+        else addedTickets += q;
       });
-      $('mDashTotalTickets').innerText = availableTickets.toLocaleString();
+      if ($('mDashTotalTickets')) $('mDashTotalTickets').innerText = (addedTickets - issuedTickets).toLocaleString();
 
-      let totalCommissions = 0;
-      this.currentSettlements.forEach(s => {
-        totalCommissions += parseFloat(s.commissionAmount) || 0;
-      });
-      $('mDashTotalSettlementCommissions').innerText = totalCommissions.toLocaleString();
+      let totalComms = this.currentSettlements.reduce((acc, curr) => {
+        const rev = parseFloat(curr.revenue) || 0;
+        const exp = parseFloat(curr.expenses) || 0;
+        const profit = rev - exp;
+        const netAfterTax = profit > 0 ? profit * 0.97 : profit;
+        const comm = netAfterTax > 0 ? netAfterTax * 0.10 : 0;
+        return acc + comm;
+      }, 0);
+      if ($('mDashTotalSettlementCommissions')) $('mDashTotalSettlementCommissions').innerText = totalComms.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
       const tbody = $('masterDashboardTbody');
-      tbody.innerHTML = `
-        <tr><td>🏢 الموردين</td><td>${this.currentSuppliers.length}</td><td>-</td><td>-</td><td>موردين مسجلين</td></tr>
-        <tr><td>💳 الكريديت (EGP)</td><td>${this.currentCredit.filter(c => (c.currency||'EGP')==='EGP').length}</td><td>-</td><td>-</td><td>الصافي: ${netEGP.toLocaleString()} EGP</td></tr>
-        <tr><td>✈️ الطيران</td><td>${this.currentAviation.length}</td><td>-</td><td>${totalAviation.toLocaleString()}</td><td>مصروفات الطيران</td></tr>
-        <tr><td>🎟️ مخزون التذاكر</td><td>${this.currentTickets.length}</td><td>-</td><td>-</td><td>المتبقي: ${availableTickets.toLocaleString()} تذكرة</td></tr>
-      `;
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td>🏢 الخصم والإضافة (الموردين)</td>
+            <td>${this.currentSuppliers.length} مورد</td>
+            <td>-</td>
+            <td>-</td>
+            <td><span class="badge badge-hotel">مسجل بالمنظومة</span></td>
+          </tr>
+          <tr>
+            <td>💳 أرصدة الكريديت</td>
+            <td>${this.currentCredit.length} حركة</td>
+            <td>${netCredit.EGP.toLocaleString()} EGP</td>
+            <td>-</td>
+            <td><span class="badge badge-deposit">صافي بالجنيه</span></td>
+          </tr>
+          <tr>
+            <td>✈️ حجوزات الطيران</td>
+            <td>${this.currentAviation.length} حجز</td>
+            <td>-</td>
+            <td>${totalAv.toLocaleString()}</td>
+            <td><span class="badge badge-deduction">إجمالي التكلفة</span></td>
+          </tr>
+          <tr>
+            <td>🎟️ مخزون التذاكر والمزارات</td>
+            <td>${this.currentTickets.length} حركة</td>
+            <td>${addedTickets} مضاف</td>
+            <td>${issuedTickets} مصروف</td>
+            <td><span class="badge badge-profit">${addedTickets - issuedTickets} متبقي</span></td>
+          </tr>
+        `;
+      }
+    },
+
+    init() {
+      this.listenToSuppliers();
+      this.listenToCredit();
+      this.listenToAviation();
+      this.listenToTickets();
     }
   };
 
   window.App = App;
-
-  // التشغيل الأولي
-  App.listenToSuppliers();
-  App.listenToCredit();
-  App.listenToAviation();
-  App.listenToTickets();
+  window.addEventListener('DOMContentLoaded', () => App.init());
 </script>
-
 </body>
 </html>
