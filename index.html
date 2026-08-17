@@ -289,17 +289,6 @@
         <button class="sub-tab-btn" onclick="openSubTab(event, 'creditStatementSubTab', 'creditTab')">4- كشف الحساب المستقل</button>
       </div>
 
-      <!-- تم نقل تصفية الأوبريتور مباشرة بعد أرصدة الكريديت -->
-      <button class="tab-btn" id="settlementBtn" onclick="toggleSettlementMenu(event)">
-        <span>📄 تصفية الأوبريتور</span>
-        <span id="settlementArrowIcon" style="font-size:12px;">▼</span>
-      </button>
-      <div id="settlementSubMenu" class="sub-tabs-container" style="display:none;">
-        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSettlementSubTab', 'settlementTab')">1- إضافة تصفية ملف</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementListSubTab', 'settlementTab')">2- سجل تصفيات الملفات</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementArchiveSubTab', 'settlementTab')">3- الأرشيف (التصفيات المعتمدة)</button>
-      </div>
-
       <button class="tab-btn" id="aviationBtn" onclick="toggleAviationMenu(event)">
         <span>✈️ حجوزات الطيران</span>
         <span id="aviationArrowIcon" style="font-size:12px;">▼</span>
@@ -316,6 +305,16 @@
       <div id="ticketsSubMenu" class="sub-tabs-container" style="display:none;">
         <button class="sub-tab-btn active" onclick="openSubTab(event, 'addTicketSubTab', 'ticketsTab')">1- إضافة تذكرة مزار</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'ticketsListSubTab', 'ticketsTab')">2- سجل التذاكر والمخزون</button>
+      </div>
+
+      <button class="tab-btn" id="settlementBtn" onclick="toggleSettlementMenu(event)">
+        <span>📄 تصفية الأوبريتور</span>
+        <span id="settlementArrowIcon" style="font-size:12px;">▼</span>
+      </button>
+      <div id="settlementSubMenu" class="sub-tabs-container" style="display:none;">
+        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSettlementSubTab', 'settlementTab')">1- إضافة تصفية ملف</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementListSubTab', 'settlementTab')">2- سجل تصفيات الملفات</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementArchiveSubTab', 'settlementTab')">3- الأرشيف (التصفيات المعتمدة)</button>
       </div>
     </div>
 
@@ -603,6 +602,152 @@
         </div>
       </div>
 
+      <!-- ================= AVIATION TAB ================= -->
+      <div id="aviationTab" class="tab-content">
+        <div id="addAviationSubTab" class="sub-tab-content active">
+          <h3>تسجيل حجز طيران جديد</h3>
+          <div class="form-row">
+            <div class="form-group"><label>خط الطيران / الشركة</label><input type="text" id="airlineName" placeholder="مثال: مصر للطيران / طيران الإمارات"></div>
+            <div class="form-group"><label>رقم PNR / كود الحجز</label><input type="text" id="pnrNumber" placeholder="مثال: X7YK9L"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>اسم المسافر / العميل</label><input type="text" id="passengerName" placeholder="اسم الراكب"></div>
+            <div class="form-group"><label>رقم الملف (File Code)</label><input type="text" id="aviationFileCode" placeholder="EG-2026-10"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>القيمة والعملة</label>
+              <div class="amount-input-group">
+                <input type="number" id="ticketCost" placeholder="المبلغ..." step="any">
+                <select id="aviationCurrency">
+                  <option value="USD">USD</option>
+                  <option value="EGP">EGP</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="submit-btn" id="btnSaveAviation" onclick="App.saveAviation()">حفظ الحجز</button>
+          </div>
+        </div>
+
+        <div id="aviationListSubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h3>سجل حجوزات الطيران</h3>
+            <div class="btn-group no-print" style="margin:0;">
+              <button class="pdf-btn" onclick="downloadAviationPDF()">📄 PDF</button>
+              <button class="excel-btn" onclick="App.exportAviationList()">📊 Excel</button>
+              <input type="text" id="searchAviation" placeholder="🔍 بحث..." onkeyup="filterAviationTable()" style="max-width:200px;">
+            </div>
+          </div>
+          <div id="printableAviationArea">
+            <div class="pdf-report-header">
+              <h2>تقرير حجوزات ومصروفات الطيران</h2>
+              <p>منظومة الحسابات السياحية</p>
+            </div>
+            <div class="table-wrapper">
+              <table id="aviationTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>شركة الطيران</th>
+                    <th>PNR</th>
+                    <th>المسافر</th>
+                    <th>رقم الملف</th>
+                    <th>القيمة</th>
+                    <th>العملة</th>
+                    <th>التاريخ</th>
+                    <th class="no-print">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="aviationTableBody">
+                  <tr><td colspan="9" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TICKETS TAB ================= -->
+      <div id="ticketsTab" class="tab-content">
+        <div id="addTicketSubTab" class="sub-tab-content active">
+          <h3>إضافة حركة تذاكر / مزارات</h3>
+          <div id="ticketItemsContainer">
+            <div class="ticket-item-card">
+              <div class="form-row">
+                <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select class="ticket-action"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
+                <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" class="ticket-file-code" placeholder="EG-2026-10" required></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label>اسم المزار / الفعالية</label><input type="text" class="ticket-name" placeholder="مثال: الأهرامات / معبد الكرنك"></div>
+                <div class="form-group"><label>اسم المندوب / المرشد</label><input type="text" class="ticket-guide" placeholder="اسم المندوب أو المرشد"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label>الكمية</label><input type="number" class="ticket-qty" placeholder="العدد"></div>
+                <div class="form-group">
+                  <label>سعر التذكرة والعملة</label>
+                  <div class="amount-input-group">
+                    <input type="number" class="ticket-unit-price" placeholder="سعر التذكرة..." step="any">
+                    <select class="ticket-currency">
+                      <option value="USD">USD</option>
+                      <option value="EGP">EGP</option>
+                      <option value="EUR">EUR</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
+            </div>
+          </div>
+          <div class="btn-group" style="justify-content: space-between; align-items: center;">
+            <button type="button" class="add-more-btn" onclick="App.addTicketRow()">➕ إضافة تذكرة أخرى</button>
+            <button class="submit-btn" id="btnSaveTicket" onclick="App.saveTicket()">حفظ التذاكر</button>
+          </div>
+        </div>
+
+        <div id="ticketsListSubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h3>سجل مخزون التذاكر والمزارات</h3>
+            <div class="btn-group no-print" style="margin:0;">
+              <button class="pdf-btn" onclick="downloadTicketsPDF()">📄 PDF</button>
+              <button class="excel-btn" onclick="App.exportTicketsList()">📊 Excel</button>
+              <input type="text" id="searchTickets" placeholder="🔍 بحث..." onkeyup="filterTicketsTable()" style="max-width:200px;">
+            </div>
+          </div>
+          <div id="printableTicketsArea">
+            <div class="pdf-report-header">
+              <h2>تقرير جرد ومخزون تذاكر المزارات</h2>
+              <p>منظومة الحسابات السياحية</p>
+            </div>
+            <div class="table-wrapper">
+              <table id="ticketsTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>الحركة</th>
+                    <th>رقم الملف</th>
+                    <th>اسم المزار</th>
+                    <th>المندوب/المرشد</th>
+                    <th>الكمية</th>
+                    <th>سعر الوحدة</th>
+                    <th>إجمالي القيمة</th>
+                    <th>العملة</th>
+                    <th>الملاحظات</th>
+                    <th>التاريخ</th>
+                    <th class="no-print">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="ticketsTableBody">
+                  <tr><td colspan="12" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ================= SETTLEMENT TAB ================= -->
       <div id="settlementTab" class="tab-content">
         <!-- 1. إضافة تصفية ملف -->
@@ -754,152 +899,6 @@
           </div>
         </div>
 
-      </div>
-
-      <!-- ================= AVIATION TAB ================= -->
-      <div id="aviationTab" class="tab-content">
-        <div id="addAviationSubTab" class="sub-tab-content active">
-          <h3>تسجيل حجز طيران جديد</h3>
-          <div class="form-row">
-            <div class="form-group"><label>خط الطيران / الشركة</label><input type="text" id="airlineName" placeholder="مثال: مصر للطيران / طيران الإمارات"></div>
-            <div class="form-group"><label>رقم PNR / كود الحجز</label><input type="text" id="pnrNumber" placeholder="مثال: X7YK9L"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-group"><label>اسم المسافر / العميل</label><input type="text" id="passengerName" placeholder="اسم الراكب"></div>
-            <div class="form-group"><label>رقم الملف (File Code)</label><input type="text" id="aviationFileCode" placeholder="EG-2026-10"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>القيمة والعملة</label>
-              <div class="amount-input-group">
-                <input type="number" id="ticketCost" placeholder="المبلغ..." step="any">
-                <select id="aviationCurrency">
-                  <option value="USD">USD</option>
-                  <option value="EGP">EGP</option>
-                  <option value="EUR">EUR</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div class="btn-group">
-            <button class="submit-btn" id="btnSaveAviation" onclick="App.saveAviation()">حفظ الحجز</button>
-          </div>
-        </div>
-
-        <div id="aviationListSubTab" class="sub-tab-content">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-            <h3>سجل حجوزات الطيران</h3>
-            <div class="btn-group no-print" style="margin:0;">
-              <button class="pdf-btn" onclick="downloadAviationPDF()">📄 PDF</button>
-              <button class="excel-btn" onclick="App.exportAviationList()">📊 Excel</button>
-              <input type="text" id="searchAviation" placeholder="🔍 بحث..." onkeyup="filterAviationTable()" style="max-width:200px;">
-            </div>
-          </div>
-          <div id="printableAviationArea">
-            <div class="pdf-report-header">
-              <h2>تقرير حجوزات ومصروفات الطيران</h2>
-              <p>منظومة الحسابات السياحية</p>
-            </div>
-            <div class="table-wrapper">
-              <table id="aviationTable">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>شركة الطيران</th>
-                    <th>PNR</th>
-                    <th>المسافر</th>
-                    <th>رقم الملف</th>
-                    <th>القيمة</th>
-                    <th>العملة</th>
-                    <th>التاريخ</th>
-                    <th class="no-print">إجراءات</th>
-                  </tr>
-                </thead>
-                <tbody id="aviationTableBody">
-                  <tr><td colspan="9" style="text-align:center;">جاري التحميل...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ================= TICKETS TAB ================= -->
-      <div id="ticketsTab" class="tab-content">
-        <div id="addTicketSubTab" class="sub-tab-content active">
-          <h3>إضافة حركة تذاكر / مزارات</h3>
-          <div id="ticketItemsContainer">
-            <div class="ticket-item-card">
-              <div class="form-row">
-                <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select class="ticket-action"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
-                <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" class="ticket-file-code" placeholder="EG-2026-10" required></div>
-              </div>
-              <div class="form-row">
-                <div class="form-group"><label>اسم المزار / الفعالية</label><input type="text" class="ticket-name" placeholder="مثال: الأهرامات / معبد الكرنك"></div>
-                <div class="form-group"><label>اسم المندوب / المرشد</label><input type="text" class="ticket-guide" placeholder="اسم المندوب أو المرشد"></div>
-              </div>
-              <div class="form-row">
-                <div class="form-group"><label>الكمية</label><input type="number" class="ticket-qty" placeholder="العدد"></div>
-                <div class="form-group">
-                  <label>سعر التذكرة والعملة</label>
-                  <div class="amount-input-group">
-                    <input type="number" class="ticket-unit-price" placeholder="سعر التذكرة..." step="any">
-                    <select class="ticket-currency">
-                      <option value="USD">USD</option>
-                      <option value="EGP">EGP</option>
-                      <option value="EUR">EUR</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
-            </div>
-          </div>
-          <div class="btn-group" style="justify-content: space-between; align-items: center;">
-            <button type="button" class="add-more-btn" onclick="App.addTicketRow()">➕ إضافة تذكرة أخرى</button>
-            <button class="submit-btn" id="btnSaveTicket" onclick="App.saveTicket()">حفظ التذاكر</button>
-          </div>
-        </div>
-
-        <div id="ticketsListSubTab" class="sub-tab-content">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-            <h3>سجل مخزون التذاكر والمزارات</h3>
-            <div class="btn-group no-print" style="margin:0;">
-              <button class="pdf-btn" onclick="downloadTicketsPDF()">📄 PDF</button>
-              <button class="excel-btn" onclick="App.exportTicketsList()">📊 Excel</button>
-              <input type="text" id="searchTickets" placeholder="🔍 بحث..." onkeyup="filterTicketsTable()" style="max-width:200px;">
-            </div>
-          </div>
-          <div id="printableTicketsArea">
-            <div class="pdf-report-header">
-              <h2>تقرير جرد ومخزون تذاكر المزارات</h2>
-              <p>منظومة الحسابات السياحية</p>
-            </div>
-            <div class="table-wrapper">
-              <table id="ticketsTable">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>الحركة</th>
-                    <th>رقم الملف</th>
-                    <th>اسم المزار</th>
-                    <th>المندوب/المرشد</th>
-                    <th>الكمية</th>
-                    <th>سعر الوحدة</th>
-                    <th>إجمالي القيمة</th>
-                    <th>العملة</th>
-                    <th>الملاحظات</th>
-                    <th>التاريخ</th>
-                    <th class="no-print">إجراءات</th>
-                  </tr>
-                </thead>
-                <tbody id="ticketsTableBody">
-                  <tr><td colspan="12" style="text-align:center;">جاري التحميل...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
       </div>
 
     </div>
@@ -1142,7 +1141,9 @@
     }
   }
 
-  function printArchiveSettlementsList() { window.print(); }
+  function printArchiveSettlementsList() {
+    window.print();
+  }
 
   function downloadArchiveSettlementsPDF() {
     const element = document.getElementById('printableSettlementArchiveArea');
@@ -1245,7 +1246,7 @@
     let totalCredit = 0;
     let html = '';
 
-    records.forEach((r) => {
+    records.forEach((r, idx) => {
       const amt = parseFloat(r.amount) || 0;
       const isDeposit = r.type === 'deposit';
       const debitVal = isDeposit ? amt : 0;
@@ -1862,20 +1863,6 @@
       finally { btn.disabled = false; btn.innerText = 'حفظ التذاكر'; }
     },
 
-    exportTicketsList() {
-      if (this.currentTickets.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const data = this.currentTickets.map((item, idx) => ({
-        "م": idx+1, "الحركة": item.action || 'إضافة', "رقم الملف": item.fileCode || '',
-        "اسم المزار": item.ticketName || '', "المرشد": item.guideName || '',
-        "الكمية": item.quantity || 0, "سعر الوحدة": item.unitPrice || 0,
-        "إجمالي القيمة": (item.quantity || 0) * (item.unitPrice || 0),
-        "العملة": item.currency || 'USD', "ملاحظات": item.notes || ''
-      }));
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "مخزون التذاكر");
-      XLSX.writeFile(wb, "Tickets_Inventory.xlsx");
-    },
-
     async deleteTicket(id) {
       if (!confirm('تأكيد حذف التذكرة؟')) return;
       try { await deleteDocAsync(doc(db, "attractions_tickets", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
@@ -1909,65 +1896,83 @@
       const currency = $('editTicketCurrency').value;
       const notes = $('editTicketNotes').value.trim();
 
-      if (!fileCode || !ticketName) return showToast('يرجى ملء الحقول المطلوبة', 'error');
-      if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(unitPrice) || unitPrice <= 0) {
-        return showToast('الكمية يجب أن تكون عددًا صحيحًا والسعر موجبًا', 'error');
-      }
-
+      if (!fileCode) return showToast('رقم الملف حقل إجباري', 'error');
+      if (!ticketName || quantity <= 0 || unitPrice <= 0) return showToast('يرجى ملء البيانات بشكل صحيح', 'error');
+      if (!Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(unitPrice) || unitPrice <= 0) return showToast('الكمية يجب أن تكون عددًا صحيحًا والسعر موجبًا', 'error');
+      
       try {
         await updateDoc(doc(db, "attractions_tickets", id), { action, fileCode, ticketName, guideName, quantity, unitPrice, currency, notes });
-        showToast('تم التعديل بنجاح!', 'success');
+        showToast('تم تعديل التذكرة!', 'success');
         this.closeTicketEditModal();
       } catch (e) { showToast(e.message, 'error'); }
     },
 
-    // 5. SETTLEMENTS
+    exportTicketsList() {
+      if (this.currentTickets.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
+      const data = this.currentTickets.map((item, idx) => ({
+        "م": idx+1, "الحركة": item.action || 'اضافة', "رقم الملف": item.fileCode || '', "اسم المزار": item.ticketName || '', "المندوب/المرشد": item.guideName || '', "الكمية": item.quantity || 0,
+        "سعر الوحدة": item.unitPrice || 0, "إجمالي القيمة": (item.quantity || 0) * (item.unitPrice || 0),
+        "العملة": item.currency || 'USD', "ملاحظات": item.notes || '',
+        "التاريخ": item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'
+      }));
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "مخزون التذاكر");
+      XLSX.writeFile(wb, "Tickets_Inventory.xlsx");
+    },
+
+    // 5. SETTLEMENTS (تصفية الأوبريتور والملفات والأرشيف)
     listenToSettlements() {
-      const q = query(collection(db, "settlements"), orderBy("createdAt", "desc"));
+      const q = query(collection(db, "file_settlements"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
         const tbody = $('settlementsTableBody');
         const archiveTbody = $('settlementsArchiveTableBody');
         this.currentSettlements = [];
 
         if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات ملفات مسجلة</td></tr>';
           archiveTbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>';
-          this.updateOperatorDropdowns();
+          this.populateOperatorSelect();
+          this.updateSettlementTotalCommission();
+          this.updateArchiveSettlementTotalCommission();
           this.updateMasterDashboard();
           return;
         }
 
         let idxActive = 1;
         let idxArchive = 1;
-        let activeHtml = '';
-        let archiveHtml = '';
+        let htmlActiveBuffer = '';
+        let htmlArchiveBuffer = '';
 
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); data.id = docSnap.id;
           if (data.isDeleted) return;
           this.currentSettlements.push(data);
 
-          const rev = parseFloat(data.revenue) || 0;
-          const exp = parseFloat(data.expenses) || 0;
-          const profit = rev - exp;
-          const tax = profit > 0 ? profit * 0.03 : 0;
-          const netAfterTax = profit - tax;
-          const commRate = parseFloat(data.commissionRate) || 0;
-          const commAmount = parseFloat(data.commissionAmount) || (netAfterTax * (commRate / 100));
+          const revenue = parseFloat(data.revenue) || 0;
+          const expenses = parseFloat(data.expenses) || 0;
+          const profit = revenue - expenses;
+          const netAfterTax = profit / 1.14;
+          const commissionRate = 0.10;
+          const commissionAmount = Math.max(0, netAfterTax * commissionRate);
+
+          const profitBadge = profit >= 0 ? 
+            `<span class="badge badge-profit">+${profit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>` : 
+            `<span class="badge badge-loss">${profit.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
-          if (data.isApproved) {
-            archiveHtml += `
-              <tr data-guide="${escapeHTML(data.guideName || '')}">
+          if (data.status === 'approved') {
+            htmlArchiveBuffer += `
+              <tr data-guide="${escapeHTML((data.guideName || '').trim())}" data-commission="${commissionAmount}">
                 <td>${idxArchive++}</td>
                 <td><strong style="color:#2563eb;">${escapeHTML(data.fileCode)}</strong></td>
-                <td><strong>${escapeHTML(data.guideName)}</strong></td>
-                <td>${rev.toLocaleString()}</td>
-                <td>${exp.toLocaleString()}</td>
-                <td style="color:${profit >= 0 ? '#15803d' : '#b91c1c'}; font-weight:700;">${profit.toLocaleString()}</td>
-                <td>${netAfterTax.toLocaleString()}</td>
-                <td>${commRate}%</td>
-                <td style="color:#15803d; font-weight:700;">${commAmount.toLocaleString()}</td>
+                <td>${escapeHTML(data.guideName || '-')}</td>
+                <td style="color:#15803d;">${revenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td style="color:#b91c1c;">${expenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td>${profitBadge}</td>
+                <td style="font-weight:700; color:#2563eb;">${netAfterTax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td style="font-weight:700; color:#d97706;">10%</td>
+                <td style="font-weight:700; color:#16a34a;">${commissionAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 <td><span class="badge badge-archive">معتمد</span></td>
                 <td>${dateStr}</td>
                 <td class="no-print">
@@ -1977,17 +1982,17 @@
               </tr>
             `;
           } else {
-            activeHtml += `
-              <tr data-guide="${escapeHTML(data.guideName || '')}">
+            htmlActiveBuffer += `
+              <tr data-guide="${escapeHTML((data.guideName || '').trim())}" data-commission="${commissionAmount}">
                 <td>${idxActive++}</td>
                 <td><strong style="color:#2563eb;">${escapeHTML(data.fileCode)}</strong></td>
-                <td><strong>${escapeHTML(data.guideName)}</strong></td>
-                <td>${rev.toLocaleString()}</td>
-                <td>${exp.toLocaleString()}</td>
-                <td style="color:${profit >= 0 ? '#15803d' : '#b91c1c'}; font-weight:700;">${profit.toLocaleString()}</td>
-                <td>${netAfterTax.toLocaleString()}</td>
-                <td>${commRate}%</td>
-                <td style="color:#15803d; font-weight:700;">${commAmount.toLocaleString()}</td>
+                <td>${escapeHTML(data.guideName || '-')}</td>
+                <td style="color:#15803d;">${revenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td style="color:#b91c1c;">${expenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td>${profitBadge}</td>
+                <td style="font-weight:700; color:#2563eb;">${netAfterTax.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td style="font-weight:700; color:#d97706;">10%</td>
+                <td style="font-weight:700; color:#16a34a;">${commissionAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 <td>${escapeHTML(data.notes || '-')}</td>
                 <td>${dateStr}</td>
                 <td class="no-print">
@@ -2000,69 +2005,99 @@
           }
         });
 
-        tbody.innerHTML = activeHtml || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات جارية</td></tr>';
-        archiveTbody.innerHTML = archiveHtml || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>';
-
-        this.updateOperatorDropdowns();
-        filterSettlementsTable();
-        filterArchiveSettlementsTable();
+        tbody.innerHTML = htmlActiveBuffer || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات جارية مسجلة</td></tr>';
+        archiveTbody.innerHTML = htmlArchiveBuffer || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>';
+        this.populateOperatorSelect();
+        this.updateSettlementTotalCommission();
+        this.updateArchiveSettlementTotalCommission();
         this.updateMasterDashboard();
       });
     },
 
-    updateOperatorDropdowns() {
-      const guides = [...new Set(this.currentSettlements.map(s => s.guideName).filter(Boolean))];
-      const activeSelect = $('operatorFilterSelect');
+    populateOperatorSelect() {
+      const select = $('operatorFilterSelect');
       const archiveSelect = $('archiveOperatorFilterSelect');
+      if (!select || !archiveSelect) return;
 
-      const currentActiveVal = activeSelect ? activeSelect.value : '';
-      const currentArchiveVal = archiveSelect ? archiveSelect.value : '';
+      const operators = [...new Set(this.currentSettlements.map(s => (s.guideName || '').trim()).filter(Boolean))];
+      
+      const currentVal = select.value;
+      const currentArchiveVal = archiveSelect.value;
 
-      let optionsHtml = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>';
-      guides.forEach(g => {
-        optionsHtml += `<option value="${escapeHTML(g)}">${escapeHTML(g)}</option>`;
+      let optionsHTML = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>';
+      operators.forEach(op => {
+        optionsHTML += `<option value="${escapeHTML(op)}">${escapeHTML(op)}</option>`;
       });
 
-      if (activeSelect) { activeSelect.innerHTML = optionsHtml; activeSelect.value = currentActiveVal; }
-      if (archiveSelect) { archiveSelect.innerHTML = optionsHtml; archiveSelect.value = currentArchiveVal; }
+      select.innerHTML = optionsHTML;
+      archiveSelect.innerHTML = optionsHTML;
+
+      select.value = currentVal;
+      archiveSelect.value = currentArchiveVal;
+    },
+
+    updateSettlementTotalCommission() {
+      const trs = document.querySelectorAll("#settlementsTable tbody tr");
+      let total = 0;
+      trs.forEach(tr => {
+        if (tr.style.display !== "none" && tr.children.length > 1) {
+          const comm = parseFloat(tr.getAttribute("data-commission")) || 0;
+          total += comm;
+        }
+      });
+      const elem = $('settlementTotalCommission');
+      if (elem) elem.innerText = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    },
+
+    updateArchiveSettlementTotalCommission() {
+      const trs = document.querySelectorAll("#settlementsArchiveTable tbody tr");
+      let total = 0;
+      trs.forEach(tr => {
+        if (tr.style.display !== "none" && tr.children.length > 1) {
+          const comm = parseFloat(tr.getAttribute("data-commission")) || 0;
+          total += comm;
+        }
+      });
+      const elem = $('archiveSettlementTotalCommission');
+      if (elem) elem.innerText = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     },
 
     async saveSettlement() {
       const fileCode = $('fileCode').value.trim();
       const guideName = $('guideName').value.trim();
-      const revenue = Number($('settlementRevenue').value);
-      const expenses = Number($('settlementExpenses').value);
+      const revenue = parseFloat($('settlementRevenue').value) || 0;
+      const expenses = parseFloat($('settlementExpenses').value) || 0;
       const notes = $('settlementNotes').value.trim();
 
-      if (!fileCode || !guideName) return showToast('كود الملف واسم الأوبريتور حقول إجبارية', 'error');
+      if (!fileCode || !guideName) return showToast('يرجى إدخال كود الملف واسم الأوبريتور', 'error');
 
       const btn = $('btnSaveSettlement');
       btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
-        await addDoc(collection(db, "settlements"), { fileCode, guideName, revenue, expenses, notes, isApproved: false, isDeleted: false, createdAt: new Date() });
+        await addDoc(collection(db, "file_settlements"), { fileCode, guideName, revenue, expenses, notes, status: 'active', isDeleted: false, createdAt: new Date() });
         showToast('تم حفظ التصفية بنجاح!', 'success');
         $('fileCode').value = ''; $('guideName').value = ''; $('settlementRevenue').value = ''; $('settlementExpenses').value = ''; $('settlementNotes').value = '';
       } catch (e) { showToast(e.message, 'error'); }
       finally { btn.disabled = false; btn.innerText = 'حفظ التصفية'; }
     },
 
-    async deleteSettlement(id) {
-      if (!confirm('تأكيد حذف التصفية؟')) return;
-      try { await deleteDocAsync(doc(db, "settlements", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
-    },
-
     async approveSettlement(id) {
       try {
-        await updateDoc(doc(db, "settlements", id), { isApproved: true, approvedAt: new Date() });
+        await updateDoc(doc(db, "file_settlements", id), { status: 'approved' });
         showToast('تم اعتماد التصفية ونقلها للأرشيف!', 'success');
       } catch (e) { showToast(e.message, 'error'); }
     },
 
     async unapproveSettlement(id) {
       try {
-        await updateDoc(doc(db, "settlements", id), { isApproved: false });
-        showToast('تم إلغاء الاعتماد وإعادة الملف للتصفيات الجارية', 'info');
+        await updateDoc(doc(db, "file_settlements", id), { status: 'active' });
+        showToast('تم إلغاء الاعتماد وإرجاع الملف للتصفيات الجارية', 'success');
       } catch (e) { showToast(e.message, 'error'); }
+    },
+
+    async deleteSettlement(id) {
+      if (!confirm('تأكيد حذف التصفية؟')) return;
+      try { await deleteDocAsync(doc(db, "file_settlements", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
     },
 
     openSettlementEditModal(id) {
@@ -2083,48 +2118,51 @@
       const id = $('editSettlementId').value;
       const fileCode = $('editFileCode').value.trim();
       const guideName = $('editGuideName').value.trim();
-      const revenue = Number($('editSettlementRevenue').value);
-      const expenses = Number($('editSettlementExpenses').value);
+      const revenue = parseFloat($('editSettlementRevenue').value) || 0;
+      const expenses = parseFloat($('editSettlementExpenses').value) || 0;
       const notes = $('editSettlementNotes').value.trim();
 
-      if (!fileCode || !guideName) return showToast('يرجى ملء الحقول المطلوبة', 'error');
-
+      if (!fileCode || !guideName) return showToast('يرجى إدخال الحقول المطلوبة', 'error');
       try {
-        await updateDoc(doc(db, "settlements", id), { fileCode, guideName, revenue, expenses, notes });
-        showToast('تم التعديل بنجاح!', 'success');
+        await updateDoc(doc(db, "file_settlements", id), { fileCode, guideName, revenue, expenses, notes });
+        showToast('تم تعديل التصفية بنجاح!', 'success');
         this.closeSettlementEditModal();
       } catch (e) { showToast(e.message, 'error'); }
     },
 
     exportSettlementsList() {
-      if (this.currentSettlements.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const active = this.currentSettlements.filter(s => !s.isApproved);
-      const data = active.map((item, idx) => {
-        const profit = (item.revenue || 0) - (item.expenses || 0);
-        const tax = profit > 0 ? profit * 0.03 : 0;
-        const net = profit - tax;
+      const activeItems = this.currentSettlements.filter(s => s.status !== 'approved');
+      if (activeItems.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
+      const data = activeItems.map((item, idx) => {
+        const rev = parseFloat(item.revenue) || 0;
+        const exp = parseFloat(item.expenses) || 0;
+        const prof = rev - exp;
+        const net = prof / 1.14;
+        const comm = Math.max(0, net * 0.10);
         return {
           "م": idx+1, "كود الملف": item.fileCode || '', "اسم الأوبريتور": item.guideName || '',
-          "الإيرادات": item.revenue || 0, "المصروفات": item.expenses || 0,
-          "الربح": profit, "الصافي بعد الضريبة": net, "ملاحظات": item.notes || ''
+          "الإيرادات": rev, "المصروفات": exp, "الربح": prof, "الصافي بعد الضريبة": net,
+          "نسبة العمولة": "10%", "مبلغ العمولة": comm, "ملاحظات": item.notes || ''
         };
       });
       const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "تصفيات الملفات");
-      XLSX.writeFile(wb, "Settlements_List.xlsx");
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "التصفيات الجارية");
+      XLSX.writeFile(wb, "Active_Settlements.xlsx");
     },
 
     exportArchiveSettlementsList() {
-      const archived = this.currentSettlements.filter(s => s.isApproved);
-      if (archived.length === 0) return showToast('لا توجد بيانات في الأرشيف للتصدير', 'error');
-      const data = archived.map((item, idx) => {
-        const profit = (item.revenue || 0) - (item.expenses || 0);
-        const tax = profit > 0 ? profit * 0.03 : 0;
-        const net = profit - tax;
+      const archiveItems = this.currentSettlements.filter(s => s.status === 'approved');
+      if (archiveItems.length === 0) return showToast('لا توجد بيانات أرشيف للتصدير', 'error');
+      const data = archiveItems.map((item, idx) => {
+        const rev = parseFloat(item.revenue) || 0;
+        const exp = parseFloat(item.expenses) || 0;
+        const prof = rev - exp;
+        const net = prof / 1.14;
+        const comm = Math.max(0, net * 0.10);
         return {
           "م": idx+1, "كود الملف": item.fileCode || '', "اسم الأوبريتور": item.guideName || '',
-          "الإيرادات": item.revenue || 0, "المصروفات": item.expenses || 0,
-          "الربح": profit, "الصافي بعد الضريبة": net, "الحالة": "معتمد"
+          "الإيرادات": rev, "المصروفات": exp, "الربح": prof, "الصافي بعد الضريبة": net,
+          "نسبة العمولة": "10%", "مبلغ العمولة": comm, "الحالة": "معتمد"
         };
       });
       const ws = XLSX.utils.json_to_sheet(data);
@@ -2132,133 +2170,91 @@
       XLSX.writeFile(wb, "Archive_Settlements.xlsx");
     },
 
-    updateSettlementTotalCommission() {
-      const select = $('operatorFilterSelect');
-      const selGuide = select ? select.value.toLowerCase().trim() : '';
-      let total = 0;
-      this.currentSettlements.filter(s => !s.isApproved).forEach(s => {
-        if (!selGuide || (s.guideName || '').toLowerCase().trim() === selGuide) {
-          const profit = (s.revenue || 0) - (s.expenses || 0);
-          const tax = profit > 0 ? profit * 0.03 : 0;
-          const net = profit - tax;
-          const commRate = parseFloat(s.commissionRate) || 0;
-          const commAmt = parseFloat(s.commissionAmount) || (net * (commRate / 100));
-          total += commAmt;
-        }
-      });
-      const elem = $('settlementTotalCommission');
-      if (elem) elem.innerText = total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-    },
-
-    updateArchiveSettlementTotalCommission() {
-      const select = $('archiveOperatorFilterSelect');
-      const selGuide = select ? select.value.toLowerCase().trim() : '';
-      let total = 0;
-      this.currentSettlements.filter(s => s.isApproved).forEach(s => {
-        if (!selGuide || (s.guideName || '').toLowerCase().trim() === selGuide) {
-          const profit = (s.revenue || 0) - (s.expenses || 0);
-          const tax = profit > 0 ? profit * 0.03 : 0;
-          const net = profit - tax;
-          const commRate = parseFloat(s.commissionRate) || 0;
-          const commAmt = parseFloat(s.commissionAmount) || (net * (commRate / 100));
-          total += commAmt;
-        }
-      });
-      const elem = $('archiveSettlementTotalCommission');
-      if (elem) elem.innerText = total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-    },
-
-    // 6. MASTER DASHBOARD
+    // MASTER DASHBOARD CALCULATIONS
     updateMasterDashboard() {
-      $('mDashTotalSuppliers').innerText = this.currentSuppliers.length;
+      const totalSuppliers = this.currentSuppliers.length;
 
-      let cEGP = 0, cUSD = 0, cEUR = 0;
+      let creditEGP = 0, creditUSD = 0, creditEUR = 0;
       this.currentCredit.forEach(c => {
-        const amt = (c.type === 'deposit' ? 1 : -1) * (parseFloat(c.amount) || 0);
+        const amt = parseFloat(c.amount) || 0;
         const curr = (c.currency || 'EGP').toUpperCase();
-        if (curr === 'USD') cUSD += amt;
-        else if (curr === 'EUR') cEUR += amt;
-        else cEGP += amt;
+        const val = c.type === 'deposit' ? amt : -amt;
+        if (curr === 'USD') creditUSD += val;
+        else if (curr === 'EUR') creditEUR += val;
+        else creditEGP += val;
       });
 
-      $('mDashCreditEGP').innerText = cEGP.toLocaleString();
-      $('mDashCreditUSD').innerText = cUSD.toLocaleString();
-      $('mDashCreditEUR').innerText = cEUR.toLocaleString();
+      let totalAviation = 0;
+      this.currentAviation.forEach(a => {
+        totalAviation += parseFloat(a.cost) || 0;
+      });
 
-      let avTotal = 0;
-      this.currentAviation.forEach(a => avTotal += (parseFloat(a.cost) || 0));
-      $('mDashTotalAviation').innerText = avTotal.toLocaleString();
+      let totalTicketsVal = 0;
+      this.currentTickets.forEach(t => {
+        totalTicketsVal += (parseInt(t.quantity) || 0) * (parseFloat(t.unitPrice) || 0);
+      });
 
-      let tTotal = 0;
-      this.currentTickets.forEach(t => tTotal += (parseInt(t.quantity)||0) * (parseFloat(t.unitPrice)||0));
-      $('mDashTotalTickets').innerText = tTotal.toLocaleString();
-
-      let commTotal = 0;
+      let totalSettlementCommissions = 0;
       this.currentSettlements.forEach(s => {
-        const profit = (s.revenue || 0) - (s.expenses || 0);
-        const tax = profit > 0 ? profit * 0.03 : 0;
-        const net = profit - tax;
-        const commRate = parseFloat(s.commissionRate) || 0;
-        const commAmt = parseFloat(s.commissionAmount) || (net * (commRate / 100));
-        commTotal += commAmt;
+        const rev = parseFloat(s.revenue) || 0;
+        const exp = parseFloat(s.expenses) || 0;
+        const net = (rev - exp) / 1.14;
+        totalSettlementCommissions += Math.max(0, net * 0.10);
       });
-      $('mDashTotalSettlementCommissions').innerText = commTotal.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+
+      $('mDashTotalSuppliers').innerText = totalSuppliers;
+      $('mDashCreditEGP').innerText = creditEGP.toLocaleString();
+      $('mDashCreditUSD').innerText = creditUSD.toLocaleString();
+      $('mDashCreditEUR').innerText = creditEUR.toLocaleString();
+      $('mDashTotalAviation').innerText = totalAviation.toLocaleString();
+      $('mDashTotalTickets').innerText = totalTicketsVal.toLocaleString();
+      $('mDashTotalSettlementCommissions').innerText = totalSettlementCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
       const tbody = $('masterDashboardTbody');
-      if (!tbody) return;
-
       tbody.innerHTML = `
         <tr>
-          <td>📋 الخصم والإضافة (الموردين)</td>
-          <td>${this.currentSuppliers.length}</td>
-          <td>-</td>
-          <td>-</td>
-          <td>إجمالي الموردين: ${this.currentSuppliers.length}</td>
+          <td><strong>📋 الخصم والإضافة (الموردين)</strong></td>
+          <td>${totalSuppliers} مورّدين</td>
+          <td colspan="2">-</td>
+          <td><span class="badge badge-hotel">مسجل بالمنظومة</span></td>
         </tr>
         <tr>
-          <td>💳 أرصدة الكريديت</td>
-          <td>${this.currentCredit.length}</td>
-          <td>-</td>
-          <td>-</td>
-          <td>EGP: ${cEGP.toLocaleString()} | USD: ${cUSD.toLocaleString()} | EUR: ${cEUR.toLocaleString()}</td>
+          <td><strong>💳 أرصدة الكريديت</strong></td>
+          <td>${this.currentCredit.length} حركة</td>
+          <td style="color:#16a34a;">متعدد العملات</td>
+          <td style="color:#dc2626;">متعدد العملات</td>
+          <td><span class="badge badge-deposit">نشط ومتزن</span></td>
         </tr>
         <tr>
-          <td>📄 تصفيات الملفات (الأوبريتور)</td>
-          <td>${this.currentSettlements.length}</td>
-          <td>-</td>
-          <td>-</td>
-          <td>إجمالي العمولات: ${commTotal.toLocaleString()}</td>
+          <td><strong>✈️ حجوزات الطيران</strong></td>
+          <td>${this.currentAviation.length} حجز</td>
+          <td colspan="2">إجمالي: ${totalAviation.toLocaleString()}</td>
+          <td><span class="badge badge-cruise">مسجل</span></td>
         </tr>
         <tr>
-          <td>✈️ حجوزات الطيران</td>
-          <td>${this.currentAviation.length}</td>
-          <td>-</td>
-          <td>${avTotal.toLocaleString()}</td>
-          <td>إجمالي المصروفات: ${avTotal.toLocaleString()}</td>
+          <td><strong>🎟️ مخزون التذاكر</strong></td>
+          <td>${this.currentTickets.length} حركة</td>
+          <td colspan="2">إجمالي القيمة: ${totalTicketsVal.toLocaleString()}</td>
+          <td><span class="badge badge-restaurant">متابعة المخزون</span></td>
         </tr>
         <tr>
-          <td>🎟️ مخزون التذاكر والمزارات</td>
-          <td>${this.currentTickets.length}</td>
-          <td>-</td>
-          <td>${tTotal.toLocaleString()}</td>
-          <td>إجمالي القيمة: ${tTotal.toLocaleString()}</td>
+          <td><strong>📄 تصفيات الملفات</strong></td>
+          <td>${this.currentSettlements.length} ملف</td>
+          <td colspan="2">إجمالي العمولات: ${totalSettlementCommissions.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td><span class="badge badge-archive">متابعة التصفيات والأرشيف</span></td>
         </tr>
       `;
-    },
-
-    init() {
-      this.listenToSuppliers();
-      this.listenToCredit();
-      this.listenToAviation();
-      this.listenToTickets();
-      this.listenToSettlements();
     }
   };
 
   window.App = App;
-  document.addEventListener("DOMContentLoaded", () => {
-    App.init();
-  });
+
+  // Initialize listeners
+  App.listenToSuppliers();
+  App.listenToCredit();
+  App.listenToAviation();
+  App.listenToTickets();
+  App.listenToSettlements();
 </script>
 </body>
 </html>
