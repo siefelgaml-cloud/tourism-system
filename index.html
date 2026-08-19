@@ -463,7 +463,6 @@
           <div class="table-wrapper"><table id="creditTable"><thead><tr><th>#</th><th>الجهة</th><th>رقم الملف</th><th>الوصول</th><th>المغادرة</th><th>النوع</th><th>المبلغ</th><th>العملة</th><th>البيان</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody id="creditTableBody"><tr><td colspan="11" style="text-align:center;">جاري التحميل...</td></tr></tbody></table></div>
         </div>
 
-        <!-- ملخص Dashboard الكريديت المحدث بجميع العملات -->
         <div id="creditSummarySubTab" class="sub-tab-content">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h3>ملخص Dashboard الكريديت (عرض بجميع العملات)</h3>
@@ -476,7 +475,6 @@
             </div>
             
             <div class="dashboard-grid">
-              <!-- إجمالي المدين لجميع العملات -->
               <div class="dash-card" style="border-right:5px solid #16a34a; background:#f0fdf4;">
                 <span class="dash-card-title" style="color:#166534; font-size:15px; font-weight:800; margin-bottom:12px; border-bottom:1px solid #bbf7d0; padding-bottom:6px;">📈 إجمالي المدين (حسب العملة)</span>
                 <div style="display:flex; flex-direction:column; gap:8px;">
@@ -495,7 +493,6 @@
                 </div>
               </div>
 
-              <!-- إجمالي الدائن لجميع العملات -->
               <div class="dash-card" style="border-right:5px solid #dc2626; background:#fef2f2;">
                 <span class="dash-card-title" style="color:#991b1b; font-size:15px; font-weight:800; margin-bottom:12px; border-bottom:1px solid #fecaca; padding-bottom:6px;">📉 إجمالي الدائن (حسب العملة)</span>
                 <div style="display:flex; flex-direction:column; gap:8px;">
@@ -514,7 +511,6 @@
                 </div>
               </div>
 
-              <!-- صافي الرصيد لجميع العملات -->
               <div class="dash-card" style="border-right:5px solid #0284c7; background:#f0f9ff;">
                 <span class="dash-card-title" style="color:#075985; font-size:15px; font-weight:800; margin-bottom:12px; border-bottom:1px solid #bae6fd; padding-bottom:6px;">⚖️ صافي الرصيد (حسب العملة)</span>
                 <div style="display:flex; flex-direction:column; gap:8px;">
@@ -1523,22 +1519,34 @@
       const taxTypeVal = $('taxType').value;
       const taxRate = taxTypeVal === "0.03" ? 0.03 : taxTypeVal;
 
-      if (!propertyName || !supplierName || !taxCardNumber) return showToast('يرجى ملء كافة البيانات', 'error');
+      if (!propertyName || !supplierName) {
+        showToast("يرجى ملء كافة البيانات المطلوبة", "error");
+        return;
+      }
 
-      if (this.isDuplicate(this.currentSuppliers, 'taxCardNumber', taxCardNumber)) return showToast('يوجد مورد مسجل بنفس الرقم الضريبي', 'error');
-      const btn = $('btnSaveSupplier');
-      btn.disabled = true; btn.innerText = 'جاري الحفظ...';
+      if (this.isDuplicate(this.currentSuppliers, "propertyName", propertyName)) {
+        showToast("اسم المورد/المنشأة مكرر بالفعل!", "error");
+        return;
+      }
+
       try {
-        await addDoc(collection(db, "tax_discount_records"), { supplierType, propertyName, supplierName, taxCardNumber, taxRate, isDeleted: false, createdAt: new Date() });
-        showToast('تم حفظ المورد بنجاح!', 'success');
-        $('propertyName').value = ''; $('supplierName').value = ''; $('taxCardNumber').value = '';
-      } catch (e) { showToast(e.message, 'error'); } 
-      finally { btn.disabled = false; btn.innerText = 'حفظ البيانات'; }
-    },
-
-    async deleteSupplier(id) {
-      if (!confirm('تأكيد حذف المورد؟')) return;
-      try { await deleteDocAsync(doc(db, "tax_discount_records", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
+        await addDoc(collection(db, "tax_discount_records"), {
+          supplierType,
+          propertyName,
+          supplierName,
+          taxCardNumber,
+          taxRate,
+          createdAt: new Date(),
+          isDeleted: false
+        });
+        showToast("تم حفظ المورد بنجاح", "success");
+        $('propertyName').value = '';
+        $('supplierName').value = '';
+        $('taxCardNumber').value = '';
+      } catch (e) {
+        console.error(e);
+        showToast("حدث خطأ أثناء الحفظ", "error");
+      }
     },
 
     openEditModal(id) {
@@ -1549,48 +1557,71 @@
       $('editPropertyName').value = item.propertyName || '';
       $('editSupplierName').value = item.supplierName || '';
       $('editTaxCardNumber').value = item.taxCardNumber || '';
-      $('editTaxType').value = (item.taxRate === 0.03 || item.taxRate === "0.03") ? "0.03" : "advance_payment";
+      $('editTaxType').value = item.taxRate == 0.03 ? "0.03" : "advance_payment";
       $('editSupplierModal').style.display = 'flex';
     },
 
-    closeEditModal() { $('editSupplierModal').style.display = 'none'; },
+    closeEditModal() {
+      $('editSupplierModal').style.display = 'none';
+    },
 
     async saveEditedSupplier() {
       const id = $('editSupplierId').value;
-      const supplierType = $('editSupplierType').value;
       const propertyName = $('editPropertyName').value.trim();
       const supplierName = $('editSupplierName').value.trim();
-      const taxCardNumber = $('editTaxCardNumber').value.trim();
-      const taxRate = $('editTaxType').value === "0.03" ? 0.03 : "advance_payment";
-      if (!propertyName || !supplierName || !taxCardNumber) return showToast('يرجى ملء الحقول المطلوبة', 'error');
-      if (this.isDuplicate(this.currentSuppliers, 'taxCardNumber', taxCardNumber, id)) return showToast('يوجد مورد مسجل بنفس الرقم الضريبي', 'error');
+      if (!propertyName || !supplierName) {
+        showToast("جميع الحقول إجبارية", "error");
+        return;
+      }
+
+      if (this.isDuplicate(this.currentSuppliers, "propertyName", propertyName, id)) {
+        showToast("الاسم مكرر لجهة أخرى!", "error");
+        return;
+      }
+
       try {
-        await updateDoc(doc(db, "tax_discount_records", id), { supplierType, propertyName, supplierName, taxCardNumber, taxRate });
-        showToast('تم التعديل بنجاح!', 'success');
+        await updateDoc(doc(db, "tax_discount_records", id), {
+          supplierType: $('editSupplierType').value,
+          propertyName,
+          supplierName,
+          taxCardNumber: $('editTaxCardNumber').value.trim(),
+          taxRate: $('editTaxType').value === "0.03" ? 0.03 : "advance_payment"
+        });
+        showToast("تم تعديل البيانات بنجاح", "success");
         this.closeEditModal();
-      } catch (e) { showToast(e.message, 'error'); }
+      } catch (e) {
+        console.error(e);
+        showToast("فشل التعديل", "error");
+      }
+    },
+
+    async deleteSupplier(id) {
+      if (confirm("هل أنت تأكد من حذف هذا المورد؟")) {
+        try {
+          await deleteDocAsync(doc(db, "tax_discount_records", id));
+          showToast("تم الحذف بنجاح", "success");
+        } catch (e) {
+          console.error(e);
+          showToast("حدث خطأ في الحذف", "error");
+        }
+      }
     },
 
     exportSuppliersList() {
-      if (this.currentSuppliers.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const data = this.currentSuppliers.map((item, idx) => ({
-        "م": idx+1, "النوع": item.supplierType || 'فندق', "الاسم": item.propertyName || '',
-        "المورد": item.supplierName || '', "الرقم الضريبي": item.taxCardNumber || '',
-        "حالة الضريبة": (item.taxRate === 0.03 || item.taxRate === "0.03") ? 'خاضع 3%' : 'دفعات مقدمة'
-      }));
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "الموردين");
+      const table = $('suppliersTable');
+      if (!table) return;
+      const wb = XLSX.utils.table_to_book(table, { sheet: "الموردين" });
       XLSX.writeFile(wb, "Suppliers_List.xlsx");
     },
 
-    // 2. CREDIT BALANCES (مع دعم التحديث بجميع العملات)
+    // 2. CREDIT
     listenToCredit() {
-      const q = query(collection(db, "credit_balances"), orderBy("createdAt", "desc"));
+      const q = query(collection(db, "credit_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
         const tbody = $('creditTableBody');
         this.currentCredit = [];
         if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">لا توجد حركات مسجلة</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">لا توجد حركات كريديت</td></tr>';
           this.updateCreditSummary();
           this.updateMasterDashboard();
           return;
@@ -1603,7 +1634,10 @@
           if (data.isDeleted) return;
           this.currentCredit.push(data);
 
-          const typeBadge = data.type === 'deposit' ? '<span class="badge badge-deposit">مدين (لنا)</span>' : '<span class="badge badge-deduction">دائن (علينا)</span>';
+          const typeBadge = data.type === 'deposit' ? 
+            '<span class="badge badge-deposit">مدين (لنا)</span>' : 
+            '<span class="badge badge-deduction">دائن (المستخدم)</span>';
+          
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
           htmlBuffer += `
@@ -1614,11 +1648,11 @@
               <td>${formatDateDMY(data.arrivalDate)}</td>
               <td>${formatDateDMY(data.departureDate)}</td>
               <td>${typeBadge}</td>
-              <td style="font-weight:700;">${(parseFloat(data.amount)||0).toLocaleString()}</td>
-              <td><span class="badge badge-advance">${escapeHTML(data.currency || 'EGP')}</span></td>
+              <td style="font-weight:800;">${(parseFloat(data.amount)||0).toLocaleString()}</td>
+              <td>${escapeHTML(data.currency || 'EGP')}</td>
               <td>${escapeHTML(data.description || '-')}</td>
               <td>${dateStr}</td>
-              <td class="no-print">
+              <td>
                 <button class="delete-btn" onclick="App.deleteCredit('${docSnap.id}')">حذف</button>
               </td>
             </tr>
@@ -1632,32 +1666,48 @@
 
     async saveCredit() {
       const entity = $('creditEntity').value.trim();
-      const fileCode = $('creditFileCode').value.trim();
-      const arrivalDate = $('creditArrivalDate').value;
-      const departureDate = $('creditDepartureDate').value;
-      const type = $('creditType').value;
-      const amount = parseFloat($('creditAmount').value) || 0;
-      const currency = $('creditCurrency').value;
-      const description = $('creditDescription').value.trim();
+      const amount = parseFloat($('creditAmount').value);
+      if (!entity || isNaN(amount) || amount <= 0) {
+        showToast("يرجى إدخال اسم الجهة والمبلغ بشكل صحيح", "error");
+        return;
+      }
 
-      if (!entity || !amount) return showToast('يرجى كتابة اسم الجهة والمبلغ', 'error');
-
-      const btn = $('btnSaveCredit');
-      btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
-        await addDoc(collection(db, "credit_balances"), {
-          entity, fileCode, arrivalDate, departureDate, type, amount, currency, description,
-          isDeleted: false, createdAt: new Date()
+        await addDoc(collection(db, "credit_records"), {
+          entity,
+          fileCode: $('creditFileCode').value.trim(),
+          arrivalDate: $('creditArrivalDate').value,
+          departureDate: $('creditDepartureDate').value,
+          type: $('creditType').value,
+          amount,
+          currency: $('creditCurrency').value,
+          description: $('creditDescription').value.trim(),
+          createdAt: new Date(),
+          isDeleted: false
         });
-        showToast('تم تسجيل حركة الكريديت بنجاح!', 'success');
-        $('creditEntity').value = ''; $('creditFileCode').value = ''; $('creditAmount').value = ''; $('creditDescription').value = '';
-      } catch(e) { showToast(e.message, 'error'); }
-      finally { btn.disabled = false; btn.innerText = 'تسجيل الحركة'; }
+        showToast("تم تسجيل حركة الكريديت", "success");
+        $('creditEntity').value = '';
+        $('creditFileCode').value = '';
+        $('creditArrivalDate').value = '';
+        $('creditDepartureDate').value = '';
+        $('creditAmount').value = '';
+        $('creditDescription').value = '';
+      } catch (e) {
+        console.error(e);
+        showToast("حدث خطأ أثناء الحفظ", "error");
+      }
     },
 
     async deleteCredit(id) {
-      if (!confirm('تأكيد حذف حركة الكريديت؟')) return;
-      try { await deleteDocAsync(doc(db, "credit_balances", id)); showToast('تم الحذف', 'success'); } catch(e) { showToast(e.message, 'error'); }
+      if (confirm("هل تريد حذف حركة الكريديت هذه؟")) {
+        try {
+          await deleteDocAsync(doc(db, "credit_records", id));
+          showToast("تم الحذف بنجاح", "success");
+        } catch (e) {
+          console.error(e);
+          showToast("خطأ في الحذف", "error");
+        }
+      }
     },
 
     updateCreditSummary() {
@@ -1670,145 +1720,106 @@
       const entityMap = {};
 
       this.currentCredit.forEach(item => {
-        if (item.isDeleted) return;
         const curr = (item.currency || 'EGP').toUpperCase();
         const amt = parseFloat(item.amount) || 0;
-        const isDeposit = item.type === 'deposit';
-
         if (!totals[curr]) totals[curr] = { deposit: 0, deduction: 0 };
 
-        if (isDeposit) totals[curr].deposit += amt;
+        if (item.type === 'deposit') totals[curr].deposit += amt;
         else totals[curr].deduction += amt;
 
-        const entityName = (item.entity || 'غير محدد').trim();
-        const key = `${entityName}___${curr}`;
+        const key = `${item.entity}___${curr}`;
         if (!entityMap[key]) {
-          entityMap[key] = { entity: entityName, currency: curr, deposit: 0, deduction: 0 };
+          entityMap[key] = { entity: item.entity, currency: curr, deposit: 0, deduction: 0 };
         }
-        if (isDeposit) entityMap[key].deposit += amt;
+        if (item.type === 'deposit') entityMap[key].deposit += amt;
         else entityMap[key].deduction += amt;
       });
 
-      // تحديث عناصر الكروت حسب العملة في الـ Dashboard
       ['EGP', 'USD', 'EUR'].forEach(c => {
-        const dep = totals[c] ? totals[c].deposit : 0;
-        const ded = totals[c] ? totals[c].deduction : 0;
-        const net = dep - ded;
-
-        const depEl = $(`dashTotalDeposits${c}`);
-        const dedEl = $(`dashTotalDeductions${c}`);
-        const netEl = $(`dashNetBalance${c}`);
-
-        if (depEl) depEl.innerText = `${dep.toLocaleString()} ${c}`;
-        if (dedEl) dedEl.innerText = `${ded.toLocaleString()} ${c}`;
-        if (netEl) netEl.innerText = `${net.toLocaleString()} ${c}`;
+        const dep = totals[c]?.deposit || 0;
+        const ded = totals[c]?.deduction || 0;
+        $(`dashTotalDeposits${c}`).innerText = dep.toLocaleString(undefined, { minimumFractionDigits: 2 });
+        $(`dashTotalDeductions${c}`).innerText = ded.toLocaleString(undefined, { minimumFractionDigits: 2 });
+        $(`dashNetBalance${c}`).innerText = (dep - ded).toLocaleString(undefined, { minimumFractionDigits: 2 });
       });
 
-      // تحديث جدول ملخص الأرصدة التجميعي
-      const tbody = $('entitySummaryTableBody');
-      if (tbody) {
-        const keys = Object.keys(entityMap);
-        if (keys.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">لا توجد حركات مسجلة</td></tr>';
-          return;
-        }
-
-        let idx = 1;
-        let html = '';
-        keys.forEach(k => {
-          const e = entityMap[k];
-          const net = e.deposit - e.deduction;
-          const statusBadge = net > 0 ? '<span class="badge badge-deposit">له (مدين)</span>' :
-                              net < 0 ? '<span class="badge badge-deduction">عليه (دائن)</span>' :
-                              '<span class="badge badge-archive">متزن</span>';
-
-          html += `
-            <tr>
-              <td>${idx++}</td>
-              <td><strong>${escapeHTML(e.entity)}</strong></td>
-              <td><span class="badge badge-advance">${e.currency}</span></td>
-              <td style="color:#16a34a; font-weight:700;">${e.deposit.toLocaleString()}</td>
-              <td style="color:#dc2626; font-weight:700;">${e.deduction.toLocaleString()}</td>
-              <td style="color:#2563eb; font-weight:800;">${net.toLocaleString()}</td>
-              <td>${statusBadge}</td>
-            </tr>
-          `;
-        });
-        tbody.innerHTML = html;
+      const summaryTbody = $('entitySummaryTableBody');
+      const keys = Object.keys(entityMap);
+      if (keys.length === 0) {
+        summaryTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">لا توجد حركات تجميعية</td></tr>';
+        return;
       }
+
+      let idx = 1;
+      let html = '';
+      keys.forEach(k => {
+        const e = entityMap[k];
+        const net = e.deposit - e.deduction;
+        const statusBadge = net >= 0 ? '<span class="badge badge-deposit">رصيد لصالحنا</span>' : '<span class="badge badge-deduction">رصيد علينا</span>';
+
+        html += `
+          <tr>
+            <td>${idx++}</td>
+            <td><strong>${escapeHTML(e.entity)}</strong></td>
+            <td>${e.currency}</td>
+            <td style="color:#16a34a; font-weight:700;">${e.deposit.toLocaleString()}</td>
+            <td style="color:#dc2626; font-weight:700;">${e.deduction.toLocaleString()}</td>
+            <td style="font-weight:800;">${net.toLocaleString()}</td>
+            <td>${statusBadge}</td>
+          </tr>
+        `;
+      });
+      summaryTbody.innerHTML = html;
     },
 
     exportCreditList() {
-      if (this.currentCredit.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const data = this.currentCredit.map((item, idx) => ({
-        "م": idx+1, "الجهة": item.entity || '', "رقم الملف": item.fileCode || '',
-        "تاريخ الوصول": item.arrivalDate || '', "تاريخ المغادرة": item.departureDate || '',
-        "النوع": item.type === 'deposit' ? 'مدين' : 'دائن',
-        "المبلغ": item.amount || 0, "العملة": item.currency || 'EGP', "البيان": item.description || ''
-      }));
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "الكريديت");
+      const table = $('creditTable');
+      if (!table) return;
+      const wb = XLSX.utils.table_to_book(table, { sheet: "الكريديت" });
       XLSX.writeFile(wb, "Credit_Records.xlsx");
     },
 
     // 3. SETTLEMENTS
     listenToSettlements() {
-      const q = query(collection(db, "operator_settlements"), orderBy("createdAt", "desc"));
+      const q = query(collection(db, "settlement_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
-        const tbodyList = $('settlementsTableBody');
+        const tbodyActive = $('settlementsTableBody');
         const tbodyArchive = $('settlementsArchiveTableBody');
         this.currentSettlements = [];
 
         if (snapshot.empty) {
-          tbodyList.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات جارية</td></tr>';
-          tbodyArchive.innerHTML = '<tr><td colspan="13" style="text-align:center;">لا توجد تصفيات معتمدة بالأرشيف</td></tr>';
+          tbodyActive.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات</td></tr>';
+          tbodyArchive.innerHTML = '<tr><td colspan="13" style="text-align:center;">الأرشيف فارغ</td></tr>';
           this.updateMasterDashboard();
           return;
         }
 
-        let idxList = 1, idxArch = 1;
-        let htmlList = '', htmlArch = '';
+        let activeHtml = '', archiveHtml = '';
+        let idxActive = 1, idxArchive = 1;
+        const operatorsSet = new Set();
 
         snapshot.forEach(docSnap => {
           const data = docSnap.data(); data.id = docSnap.id;
           if (data.isDeleted) return;
           this.currentSettlements.push(data);
 
-          const calc = this.calculateSettlementValues(data.revenue, data.expenses);
+          if (data.guideName) operatorsSet.add(data.guideName.trim());
+
+          const vals = this.calculateSettlementValues(data.revenue, data.expenses);
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
-          if (data.isApproved) {
-            htmlArch += `
+          if (!data.isApproved) {
+            activeHtml += `
               <tr data-guide="${escapeHTML(data.guideName || '')}">
-                <td>${idxArch++}</td>
+                <td>${idxActive++}</td>
                 <td><strong>${escapeHTML(data.fileCode)}</strong></td>
                 <td>${escapeHTML(data.guideName)}</td>
-                <td>${calc.revenue.toLocaleString()}</td>
-                <td>${calc.expenses.toLocaleString()}</td>
-                <td style="font-weight:700;">${calc.profit.toLocaleString()}</td>
-                <td>${calc.netAfterTax.toLocaleString(undefined, {maximumFractionDigits: 2})}</td>
+                <td>${vals.revenue.toLocaleString()}</td>
+                <td>${vals.expenses.toLocaleString()}</td>
+                <td style="font-weight:700; color:${vals.profit>=0?'#16a34a':'#dc2626'};">${vals.profit.toLocaleString()}</td>
+                <td>${vals.netAfterTax.toLocaleString(undefined, {maximumFractionDigits:2})}</td>
                 <td>10%</td>
-                <td style="color:#16a34a; font-weight:800;">${calc.commissionAmount.toLocaleString(undefined, {maximumFractionDigits: 2})}</td>
-                <td>${escapeHTML(data.notes || '-')}</td>
-                <td><span class="badge badge-archive">معتمد</span></td>
-                <td>${dateStr}</td>
-                <td class="no-print">
-                  <button class="unapprove-btn" onclick="App.unapproveSettlement('${docSnap.id}')">إلغاء الاعتماد</button>
-                </td>
-              </tr>
-            `;
-          } else {
-            htmlList += `
-              <tr data-guide="${escapeHTML(data.guideName || '')}">
-                <td>${idxList++}</td>
-                <td><strong>${escapeHTML(data.fileCode)}</strong></td>
-                <td>${escapeHTML(data.guideName)}</td>
-                <td>${calc.revenue.toLocaleString()}</td>
-                <td>${calc.expenses.toLocaleString()}</td>
-                <td style="font-weight:700;">${calc.profit.toLocaleString()}</td>
-                <td>${calc.netAfterTax.toLocaleString(undefined, {maximumFractionDigits: 2})}</td>
-                <td>10%</td>
-                <td style="color:#16a34a; font-weight:800;">${calc.commissionAmount.toLocaleString(undefined, {maximumFractionDigits: 2})}</td>
+                <td style="font-weight:800; color:#16a34a;">${vals.commissionAmount.toLocaleString(undefined, {maximumFractionDigits:2})}</td>
                 <td>${escapeHTML(data.notes || '-')}</td>
                 <td>${dateStr}</td>
                 <td class="no-print">
@@ -1818,55 +1829,49 @@
                 </td>
               </tr>
             `;
+          } else {
+            archiveHtml += `
+              <tr data-guide="${escapeHTML(data.guideName || '')}">
+                <td>${idxArchive++}</td>
+                <td><strong>${escapeHTML(data.fileCode)}</strong></td>
+                <td>${escapeHTML(data.guideName)}</td>
+                <td>${vals.revenue.toLocaleString()}</td>
+                <td>${vals.expenses.toLocaleString()}</td>
+                <td>${vals.profit.toLocaleString()}</td>
+                <td>${vals.netAfterTax.toLocaleString(undefined, {maximumFractionDigits:2})}</td>
+                <td>10%</td>
+                <td style="font-weight:800; color:#16a34a;">${vals.commissionAmount.toLocaleString(undefined, {maximumFractionDigits:2})}</td>
+                <td>${escapeHTML(data.notes || '-')}</td>
+                <td><span class="badge badge-archive">معتمد</span></td>
+                <td>${dateStr}</td>
+                <td class="no-print">
+                  <button class="unapprove-btn" onclick="App.unapproveSettlement('${docSnap.id}')">إلغاء الاعتماد</button>
+                  <button class="delete-btn" onclick="App.deleteSettlement('${docSnap.id}')">حذف</button>
+                </td>
+              </tr>
+            `;
           }
         });
 
-        tbodyList.innerHTML = htmlList || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات جارية</td></tr>';
-        tbodyArchive.innerHTML = htmlArch || '<tr><td colspan="13" style="text-align:center;">لا توجد تصفيات معتمدة بالأرشيف</td></tr>';
+        tbodyActive.innerHTML = activeHtml || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات جارية</td></tr>';
+        tbodyArchive.innerHTML = archiveHtml || '<tr><td colspan="13" style="text-align:center;">لا توجد تصفيات معتمدة بالأرشيف</td></tr>';
 
-        this.populateOperatorSelects();
+        this.populateOperatorSelects([...operatorsSet]);
         this.updateSettlementTotalCommission();
         this.updateArchiveSettlementTotalCommission();
         this.updateMasterDashboard();
       });
     },
 
-    populateOperatorSelects() {
-      const guides = [...new Set(this.currentSettlements.map(s => s.guideName).filter(Boolean))];
-      const sel1 = $('operatorFilterSelect');
-      const sel2 = $('archiveOperatorFilterSelect');
-      if (sel1) {
-        sel1.innerHTML = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>' + guides.map(g => `<option value="${escapeHTML(g)}">${escapeHTML(g)}</option>`).join('');
-      }
-      if (sel2) {
-        sel2.innerHTML = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>' + guides.map(g => `<option value="${escapeHTML(g)}">${escapeHTML(g)}</option>`).join('');
-      }
-    },
-
-    updateSettlementTotalCommission() {
-      let totalCom = 0;
-      const trs = document.querySelectorAll("#settlementsTable tbody tr");
-      trs.forEach(tr => {
-        if (tr.style.display !== "none" && tr.children.length > 8) {
-          const comText = tr.children[8].innerText.replace(/,/g, '');
-          totalCom += parseFloat(comText) || 0;
-        }
+    populateOperatorSelects(operators) {
+      ['operatorFilterSelect', 'archiveOperatorFilterSelect'].forEach(selId => {
+        const sel = $(selId);
+        if (!sel) return;
+        const currentVal = sel.value;
+        sel.innerHTML = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>' + 
+          operators.map(op => `<option value="${escapeHTML(op)}">${escapeHTML(op)}</option>`).join('');
+        sel.value = currentVal;
       });
-      const elem = $('settlementTotalCommission');
-      if (elem) elem.innerText = totalCom.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    },
-
-    updateArchiveSettlementTotalCommission() {
-      let totalCom = 0;
-      const trs = document.querySelectorAll("#settlementsArchiveTable tbody tr");
-      trs.forEach(tr => {
-        if (tr.style.display !== "none" && tr.children.length > 8) {
-          const comText = tr.children[8].innerText.replace(/,/g, '');
-          totalCom += parseFloat(comText) || 0;
-        }
-      });
-      const elem = $('archiveSettlementTotalCommission');
-      if (elem) elem.innerText = totalCom.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
     },
 
     async saveSettlement() {
@@ -1874,41 +1879,38 @@
       const guideName = $('guideName').value.trim();
       const revenue = parseFloat($('settlementRevenue').value) || 0;
       const expenses = parseFloat($('settlementExpenses').value) || 0;
-      const notes = $('settlementNotes').value.trim();
 
-      if (!fileCode || !guideName) return showToast('يرجى كتابة كود الملف واسم الأوبريتور', 'error');
+      if (!fileCode || !guideName) {
+        showToast("كود الملف واسم الأوبريتور حقول مطلوبة", "error");
+        return;
+      }
 
-      const btn = $('btnSaveSettlement');
-      btn.disabled = true; btn.innerText = 'جاري الحفظ...';
+      if (this.isDuplicate(this.currentSettlements, "fileCode", fileCode)) {
+        showToast("كود الملف مسجل وموجود مسبقاً!", "error");
+        return;
+      }
+
       try {
-        await addDoc(collection(db, "operator_settlements"), {
-          fileCode, guideName, revenue, expenses, notes, isApproved: false, isDeleted: false, createdAt: new Date()
+        await addDoc(collection(db, "settlement_records"), {
+          fileCode,
+          guideName,
+          revenue,
+          expenses,
+          notes: $('settlementNotes').value.trim(),
+          isApproved: false,
+          createdAt: new Date(),
+          isDeleted: false
         });
-        showToast('تمت إضافة التصفية بنجاح!', 'success');
-        $('fileCode').value = ''; $('guideName').value = ''; $('settlementRevenue').value = ''; $('settlementExpenses').value = ''; $('settlementNotes').value = '';
-      } catch (e) { showToast(e.message, 'error'); }
-      finally { btn.disabled = false; btn.innerText = 'حفظ التصفية'; }
-    },
-
-    async approveSettlement(id) {
-      if (!confirm('هل تريد اعتماد تصفية هذا الملف ونقله للأرشيف؟')) return;
-      try {
-        await updateDoc(doc(db, "operator_settlements", id), { isApproved: true, approvedAt: new Date() });
-        showToast('تم الاعتماد ونقل الملف للأرشيف', 'success');
-      } catch (e) { showToast(e.message, 'error'); }
-    },
-
-    async unapproveSettlement(id) {
-      if (!confirm('إلغاء اعتماد التصفية وإعادتها للقائمة الجارية؟')) return;
-      try {
-        await updateDoc(doc(db, "operator_settlements", id), { isApproved: false });
-        showToast('تمت إعادة التصفية للحالات الجارية', 'success');
-      } catch (e) { showToast(e.message, 'error'); }
-    },
-
-    async deleteSettlement(id) {
-      if (!confirm('تأكيد حذف التصفية؟')) return;
-      try { await deleteDocAsync(doc(db, "operator_settlements", id)); showToast('تم الحذف', 'success'); } catch (e) { showToast(e.message, 'error'); }
+        showToast("تم حفظ التصفية بنجاح", "success");
+        $('fileCode').value = '';
+        $('guideName').value = '';
+        $('settlementRevenue').value = '';
+        $('settlementExpenses').value = '';
+        $('settlementNotes').value = '';
+      } catch (e) {
+        console.error(e);
+        showToast("حدث خطأ أثناء حفظ التصفية", "error");
+      }
     },
 
     openSettlementEditModal(id) {
@@ -1917,71 +1919,125 @@
       $('editSettlementId').value = id;
       $('editFileCode').value = item.fileCode || '';
       $('editGuideName').value = item.guideName || '';
-      $('editSettlementRevenue').value = item.revenue || '';
-      $('editSettlementExpenses').value = item.expenses || '';
+      $('editSettlementRevenue').value = item.revenue || 0;
+      $('editSettlementExpenses').value = item.expenses || 0;
       $('editSettlementNotes').value = item.notes || '';
       $('editSettlementModal').style.display = 'flex';
     },
 
-    closeSettlementEditModal() { $('editSettlementModal').style.display = 'none'; },
+    closeSettlementEditModal() {
+      $('editSettlementModal').style.display = 'none';
+    },
 
     async saveEditedSettlement() {
       const id = $('editSettlementId').value;
       const fileCode = $('editFileCode').value.trim();
       const guideName = $('editGuideName').value.trim();
-      const revenue = parseFloat($('editSettlementRevenue').value) || 0;
-      const expenses = parseFloat($('editSettlementExpenses').value) || 0;
-      const notes = $('editSettlementNotes').value.trim();
 
-      if (!fileCode || !guideName) return showToast('يرجى ملء الحقول المطلوبة', 'error');
+      if (!fileCode || !guideName) {
+        showToast("البيانات المطلوبة ناقصة", "error");
+        return;
+      }
+
+      if (this.isDuplicate(this.currentSettlements, "fileCode", fileCode, id)) {
+        showToast("كود الملف مكرر مع تصفية أخرى!", "error");
+        return;
+      }
 
       try {
-        await updateDoc(doc(db, "operator_settlements", id), { fileCode, guideName, revenue, expenses, notes });
-        showToast('تم تعديل التصفية بنجاح!', 'success');
+        await updateDoc(doc(db, "settlement_records", id), {
+          fileCode,
+          guideName,
+          revenue: parseFloat($('editSettlementRevenue').value) || 0,
+          expenses: parseFloat($('editSettlementExpenses').value) || 0,
+          notes: $('editSettlementNotes').value.trim()
+        });
+        showToast("تم التعديل بنجاح", "success");
         this.closeSettlementEditModal();
-      } catch (e) { showToast(e.message, 'error'); }
+      } catch (e) {
+        console.error(e);
+        showToast("حدث خطأ أثناء التعديل", "error");
+      }
+    },
+
+    async approveSettlement(id) {
+      try {
+        await updateDoc(doc(db, "settlement_records", id), { isApproved: true });
+        showToast("تم اعتماد التصفية وتحويلها للأرشيف", "success");
+      } catch (e) {
+        console.error(e);
+        showToast("فشل الاعتماد", "error");
+      }
+    },
+
+    async unapproveSettlement(id) {
+      try {
+        await updateDoc(doc(db, "settlement_records", id), { isApproved: false });
+        showToast("تم إلغاء الاعتماد وإعادة الملف للجارية", "info");
+      } catch (e) {
+        console.error(e);
+        showToast("فشل إلغاء الاعتماد", "error");
+      }
+    },
+
+    async deleteSettlement(id) {
+      if (confirm("هل أنت متأكد من حذف هذه التصفية؟")) {
+        try {
+          await deleteDocAsync(doc(db, "settlement_records", id));
+          showToast("تم الحذف بنجاح", "success");
+        } catch (e) {
+          console.error(e);
+          showToast("حدث خطأ أثناء الحذف", "error");
+        }
+      }
+    },
+
+    updateSettlementTotalCommission() {
+      let total = 0;
+      document.querySelectorAll("#settlementsTable tbody tr").forEach(tr => {
+        if (tr.style.display !== "none" && tr.children.length > 8) {
+          const val = parseFloat(tr.children[8].innerText.replace(/,/g, '')) || 0;
+          total += val;
+        }
+      });
+      const elem = $('settlementTotalCommission');
+      if (elem) elem.innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    },
+
+    updateArchiveSettlementTotalCommission() {
+      let total = 0;
+      document.querySelectorAll("#settlementsArchiveTable tbody tr").forEach(tr => {
+        if (tr.style.display !== "none" && tr.children.length > 8) {
+          const val = parseFloat(tr.children[8].innerText.replace(/,/g, '')) || 0;
+          total += val;
+        }
+      });
+      const elem = $('archiveSettlementTotalCommission');
+      if (elem) elem.innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     },
 
     exportSettlementsList() {
-      const activeData = this.currentSettlements.filter(s => !s.isApproved);
-      if (activeData.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const data = activeData.map((item, idx) => {
-        const c = this.calculateSettlementValues(item.revenue, item.expenses);
-        return {
-          "م": idx+1, "كود الملف": item.fileCode || '', "الأوبريتور": item.guideName || '',
-          "الإيرادات": c.revenue, "المصروفات": c.expenses, "الربح": c.profit,
-          "الصافي بعد الضريبة": c.netAfterTax, "مبلغ العمولة": c.commissionAmount, "ملاحظات": item.notes || ''
-        };
-      });
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "التصفيات الجارية");
-      XLSX.writeFile(wb, "Active_Settlements.xlsx");
+      const table = $('settlementsTable');
+      if (!table) return;
+      const wb = XLSX.utils.table_to_book(table, { sheet: "التصفيات" });
+      XLSX.writeFile(wb, "Settlements_List.xlsx");
     },
 
     exportArchiveSettlementsList() {
-      const archiveData = this.currentSettlements.filter(s => s.isApproved);
-      if (archiveData.length === 0) return showToast('لا توجد بيانات بالأرشيف للتصدير', 'error');
-      const data = archiveData.map((item, idx) => {
-        const c = this.calculateSettlementValues(item.revenue, item.expenses);
-        return {
-          "م": idx+1, "كود الملف": item.fileCode || '', "الأوبريتور": item.guideName || '',
-          "الإيرادات": c.revenue, "المصروفات": c.expenses, "الربح": c.profit,
-          "الصافي بعد الضريبة": c.netAfterTax, "مبلغ العمولة": c.commissionAmount, "الحالة": "معتمد", "ملاحظات": item.notes || ''
-        };
-      });
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "أرشيف التصفيات");
-      XLSX.writeFile(wb, "Settlement_Archive.xlsx");
+      const table = $('settlementsArchiveTable');
+      if (!table) return;
+      const wb = XLSX.utils.table_to_book(table, { sheet: "الأرشيف" });
+      XLSX.writeFile(wb, "Archive_Settlements.xlsx");
     },
 
     // 4. AVIATION
     listenToAviation() {
-      const q = query(collection(db, "aviation_bookings"), orderBy("createdAt", "desc"));
+      const q = query(collection(db, "aviation_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
         const tbody = $('aviationTableBody');
         this.currentAviation = [];
         if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">لا توجد حجوزات طيران مسجلة</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">لا توجد حجوزات طيران</td></tr>';
           this.updateMasterDashboard();
           return;
         }
@@ -1999,10 +2055,10 @@
             <tr>
               <td>${idx++}</td>
               <td><strong>${escapeHTML(data.airlineName)}</strong></td>
-              <td><span class="badge badge-advance">${escapeHTML(data.pnrNumber)}</span></td>
+              <td>${escapeHTML(data.pnrNumber)}</td>
               <td>${escapeHTML(data.passengerName)}</td>
               <td>${escapeHTML(data.fileCode || '-')}</td>
-              <td style="font-weight:700;">${(parseFloat(data.ticketCost)||0).toLocaleString()}</td>
+              <td style="font-weight:800;">${(parseFloat(data.ticketCost)||0).toLocaleString()}</td>
               <td>${escapeHTML(data.currency || 'USD')}</td>
               <td>${dateStr}</td>
               <td class="no-print">
@@ -2020,29 +2076,34 @@
     async saveAviation() {
       const airlineName = $('airlineName').value.trim();
       const pnrNumber = $('pnrNumber').value.trim();
-      const passengerName = $('passengerName').value.trim();
-      const fileCode = $('aviationFileCode').value.trim();
-      const ticketCost = parseFloat($('ticketCost').value) || 0;
-      const currency = $('aviationCurrency').value;
+      const ticketCost = parseFloat($('ticketCost').value);
 
-      if (!airlineName || !pnrNumber) return showToast('يرجى ادخال اسم خط الطيران ورقم PNR', 'error');
+      if (!airlineName || !pnrNumber || isNaN(ticketCost)) {
+        showToast("يرجى كتابة خط الطيران، PNR، والمبلغ المطلوب", "error");
+        return;
+      }
 
-      const btn = $('btnSaveAviation');
-      btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
-        await addDoc(collection(db, "aviation_bookings"), {
-          airlineName, pnrNumber, passengerName, fileCode, ticketCost, currency,
-          isDeleted: false, createdAt: new Date()
+        await addDoc(collection(db, "aviation_records"), {
+          airlineName,
+          pnrNumber,
+          passengerName: $('passengerName').value.trim(),
+          fileCode: $('aviationFileCode').value.trim(),
+          ticketCost,
+          currency: $('aviationCurrency').value,
+          createdAt: new Date(),
+          isDeleted: false
         });
-        showToast('تم حفظ حجز الطيران بنجاح!', 'success');
-        $('airlineName').value = ''; $('pnrNumber').value = ''; $('passengerName').value = ''; $('aviationFileCode').value = ''; $('ticketCost').value = '';
-      } catch (e) { showToast(e.message, 'error'); }
-      finally { btn.disabled = false; btn.innerText = 'حفظ الحجز'; }
-    },
-
-    async deleteAviation(id) {
-      if (!confirm('تأكيد حذف حجز الطيران؟')) return;
-      try { await deleteDocAsync(doc(db, "aviation_bookings", id)); showToast('تم الحذف', 'success'); } catch(e) { showToast(e.message, 'error'); }
+        showToast("تم تسجيل حجز الطيران", "success");
+        $('airlineName').value = '';
+        $('pnrNumber').value = '';
+        $('passengerName').value = '';
+        $('aviationFileCode').value = '';
+        $('ticketCost').value = '';
+      } catch (e) {
+        console.error(e);
+        showToast("حدث خطأ أثناء حفظ الحجز", "error");
+      }
     },
 
     openAviationEditModal(id) {
@@ -2053,46 +2114,56 @@
       $('editPnrNumber').value = item.pnrNumber || '';
       $('editPassengerName').value = item.passengerName || '';
       $('editAviationFileCode').value = item.fileCode || '';
-      $('editTicketCost').value = item.ticketCost || '';
+      $('editTicketCost').value = item.ticketCost || 0;
       $('editAviationCurrency').value = item.currency || 'USD';
       $('editAviationModal').style.display = 'flex';
     },
 
-    closeAviationEditModal() { $('editAviationModal').style.display = 'none'; },
+    closeAviationEditModal() {
+      $('editAviationModal').style.display = 'none';
+    },
 
     async saveEditedAviation() {
       const id = $('editAviationId').value;
-      const airlineName = $('editAirlineName').value.trim();
-      const pnrNumber = $('editPnrNumber').value.trim();
-      const passengerName = $('editPassengerName').value.trim();
-      const fileCode = $('editAviationFileCode').value.trim();
-      const ticketCost = parseFloat($('editTicketCost').value) || 0;
-      const currency = $('editAviationCurrency').value;
-
-      if (!airlineName || !pnrNumber) return showToast('يرجى ملء كافة البيانات المطلوبة', 'error');
-
       try {
-        await updateDoc(doc(db, "aviation_bookings", id), { airlineName, pnrNumber, passengerName, fileCode, ticketCost, currency });
-        showToast('تم التعديل بنجاح!', 'success');
+        await updateDoc(doc(db, "aviation_records", id), {
+          airlineName: $('editAirlineName').value.trim(),
+          pnrNumber: $('editPnrNumber').value.trim(),
+          passengerName: $('editPassengerName').value.trim(),
+          fileCode: $('editAviationFileCode').value.trim(),
+          ticketCost: parseFloat($('editTicketCost').value) || 0,
+          currency: $('editAviationCurrency').value
+        });
+        showToast("تم التعديل بنجاح", "success");
         this.closeAviationEditModal();
-      } catch (e) { showToast(e.message, 'error'); }
+      } catch (e) {
+        console.error(e);
+        showToast("فشل التعديل", "error");
+      }
+    },
+
+    async deleteAviation(id) {
+      if (confirm("هل تريد حذف حجز الطيران هذا؟")) {
+        try {
+          await deleteDocAsync(doc(db, "aviation_records", id));
+          showToast("تم الحذف بنجاح", "success");
+        } catch (e) {
+          console.error(e);
+          showToast("خطأ في الحذف", "error");
+        }
+      }
     },
 
     exportAviationList() {
-      if (this.currentAviation.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const data = this.currentAviation.map((item, idx) => ({
-        "م": idx+1, "شركة الطيران": item.airlineName || '', "PNR": item.pnrNumber || '',
-        "اسم المسافر": item.passengerName || '', "رقم الملف": item.fileCode || '',
-        "القيمة": item.ticketCost || 0, "العملة": item.currency || 'USD'
-      }));
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "حجوزات الطيران");
-      XLSX.writeFile(wb, "Aviation_Bookings.xlsx");
+      const table = $('aviationTable');
+      if (!table) return;
+      const wb = XLSX.utils.table_to_book(table, { sheet: "الطيران" });
+      XLSX.writeFile(wb, "Aviation_Records.xlsx");
     },
 
     // 5. TICKETS
     listenToTickets() {
-      const q = query(collection(db, "sightseeing_tickets"), orderBy("createdAt", "desc"));
+      const q = query(collection(db, "ticket_records"), orderBy("createdAt", "desc"));
       onSnapshot(q, (snapshot) => {
         const tbody = $('ticketsTableBody');
         this.currentTickets = [];
@@ -2109,23 +2180,21 @@
           if (data.isDeleted) return;
           this.currentTickets.push(data);
 
-          const actionBadge = data.action === 'اضافة' ? '<span class="badge badge-deposit">إضافة</span>' : '<span class="badge badge-deduction">صرف</span>';
-          const qty = parseFloat(data.qty) || 0;
-          const price = parseFloat(data.unitPrice) || 0;
-          const totalVal = qty * price;
+          const totalVal = (parseFloat(data.qty) || 0) * (parseFloat(data.unitPrice) || 0);
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
+          const actionBadge = data.action === 'صرف' ? '<span class="badge badge-deduction">صرف</span>' : '<span class="badge badge-deposit">إضافة</span>';
 
           htmlBuffer += `
             <tr>
               <td>${idx++}</td>
               <td>${actionBadge}</td>
               <td><strong>${escapeHTML(data.fileCode)}</strong></td>
-              <td>${escapeHTML(data.ticketName || '-')}</td>
+              <td>${escapeHTML(data.ticketName)}</td>
               <td>${escapeHTML(data.guideName || '-')}</td>
-              <td>${qty}</td>
-              <td>${price.toLocaleString()}</td>
-              <td style="font-weight:700; color:#1e40af;">${totalVal.toLocaleString()}</td>
-              <td><span class="badge badge-advance">${escapeHTML(data.currency || 'USD')}</span></td>
+              <td>${data.qty}</td>
+              <td>${(parseFloat(data.unitPrice)||0).toLocaleString()}</td>
+              <td style="font-weight:800;">${totalVal.toLocaleString()}</td>
+              <td>${escapeHTML(data.currency || 'USD')}</td>
               <td>${escapeHTML(data.notes || '-')}</td>
               <td>${dateStr}</td>
               <td class="no-print">
@@ -2142,9 +2211,10 @@
 
     addTicketRow() {
       const container = $('ticketItemsContainer');
-      const card = document.createElement('div');
-      card.className = 'ticket-item-card';
-      card.innerHTML = `
+      const div = document.createElement('div');
+      div.className = 'ticket-item-card';
+      div.innerHTML = `
+        <button type="button" class="delete-btn" style="position:absolute; top:10px; left:10px;" onclick="this.parentElement.remove()">✕ حذف الصف</button>
         <div class="form-row">
           <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select class="ticket-action"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
           <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" class="ticket-file-code" placeholder="EG-2026-10" required></div>
@@ -2168,37 +2238,47 @@
           </div>
         </div>
         <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
-        <button type="button" class="delete-btn" style="position:absolute; top:10px; left:10px;" onclick="this.parentElement.remove()">إزالة</button>
       `;
-      container.appendChild(card);
+      container.appendChild(div);
     },
 
     async saveTicket() {
-      const cards = document.querySelectorAll('.ticket-item-card');
-      if (cards.length === 0) return;
+      const cards = document.querySelectorAll('#ticketItemsContainer .ticket-item-card');
+      let savedCount = 0;
 
-      const btn = $('btnSaveTicket');
-      btn.disabled = true; btn.innerText = 'جاري الحفظ...';
+      for (const card of cards) {
+        const fileCode = card.querySelector('.ticket-file-code').value.trim();
+        const action = card.querySelector('.ticket-action').value;
+        const ticketName = card.querySelector('.ticket-name').value.trim();
+        const guideName = card.querySelector('.ticket-guide').value.trim();
+        const qty = parseFloat(card.querySelector('.ticket-qty').value) || 0;
+        const unitPrice = parseFloat(card.querySelector('.ticket-unit-price').value) || 0;
+        const currency = card.querySelector('.ticket-currency').value;
+        const notes = card.querySelector('.ticket-notes').value.trim();
 
-      try {
-        for (let card of cards) {
-          const action = card.querySelector('.ticket-action').value;
-          const fileCode = card.querySelector('.ticket-file-code').value.trim();
-          const ticketName = card.querySelector('.ticket-name').value.trim();
-          const guideName = card.querySelector('.ticket-guide').value.trim();
-          const qty = parseFloat(card.querySelector('.ticket-qty').value) || 0;
-          const unitPrice = parseFloat(card.querySelector('.ticket-unit-price').value) || 0;
-          const currency = card.querySelector('.ticket-currency').value;
-          const notes = card.querySelector('.ticket-notes').value.trim();
+        if (!fileCode) continue;
 
-          if (!fileCode) continue;
-
-          await addDoc(collection(db, "sightseeing_tickets"), {
-            action, fileCode, ticketName, guideName, qty, unitPrice, currency, notes,
-            isDeleted: false, createdAt: new Date()
+        try {
+          await addDoc(collection(db, "ticket_records"), {
+            fileCode,
+            action,
+            ticketName,
+            guideName,
+            qty,
+            unitPrice,
+            currency,
+            notes,
+            createdAt: new Date(),
+            isDeleted: false
           });
+          savedCount++;
+        } catch (e) {
+          console.error(e);
         }
-        showToast('تم حفظ التذاكر بنجاح!', 'success');
+      }
+
+      if (savedCount > 0) {
+        showToast(`تم حفظ ${savedCount} تذكرة/حركة بنجاح`, "success");
         $('ticketItemsContainer').innerHTML = `
           <div class="ticket-item-card">
             <div class="form-row">
@@ -2226,13 +2306,9 @@
             <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
           </div>
         `;
-      } catch (e) { showToast(e.message, 'error'); }
-      finally { btn.disabled = false; btn.innerText = 'حفظ التذاكر'; }
-    },
-
-    async deleteTicket(id) {
-      if (!confirm('تأكيد حذف حركة التذكرة؟')) return;
-      try { await deleteDocAsync(doc(db, "sightseeing_tickets", id)); showToast('تم الحذف', 'success'); } catch(e) { showToast(e.message, 'error'); }
+      } else {
+        showToast("يرجى ملء رقم الملف للتذكرة على الأقل", "error");
+      }
     },
 
     openTicketEditModal(id) {
@@ -2243,129 +2319,130 @@
       $('editTicketFileCode').value = item.fileCode || '';
       $('editTicketName').value = item.ticketName || '';
       $('editTicketGuide').value = item.guideName || '';
-      $('editTicketQty').value = item.qty || '';
-      $('editTicketUnitPrice').value = item.unitPrice || '';
+      $('editTicketQty').value = item.qty || 0;
+      $('editTicketUnitPrice').value = item.unitPrice || 0;
       $('editTicketCurrency').value = item.currency || 'USD';
       $('editTicketNotes').value = item.notes || '';
       $('editTicketModal').style.display = 'flex';
     },
 
-    closeTicketEditModal() { $('editTicketModal').style.display = 'none'; },
+    closeTicketEditModal() {
+      $('editTicketModal').style.display = 'none';
+    },
 
     async saveEditedTicket() {
       const id = $('editTicketId').value;
-      const action = $('editTicketAction').value;
-      const fileCode = $('editTicketFileCode').value.trim();
-      const ticketName = $('editTicketName').value.trim();
-      const guideName = $('editTicketGuide').value.trim();
-      const qty = parseFloat($('editTicketQty').value) || 0;
-      const unitPrice = parseFloat($('editTicketUnitPrice').value) || 0;
-      const currency = $('editTicketCurrency').value;
-      const notes = $('editTicketNotes').value.trim();
-
-      if (!fileCode) return showToast('يرجى ملء رقم الملف', 'error');
-
       try {
-        await updateDoc(doc(db, "sightseeing_tickets", id), { action, fileCode, ticketName, guideName, qty, unitPrice, currency, notes });
-        showToast('تم التعديل بنجاح!', 'success');
+        await updateDoc(doc(db, "ticket_records", id), {
+          action: $('editTicketAction').value,
+          fileCode: $('editTicketFileCode').value.trim(),
+          ticketName: $('editTicketName').value.trim(),
+          guideName: $('editTicketGuide').value.trim(),
+          qty: parseFloat($('editTicketQty').value) || 0,
+          unitPrice: parseFloat($('editTicketUnitPrice').value) || 0,
+          currency: $('editTicketCurrency').value,
+          notes: $('editTicketNotes').value.trim()
+        });
+        showToast("تم التعديل بنجاح", "success");
         this.closeTicketEditModal();
-      } catch (e) { showToast(e.message, 'error'); }
+      } catch (e) {
+        console.error(e);
+        showToast("خطأ أثناء التعديل", "error");
+      }
+    },
+
+    async deleteTicket(id) {
+      if (confirm("هل تريد حذف هذه التذكرة؟")) {
+        try {
+          await deleteDocAsync(doc(db, "ticket_records", id));
+          showToast("تم الحذف بنجاح", "success");
+        } catch (e) {
+          console.error(e);
+          showToast("خطأ في الحذف", "error");
+        }
+      }
     },
 
     exportTicketsList() {
-      if (this.currentTickets.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
-      const data = this.currentTickets.map((item, idx) => ({
-        "م": idx+1, "نوع الحركة": item.action || 'إضافة', "رقم الملف": item.fileCode || '',
-        "اسم المزار": item.ticketName || '', "المندوب/المرشد": item.guideName || '',
-        "الكمية": item.qty || 0, "سعر الوحدة": item.unitPrice || 0,
-        "إجمالي القيمة": (parseFloat(item.qty)||0) * (parseFloat(item.unitPrice)||0),
-        "العملة": item.currency || 'USD', "ملاحظات": item.notes || ''
-      }));
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "مخزون التذاكر");
-      XLSX.writeFile(wb, "Tickets_Inventory.xlsx");
+      const table = $('ticketsTable');
+      if (!table) return;
+      const wb = XLSX.utils.table_to_book(table, { sheet: "التذاكر" });
+      XLSX.writeFile(wb, "Tickets_List.xlsx");
     },
 
-    // 6. MASTER DASHBOARD UPDATE
+    // MASTER DASHBOARD UPDATE
     updateMasterDashboard() {
-      // الموردين
-      const suppliersCount = this.currentSuppliers.length;
-      if ($('mDashTotalSuppliers')) $('mDashTotalSuppliers').innerText = suppliersCount;
+      $('mDashTotalSuppliers').innerText = this.currentSuppliers.length;
 
-      // صافي الكريديت بجميع العملات
-      let creditEGP = 0, creditUSD = 0, creditEUR = 0;
+      let netCreditEGP = 0, netCreditUSD = 0, netCreditEUR = 0;
       this.currentCredit.forEach(c => {
-        const curr = (c.currency || 'EGP').toUpperCase();
         const amt = parseFloat(c.amount) || 0;
-        const netVal = c.type === 'deposit' ? amt : -amt;
-        if (curr === 'EGP') creditEGP += netVal;
-        else if (curr === 'USD') creditUSD += netVal;
-        else if (curr === 'EUR') creditEUR += netVal;
+        const isDep = c.type === 'deposit';
+        const curr = (c.currency || 'EGP').toUpperCase();
+        const factor = isDep ? 1 : -1;
+
+        if (curr === 'EGP') netCreditEGP += (amt * factor);
+        else if (curr === 'USD') netCreditUSD += (amt * factor);
+        else if (curr === 'EUR') netCreditEUR += (amt * factor);
       });
 
-      if ($('mDashCreditEGP')) $('mDashCreditEGP').innerText = creditEGP.toLocaleString();
-      if ($('mDashCreditUSD')) $('mDashCreditUSD').innerText = creditUSD.toLocaleString();
-      if ($('mDashCreditEUR')) $('mDashCreditEUR').innerText = creditEUR.toLocaleString();
+      $('mDashCreditEGP').innerText = netCreditEGP.toLocaleString();
+      $('mDashCreditUSD').innerText = netCreditUSD.toLocaleString();
+      $('mDashCreditEUR').innerText = netCreditEUR.toLocaleString();
 
-      // الطيران
       let totalAviation = 0;
-      this.currentAviation.forEach(a => { totalAviation += parseFloat(a.ticketCost) || 0; });
-      if ($('mDashTotalAviation')) $('mDashTotalAviation').innerText = totalAviation.toLocaleString();
+      this.currentAviation.forEach(a => totalAviation += (parseFloat(a.ticketCost) || 0));
+      $('mDashTotalAviation').innerText = totalAviation.toLocaleString();
 
-      // التذاكر
       let totalTickets = 0;
-      this.currentTickets.forEach(t => { totalTickets += (parseFloat(t.qty)||0) * (parseFloat(t.unitPrice)||0); });
-      if ($('mDashTotalTickets')) $('mDashTotalTickets').innerText = totalTickets.toLocaleString();
+      this.currentTickets.forEach(t => totalTickets += ((parseFloat(t.qty) || 0) * (parseFloat(t.unitPrice) || 0)));
+      $('mDashTotalTickets').innerText = totalTickets.toLocaleString();
 
-      // عمولات التصفيات
       let totalCommissions = 0;
       this.currentSettlements.forEach(s => {
-        const calc = this.calculateSettlementValues(s.revenue, s.expenses);
-        totalCommissions += calc.commissionAmount;
+        const vals = this.calculateSettlementValues(s.revenue, s.expenses);
+        totalCommissions += vals.commissionAmount;
       });
-      if ($('mDashTotalSettlementCommissions')) $('mDashTotalSettlementCommissions').innerText = totalCommissions.toLocaleString(undefined, {maximumFractionDigits: 2});
+      $('mDashTotalSettlementCommissions').innerText = totalCommissions.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
-      // جدول القطاعات العام
-      const tbody = $('masterDashboardTbody');
-      if (tbody) {
-        tbody.innerHTML = `
-          <tr>
-            <td><strong>📋 الخصم والإضافة (الموردين)</strong></td>
-            <td>${suppliersCount}</td>
-            <td>-</td>
-            <td>-</td>
-            <td><span class="badge badge-hotel">${suppliersCount} مورد</span></td>
-          </tr>
-          <tr>
-            <td><strong>💳 أرصدة الكريديت</strong></td>
-            <td>${this.currentCredit.length}</td>
-            <td>متعدد العملات</td>
-            <td>متعدد العملات</td>
-            <td>EGP: ${creditEGP.toLocaleString()} | USD: ${creditUSD.toLocaleString()} | EUR: ${creditEUR.toLocaleString()}</td>
-          </tr>
-          <tr>
-            <td><strong>📄 تصفيات الملفات والأوبريتور</strong></td>
-            <td>${this.currentSettlements.length}</td>
-            <td>-</td>
-            <td>-</td>
-            <td>إجمالي العمولات: ${totalCommissions.toLocaleString(undefined, {maximumFractionDigits: 2})} EGP</td>
-          </tr>
-          <tr>
-            <td><strong>✈️ حجوزات الطيران</strong></td>
-            <td>${this.currentAviation.length}</td>
-            <td>-</td>
-            <td>${totalAviation.toLocaleString()}</td>
-            <td>إجمالي التكلفة: ${totalAviation.toLocaleString()}</td>
-          </tr>
-          <tr>
-            <td><strong>🎟️ مخزون وتذاكر المزارات</strong></td>
-            <td>${this.currentTickets.length}</td>
-            <td>-</td>
-            <td>${totalTickets.toLocaleString()}</td>
-            <td>إجمالي القيمة: ${totalTickets.toLocaleString()}</td>
-          </tr>
-        `;
-      }
+      const masterTbody = $('masterDashboardTbody');
+      masterTbody.innerHTML = `
+        <tr>
+          <td><strong>الموردين والخصم والاضافة</strong></td>
+          <td>${this.currentSuppliers.length}</td>
+          <td>-</td>
+          <td>-</td>
+          <td><span class="badge badge-hotel">${this.currentSuppliers.length} مورد مسجل</span></td>
+        </tr>
+        <tr>
+          <td><strong>أرصدة الكريديت (EGP)</strong></td>
+          <td>${this.currentCredit.filter(c => (c.currency||'EGP').toUpperCase()==='EGP').length}</td>
+          <td>${this.currentCredit.filter(c => (c.currency||'EGP').toUpperCase()==='EGP' && c.type==='deposit').reduce((a,b)=>a+(parseFloat(b.amount)||0),0).toLocaleString()}</td>
+          <td>${this.currentCredit.filter(c => (c.currency||'EGP').toUpperCase()==='EGP' && c.type==='deduction').reduce((a,b)=>a+(parseFloat(b.amount)||0),0).toLocaleString()}</td>
+          <td style="font-weight:800;">${netCreditEGP.toLocaleString()} EGP</td>
+        </tr>
+        <tr>
+          <td><strong>تصفيات الأوبريتور والملفات</strong></td>
+          <td>${this.currentSettlements.length}</td>
+          <td>${this.currentSettlements.reduce((a,b)=>a+(parseFloat(b.revenue)||0),0).toLocaleString()}</td>
+          <td>${this.currentSettlements.reduce((a,b)=>a+(parseFloat(b.expenses)||0),0).toLocaleString()}</td>
+          <td style="color:#16a34a; font-weight:800;">عمولات: ${totalCommissions.toLocaleString(undefined,{maximumFractionDigits:2})} EGP</td>
+        </tr>
+        <tr>
+          <td><strong>حجوزات الطيران</strong></td>
+          <td>${this.currentAviation.length}</td>
+          <td>-</td>
+          <td>${totalAviation.toLocaleString()}</td>
+          <td style="font-weight:800;">${totalAviation.toLocaleString()}</td>
+        </tr>
+        <tr>
+          <td><strong>مخزون وحركات التذاكر</strong></td>
+          <td>${this.currentTickets.length}</td>
+          <td>${this.currentTickets.filter(t=>t.action==='اضافة').reduce((a,b)=>a+((parseFloat(b.qty)||0)*(parseFloat(b.unitPrice)||0)),0).toLocaleString()}</td>
+          <td>${this.currentTickets.filter(t=>t.action==='صرف').reduce((a,b)=>a+((parseFloat(b.qty)||0)*(parseFloat(b.unitPrice)||0)),0).toLocaleString()}</td>
+          <td style="font-weight:800;">${totalTickets.toLocaleString()}</td>
+        </tr>
+      `;
     }
   };
 
