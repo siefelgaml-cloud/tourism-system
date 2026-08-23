@@ -439,7 +439,11 @@
         <div id="addCreditSubTab" class="sub-tab-content active">
           <h3>تسجيل حركة كريديت</h3>
           <div class="form-row">
-            <div class="form-group"><label>الجهة / المورد</label><input type="text" id="creditEntity" placeholder="أدخل اسم المورد أو الجهة..." autocomplete="off"></div>
+            <div class="form-group" style="position:relative;">
+              <label>الجهة / المورد</label>
+              <input type="text" id="creditEntity" placeholder="أدخل اسم المورد أو الجهة..." autocomplete="off" oninput="searchCreditEntitySuggestions()" onfocus="searchCreditEntitySuggestions()">
+              <div id="creditEntitySuggestions" class="suggestions-dropdown" style="display:none;"></div>
+            </div>
             <div class="form-group"><label>رقم الملف</label><input type="text" id="creditFileCode" placeholder="EG-2026-99"></div>
           </div>
           <div class="form-row">
@@ -1291,6 +1295,28 @@
   function selectStatementEntity(name) {
     document.getElementById('stEntityName').value = name;
     document.getElementById('stEntitySuggestions').style.display = 'none';
+  }
+  function searchCreditEntitySuggestions() {
+    const queryVal = document.getElementById('creditEntity').value.trim().toLowerCase();
+    const dropdown = document.getElementById('creditEntitySuggestions');
+    if (!queryVal || !window.App) { dropdown.style.display = 'none'; return; }
+
+    // نبحث في الموردين/الجهات المسجلة في قسم الخصم والإضافة (اسم الفندق/الجهة)
+    const matched = window.App.currentSuppliers.filter(s => (s.propertyName || '').toLowerCase().includes(queryVal));
+
+    if (matched.length === 0) { dropdown.style.display = 'none'; return; }
+
+    dropdown.innerHTML = matched.map((s, i) => `
+      <div class="suggestion-item" onclick="selectCreditEntitySuggestion('${escapeHTML(s.propertyName || '')}')">
+        <span>${escapeHTML(s.propertyName || '-')}</span>
+        <span style="font-size:12px; color:#94a3b8;">${escapeHTML(s.supplierName || '')}${s.taxCardNumber ? ' • ' + escapeHTML(s.taxCardNumber) : ''}</span>
+      </div>
+    `).join('');
+    dropdown.style.display = 'block';
+  }
+  function selectCreditEntitySuggestion(name) {
+    document.getElementById('creditEntity').value = name;
+    document.getElementById('creditEntitySuggestions').style.display = 'none';
   }
   function renderRunningStatement() {
     const entity = document.getElementById('stEntityName').value.trim();
