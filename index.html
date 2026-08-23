@@ -1301,17 +1301,13 @@
     const dropdown = document.getElementById('creditEntitySuggestions');
     if (!queryVal || !window.App) { dropdown.style.display = 'none'; return; }
 
-    // نبحث في الموردين/الجهات المسجلة في قسم الخصم والإضافة (اسم الفندق/الجهة)
-    const matched = window.App.currentSuppliers.filter(s => (s.propertyName || '').toLowerCase().includes(queryVal));
+    // نبحث في أسماء الفنادق/الجهات المسجلة فعليًا في سجل عمليات الكريديت (أرصدة الكريديت)
+    const matched = [...new Set(window.App.currentCredit.map(c => c.entity))]
+      .filter(e => e && e.toLowerCase().includes(queryVal));
 
     if (matched.length === 0) { dropdown.style.display = 'none'; return; }
 
-    dropdown.innerHTML = matched.map((s, i) => `
-      <div class="suggestion-item" onclick="selectCreditEntitySuggestion('${escapeHTML(s.propertyName || '')}')">
-        <span>${escapeHTML(s.propertyName || '-')}</span>
-        <span style="font-size:12px; color:#94a3b8;">${escapeHTML(s.supplierName || '')}${s.taxCardNumber ? ' • ' + escapeHTML(s.taxCardNumber) : ''}</span>
-      </div>
-    `).join('');
+    dropdown.innerHTML = matched.map(m => `<div class="suggestion-item" onclick="selectCreditEntitySuggestion('${escapeHTML(m)}')"><span>${escapeHTML(m)}</span></div>`).join('');
     dropdown.style.display = 'block';
   }
   function selectCreditEntitySuggestion(name) {
