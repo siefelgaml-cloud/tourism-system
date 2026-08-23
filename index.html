@@ -176,9 +176,9 @@
     }
     .dash-card-title { font-size: 13px; font-weight: 700; display: block; margin-bottom: 8px; color: #64748b; }
     .dash-card-value { font-size: 22px; font-weight: 800; direction: ltr; text-align: right; }
-    .dash-card-value.currency-breakdown { font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
-    .dash-card-value.currency-breakdown .cur-row { display: flex; justify-content: space-between; gap: 10px; }
-    .dash-card-value.currency-breakdown .cur-code { font-size: 12px; font-weight: 700; opacity: 0.75; }
+    .dash-card-value.currency-breakdown { font-size: 15px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+    .dash-card-value.currency-breakdown .cur-row { display: flex; flex-direction: column; align-items: center; gap: 2px; background: rgba(0,0,0,0.04); padding: 4px 10px; border-radius: 8px; }
+    .dash-card-value.currency-breakdown .cur-code { font-size: 11px; font-weight: 700; opacity: 0.75; }
 
     .table-wrapper { overflow-x: auto; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -398,9 +398,19 @@
             <div class="form-group"><label>رقم البطاقة الضريبية</label><input type="text" id="taxCardNumber" placeholder="رقم البطاقة"></div>
           </div>
           <div class="form-group"><label>حالة الضريبة</label><select id="taxType"><option value="0.03">خاضع لضريبة 3%</option><option value="advance_payment">دفعات مقدمة</option></select></div>
-          <div class="form-group"><label>إرفاق ملف (اختياري)</label><input type="file" id="supplierAttachment"></div>
           <div class="btn-group">
             <button class="submit-btn" id="btnSaveSupplier" onclick="App.saveSupplier()">حفظ البيانات</button>
+          </div>
+
+          <div style="margin-top:25px; padding-top:20px; border-top:2px dashed #cbd5e1;">
+            <h4 style="margin-bottom:10px; color:#0f172a;">📥 استيراد عدة موردين دفعة واحدة (ملف إكسيل)</h4>
+            <p style="font-size:13px; color:#64748b; margin-bottom:12px;">أعمدة الملف المطلوبة: <strong>النوع، الاسم، المورد، الرقم الضريبي، حالة الضريبة</strong> (اكتب "خاضع 3%" أو "دفعات مقدمة")</p>
+            <div class="form-row" style="align-items:flex-end;">
+              <div class="form-group" style="margin-bottom:0;"><input type="file" id="supplierExcelFile" accept=".xlsx,.xls"></div>
+              <div class="form-group" style="flex:0 0 auto; margin-bottom:0;">
+                <button class="excel-btn" id="btnImportSuppliersExcel" onclick="App.importSuppliersFromExcel()">📥 استيراد من إكسيل</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -419,7 +429,7 @@
               <h2>تقرير سجل الموردين المسجلين</h2>
               <p>منظومة الحسابات والخصم والإضافة</p>
             </div>
-            <div class="table-wrapper"><table id="suppliersTable"><thead><tr><th>#</th><th>النوع</th><th>الاسم</th><th>المورد</th><th>الرقم الضريبي</th><th>حالة الضريبة</th><th>التاريخ</th><th>المرفق</th><th class="no-print">إجراءات</th></tr></thead><tbody id="suppliersTableBody"><tr><td colspan="9" style="text-align:center;">جاري التحميل...</td></tr></tbody></table></div>
+            <div class="table-wrapper"><table id="suppliersTable"><thead><tr><th>#</th><th>النوع</th><th>الاسم</th><th>المورد</th><th>الرقم الضريبي</th><th>حالة الضريبة</th><th>التاريخ</th><th class="no-print">إجراءات</th></tr></thead><tbody id="suppliersTableBody"><tr><td colspan="8" style="text-align:center;">جاري التحميل...</td></tr></tbody></table></div>
           </div>
         </div>
       </div>
@@ -451,9 +461,19 @@
             </div>
           </div>
           <div class="form-group"><label>البيان</label><textarea id="creditDescription" placeholder="تفاصيل الحركة..."></textarea></div>
-          <div class="form-group"><label>إرفاق ملف (اختياري)</label><input type="file" id="creditAttachment"></div>
           <div class="btn-group">
             <button class="submit-btn" id="btnSaveCredit" onclick="App.saveCredit()">تسجيل الحركة</button>
+          </div>
+
+          <div style="margin-top:25px; padding-top:20px; border-top:2px dashed #cbd5e1;">
+            <h4 style="margin-bottom:10px; color:#0f172a;">📥 استيراد عدة حركات دفعة واحدة (ملف إكسيل)</h4>
+            <p style="font-size:13px; color:#64748b; margin-bottom:12px;">أعمدة الملف المطلوبة: <strong>الجهة، رقم الملف، الوصول، المغادرة، النوع، المبلغ، العملة، البيان</strong> (النوع: "مدين" أو "دائن")</p>
+            <div class="form-row" style="align-items:flex-end;">
+              <div class="form-group" style="margin-bottom:0;"><input type="file" id="creditExcelFile" accept=".xlsx,.xls"></div>
+              <div class="form-group" style="flex:0 0 auto; margin-bottom:0;">
+                <button class="excel-btn" id="btnImportCreditExcel" onclick="App.importCreditFromExcel()">📥 استيراد من إكسيل</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -465,7 +485,7 @@
               <button class="excel-btn" onclick="App.exportCreditList()">📊 Excel</button>
             </div>
           </div>
-          <div class="table-wrapper"><table id="creditTable"><thead><tr><th>#</th><th>الجهة</th><th>رقم الملف</th><th>الوصول</th><th>المغادرة</th><th>النوع</th><th>المبلغ</th><th>العملة</th><th>البيان</th><th>التاريخ</th><th>المرفق</th><th>إجراءات</th></tr></thead><tbody id="creditTableBody"><tr><td colspan="12" style="text-align:center;">جاري التحميل...</td></tr></tbody></table></div>
+          <div class="table-wrapper"><table id="creditTable"><thead><tr><th>#</th><th>الجهة</th><th>رقم الملف</th><th>الوصول</th><th>المغادرة</th><th>النوع</th><th>المبلغ</th><th>العملة</th><th>البيان</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody id="creditTableBody"><tr><td colspan="11" style="text-align:center;">جاري التحميل...</td></tr></tbody></table></div>
         </div>
 
         <div id="creditSummarySubTab" class="sub-tab-content">
@@ -619,9 +639,19 @@
             <div class="form-group"><label>إجمالي المصروفات</label><input type="number" id="settlementExpenses" placeholder="المصروف..." step="any"></div>
           </div>
           <div class="form-group"><label>ملاحظات التصفية</label><textarea id="settlementNotes" placeholder="أي تفاصيل أو ملاحظات أصل التصفية..."></textarea></div>
-          <div class="form-group"><label>إرفاق ملف (اختياري)</label><input type="file" id="settlementAttachment"></div>
           <div class="btn-group">
             <button class="submit-btn" id="btnSaveSettlement" onclick="App.saveSettlement()">حفظ التصفية</button>
+          </div>
+
+          <div style="margin-top:25px; padding-top:20px; border-top:2px dashed #cbd5e1;">
+            <h4 style="margin-bottom:10px; color:#0f172a;">📥 استيراد عدة تصفيات دفعة واحدة (ملف إكسيل)</h4>
+            <p style="font-size:13px; color:#64748b; margin-bottom:12px;">أعمدة الملف المطلوبة: <strong>كود الملف، اسم الأوبريتور، الإيرادات، المصروفات، ملاحظات</strong></p>
+            <div class="form-row" style="align-items:flex-end;">
+              <div class="form-group" style="margin-bottom:0;"><input type="file" id="settlementExcelFile" accept=".xlsx,.xls"></div>
+              <div class="form-group" style="flex:0 0 auto; margin-bottom:0;">
+                <button class="excel-btn" id="btnImportSettlementExcel" onclick="App.importSettlementsFromExcel()">📥 استيراد من إكسيل</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -680,12 +710,11 @@
                     <th>مبلغ العموله</th>
                     <th>ملاحظات</th>
                     <th>التاريخ</th>
-                    <th>المرفق</th>
                     <th class="no-print">إجراءات</th>
                   </tr>
                 </thead>
                 <tbody id="settlementsTableBody">
-                  <tr><td colspan="13" style="text-align:center;">جاري التحميل...</td></tr>
+                  <tr><td colspan="12" style="text-align:center;">جاري التحميل...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -748,12 +777,11 @@
                     <th>ملاحظات</th>
                     <th>حالة الملف</th>
                     <th>التاريخ</th>
-                    <th>المرفق</th>
                     <th class="no-print">إجراءات</th>
                   </tr>
                 </thead>
                 <tbody id="settlementsArchiveTableBody">
-                  <tr><td colspan="14" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>
+                  <tr><td colspan="13" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>
                 </tbody>
               </table>
             </div>
@@ -1346,9 +1374,6 @@
     getFirestore, collection, addDoc, updateDoc, doc, 
     onSnapshot, query, orderBy 
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-  import {
-    getStorage, ref as storageRef, uploadBytes, getDownloadURL
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBnVZaF4cbNqTM03tA3dWEFk2k3aWj0djs",
@@ -1361,22 +1386,6 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const storage = getStorage(app);
-
-  // رفع ملف مرفق إلى Firebase Storage وإرجاع رابط التحميل + اسم الملف
-  const uploadAttachmentFile = async (file, folder) => {
-    if (!file) return null;
-    try {
-      const path = `${folder}/${Date.now()}_${file.name}`;
-      const fileRef = storageRef(storage, path);
-      await uploadBytes(fileRef, file);
-      const url = await getDownloadURL(fileRef);
-      return { url, name: file.name };
-    } catch (e) {
-      showToast('تعذر رفع الملف المرفق: ' + e.message, 'error');
-      return null;
-    }
-  };
 
   const deleteDocAsync = async (documentReference) => updateDoc(documentReference, {
     isDeleted: true,
@@ -1399,6 +1408,57 @@
       toast.style.transform = 'translateX(-30px)';
       setTimeout(() => toast.remove(), 300);
     }, duration);
+  };
+
+  // قراءة أول شيت من ملف إكسيل وتحويله لمصفوفة كائنات (كل عمود بعنوان الهيدر)
+  const readExcelFileAsRows = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+          resolve(rows);
+        } catch (err) { reject(err); }
+      };
+      reader.onerror = () => reject(new Error('تعذرت قراءة الملف'));
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  // استيراد صفوف من إكسيل إلى مجموعة في Firestore، مع دالة تحويل صف -> بيانات المستند (أو null لتجاهله)
+  const bulkImportToCollection = async (rows, collectionName, rowMapper) => {
+    let successCount = 0, skipCount = 0;
+    for (const row of rows) {
+      const mapped = rowMapper(row);
+      if (!mapped) { skipCount++; continue; }
+      await addDoc(collection(db, collectionName), mapped);
+      successCount++;
+    }
+    return { successCount, skipCount, total: rows.length };
+  };
+
+  // تحويل قيمة تاريخ من إكسيل (رقم تسلسلي أو نص) إلى صيغة YYYY-MM-DD المطلوبة لحقل input[type=date]
+  const excelDateToInputValue = (value) => {
+    if (value === '' || value === null || value === undefined) return '';
+    if (typeof value === 'number') {
+      const parsed = XLSX.SSF.parse_date_code(value);
+      if (!parsed) return '';
+      const mm = String(parsed.m).padStart(2, '0');
+      const dd = String(parsed.d).padStart(2, '0');
+      return `${parsed.y}-${mm}-${dd}`;
+    }
+    const str = String(value).trim();
+    // صيغة DD/MM/YYYY أو DD-MM-YYYY
+    const m1 = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+    // صيغة YYYY-MM-DD جاهزة
+    const m2 = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m2) return `${m2[1]}-${m2[2].padStart(2,'0')}-${m2[3].padStart(2,'0')}`;
+    return '';
   };
 
   const App = {
@@ -1450,7 +1510,7 @@
         const tbody = $('suppliersTableBody');
         this.currentSuppliers = [];
         if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">لا توجد بيانات</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا توجد بيانات</td></tr>';
           this.updateMasterDashboard();
           return;
         }
@@ -1478,7 +1538,6 @@
               <td>${escapeHTML(data.taxCardNumber)}</td>
               <td>${taxBadge}</td>
               <td>${dateStr}</td>
-              <td>${data.attachmentUrl ? `<a href="${data.attachmentUrl}" target="_blank" rel="noopener">📎 عرض الملف</a>` : '-'}</td>
               <td class="no-print">
                 <button class="edit-btn" onclick="App.openEditModal('${docSnap.id}')">تعديل</button>
                 <button class="delete-btn" onclick="App.deleteSupplier('${docSnap.id}')">حذف</button>
@@ -1503,15 +1562,11 @@
 
       if (this.isDuplicate(this.currentSuppliers, 'taxCardNumber', taxCardNumber)) return showToast('يوجد مورد مسجل بنفس الرقم الضريبي', 'error');
       const btn = $('btnSaveSupplier');
-      const attachmentInput = $('supplierAttachment');
-      const attachmentFile = attachmentInput && attachmentInput.files[0];
       btn.disabled = true; btn.innerText = 'جاري الحفظ...';
       try {
-        const attachment = attachmentFile ? await uploadAttachmentFile(attachmentFile, 'suppliers_attachments') : null;
-        await addDoc(collection(db, "tax_discount_records"), { supplierType, propertyName, supplierName, taxCardNumber, taxRate, attachmentUrl: attachment ? attachment.url : null, attachmentName: attachment ? attachment.name : null, isDeleted: false, createdAt: new Date() });
+        await addDoc(collection(db, "tax_discount_records"), { supplierType, propertyName, supplierName, taxCardNumber, taxRate, isDeleted: false, createdAt: new Date() });
         showToast('تم حفظ المورد بنجاح!', 'success');
         $('propertyName').value = ''; $('supplierName').value = ''; $('taxCardNumber').value = '';
-        if (attachmentInput) attachmentInput.value = '';
       } catch (e) { showToast(e.message, 'error'); } 
       finally { btn.disabled = false; btn.innerText = 'حفظ البيانات'; }
     },
@@ -1563,6 +1618,35 @@
       XLSX.writeFile(wb, "Suppliers_List.xlsx");
     },
 
+    async importSuppliersFromExcel() {
+      const input = $('supplierExcelFile');
+      const file = input && input.files[0];
+      if (!file) return showToast('يرجى اختيار ملف إكسيل أولاً', 'error');
+
+      const btn = $('btnImportSuppliersExcel');
+      btn.disabled = true; btn.innerText = 'جاري الاستيراد...';
+      try {
+        const rows = await readExcelFileAsRows(file);
+        const result = await bulkImportToCollection(rows, 'tax_discount_records', (row) => {
+          const propertyName = String(row['الاسم'] ?? '').trim();
+          const supplierName = String(row['المورد'] ?? '').trim();
+          const taxCardNumber = String(row['الرقم الضريبي'] ?? '').trim();
+          if (!propertyName || !supplierName || !taxCardNumber) return null;
+
+          let supplierType = String(row['النوع'] ?? 'فندق').trim();
+          if (!['فندق', 'كروز', 'مطعم'].includes(supplierType)) supplierType = 'فندق';
+
+          const taxStatusRaw = String(row['حالة الضريبة'] ?? '').trim();
+          const taxRate = (taxStatusRaw.includes('3') || taxStatusRaw === '0.03') ? 0.03 : 'advance_payment';
+
+          return { supplierType, propertyName, supplierName, taxCardNumber, taxRate, isDeleted: false, createdAt: new Date() };
+        });
+        showToast(`تم استيراد ${result.successCount} من ${result.total} سجل` + (result.skipCount ? ` (تم تجاهل ${result.skipCount} لعدم اكتمال البيانات)` : ''), 'success');
+        input.value = '';
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.disabled = false; btn.innerText = '📥 استيراد من إكسيل'; }
+    },
+
     // 2. CREDIT BALANCES
     listenToCredit() {
       const q = query(collection(db, "credit_balances"), orderBy("createdAt", "desc"));
@@ -1570,7 +1654,7 @@
         const tbody = $('creditTableBody');
         this.currentCredit = [];
         if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد حركات مسجلة</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">لا توجد حركات مسجلة</td></tr>';
           this.updateMasterDashboard();
           return;
         }
@@ -1597,7 +1681,6 @@
               <td>${escapeHTML(data.currency || 'EGP')}</td>
               <td>${escapeHTML(data.description || '-')}</td>
               <td>${dateStr}</td>
-              <td>${data.attachmentUrl ? `<a href="${data.attachmentUrl}" target="_blank" rel="noopener">📎 عرض الملف</a>` : '-'}</td>
               <td class="no-print">
                 <button class="delete-btn" onclick="App.deleteCredit('${docSnap.id}')">حذف</button>
               </td>
@@ -1623,18 +1706,12 @@
       if (!entity || isNaN(amount) || amount <= 0) return showToast('يرجى ادخال الجهة والمبلغ بشكل صحيح', 'error');
 
       const btn = $('btnSaveCredit'); btn.disabled = true;
-      const attachmentInput = $('creditAttachment');
-      const attachmentFile = attachmentInput && attachmentInput.files[0];
       try {
-        const attachment = attachmentFile ? await uploadAttachmentFile(attachmentFile, 'credit_attachments') : null;
         await addDoc(collection(db, "credit_balances"), {
-          entity, fileCode, arrivalDate, departureDate, type, amount, currency, description,
-          attachmentUrl: attachment ? attachment.url : null, attachmentName: attachment ? attachment.name : null,
-          isDeleted: false, createdAt: new Date()
+          entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, isDeleted: false, createdAt: new Date()
         });
         showToast('تم تسجيل الحركة بنجاح', 'success');
         $('creditEntity').value = ''; $('creditFileCode').value = ''; $('creditAmount').value = ''; $('creditDescription').value = '';
-        if (attachmentInput) attachmentInput.value = '';
       } catch (e) { showToast(e.message, 'error'); } 
       finally { btn.disabled = false; }
     },
@@ -1653,6 +1730,37 @@
       }));
       const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "الكريديت"); XLSX.writeFile(wb, "Credit_List.xlsx");
+    },
+
+    async importCreditFromExcel() {
+      const input = $('creditExcelFile');
+      const file = input && input.files[0];
+      if (!file) return showToast('يرجى اختيار ملف إكسيل أولاً', 'error');
+
+      const btn = $('btnImportCreditExcel');
+      btn.disabled = true; btn.innerText = 'جاري الاستيراد...';
+      try {
+        const rows = await readExcelFileAsRows(file);
+        const result = await bulkImportToCollection(rows, 'credit_balances', (row) => {
+          const entity = String(row['الجهة'] ?? '').trim();
+          const amount = parseFloat(row['المبلغ']);
+          if (!entity || isNaN(amount) || amount <= 0) return null;
+
+          const fileCode = String(row['رقم الملف'] ?? '').trim();
+          const arrivalDate = excelDateToInputValue(row['الوصول']);
+          const departureDate = excelDateToInputValue(row['المغادرة']);
+          const typeRaw = String(row['النوع'] ?? '').trim();
+          const type = (typeRaw === 'دائن' || typeRaw === 'deduction') ? 'deduction' : 'deposit';
+          let currency = String(row['العملة'] ?? 'EGP').trim().toUpperCase();
+          if (!['EGP', 'USD', 'EUR'].includes(currency)) currency = 'EGP';
+          const description = String(row['البيان'] ?? '').trim();
+
+          return { entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, isDeleted: false, createdAt: new Date() };
+        });
+        showToast(`تم استيراد ${result.successCount} من ${result.total} سجل` + (result.skipCount ? ` (تم تجاهل ${result.skipCount} لعدم اكتمال البيانات)` : ''), 'success');
+        input.value = '';
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.disabled = false; btn.innerText = '📥 استيراد من إكسيل'; }
     },
 
     updateCreditDashboard() {
@@ -2020,8 +2128,8 @@
 
         this.currentSettlements = [];
         if (snapshot.empty) {
-          if (tbody) tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;">لا توجد تصفيات مسجلة</td></tr>';
-          if (archiveTbody) archiveTbody.innerHTML = '<tr><td colspan="14" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>';
+          if (tbody) tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات مسجلة</td></tr>';
+          if (archiveTbody) archiveTbody.innerHTML = '<tr><td colspan="13" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>';
           this.updateMasterDashboard();
           return;
         }
@@ -2057,7 +2165,6 @@
                 <td>${escapeHTML(data.notes || '-')}</td>
                 <td><span class="badge badge-archive">معتمد</span></td>
                 <td>${dateStr}</td>
-                <td>${data.attachmentUrl ? `<a href="${data.attachmentUrl}" target="_blank" rel="noopener">📎 عرض الملف</a>` : '-'}</td>
                 <td class="no-print">
                   <button class="unapprove-btn" onclick="App.unapproveSettlement('${docSnap.id}')">إلغاء الاعتماد</button>
                   <button class="delete-btn" onclick="App.deleteSettlement('${docSnap.id}')">حذف</button>
@@ -2078,7 +2185,6 @@
                 <td style="font-weight:700; color:#16a34a;">${calcs.commissionAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 <td>${escapeHTML(data.notes || '-')}</td>
                 <td>${dateStr}</td>
-                <td>${data.attachmentUrl ? `<a href="${data.attachmentUrl}" target="_blank" rel="noopener">📎 عرض الملف</a>` : '-'}</td>
                 <td class="no-print">
                   <button class="approve-btn" onclick="App.approveSettlement('${docSnap.id}')">اعتماد</button>
                   <button class="edit-btn" onclick="App.openSettlementEditModal('${docSnap.id}')">تعديل</button>
@@ -2089,8 +2195,8 @@
           }
         });
 
-        if (tbody) tbody.innerHTML = htmlBuffer || '<tr><td colspan="13" style="text-align:center;">لا توجد تصفيات جارية</td></tr>';
-        if (archiveTbody) archiveTbody.innerHTML = archiveHtmlBuffer || '<tr><td colspan="14" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>';
+        if (tbody) tbody.innerHTML = htmlBuffer || '<tr><td colspan="12" style="text-align:center;">لا توجد تصفيات جارية</td></tr>';
+        if (archiveTbody) archiveTbody.innerHTML = archiveHtmlBuffer || '<tr><td colspan="13" style="text-align:center;">لا توجد تصفيات معتمدة في الأرشيف</td></tr>';
 
         const optionsHtml = '<option value="">-- جميع الأوبريتورز / المرشدين --</option>' + 
           Array.from(guidesSet).map(g => `<option value="${escapeHTML(g)}">${escapeHTML(g)}</option>`).join('');
@@ -2122,18 +2228,12 @@
       if (!fileCode || !guideName) return showToast('يرجى ادخال كود الملف واسم الأوبريتور', 'error');
 
       const btn = $('btnSaveSettlement'); btn.disabled = true;
-      const attachmentInput = $('settlementAttachment');
-      const attachmentFile = attachmentInput && attachmentInput.files[0];
       try {
-        const attachment = attachmentFile ? await uploadAttachmentFile(attachmentFile, 'settlement_attachments') : null;
         await addDoc(collection(db, "settlement_records"), {
-          fileCode, guideName, revenue, expenses, notes,
-          attachmentUrl: attachment ? attachment.url : null, attachmentName: attachment ? attachment.name : null,
-          isApproved: false, isDeleted: false, createdAt: new Date()
+          fileCode, guideName, revenue, expenses, notes, isApproved: false, isDeleted: false, createdAt: new Date()
         });
         showToast('تم حفظ التصفية بنجاح', 'success');
         $('fileCode').value = ''; $('guideName').value = ''; $('settlementRevenue').value = ''; $('settlementExpenses').value = ''; $('settlementNotes').value = '';
-        if (attachmentInput) attachmentInput.value = '';
       } catch(e) { showToast(e.message, 'error'); }
       finally { btn.disabled = false; }
     },
@@ -2201,6 +2301,32 @@
       });
       const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "تصفيات الملفات"); XLSX.writeFile(wb, "Settlements_List.xlsx");
+    },
+
+    async importSettlementsFromExcel() {
+      const input = $('settlementExcelFile');
+      const file = input && input.files[0];
+      if (!file) return showToast('يرجى اختيار ملف إكسيل أولاً', 'error');
+
+      const btn = $('btnImportSettlementExcel');
+      btn.disabled = true; btn.innerText = 'جاري الاستيراد...';
+      try {
+        const rows = await readExcelFileAsRows(file);
+        const result = await bulkImportToCollection(rows, 'settlement_records', (row) => {
+          const fileCode = String(row['كود الملف'] ?? '').trim();
+          const guideName = String(row['اسم الأوبريتور'] ?? '').trim();
+          if (!fileCode || !guideName) return null;
+
+          const revenue = parseFloat(row['الإيرادات']) || 0;
+          const expenses = parseFloat(row['المصروفات']) || 0;
+          const notes = String(row['ملاحظات'] ?? '').trim();
+
+          return { fileCode, guideName, revenue, expenses, notes, isApproved: false, isDeleted: false, createdAt: new Date() };
+        });
+        showToast(`تم استيراد ${result.successCount} من ${result.total} سجل` + (result.skipCount ? ` (تم تجاهل ${result.skipCount} لعدم اكتمال البيانات)` : ''), 'success');
+        input.value = '';
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.disabled = false; btn.innerText = '📥 استيراد من إكسيل'; }
     },
 
     exportArchiveSettlementsList() {
