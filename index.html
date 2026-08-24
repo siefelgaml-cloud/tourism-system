@@ -877,17 +877,12 @@
             <table id="ticketItemsTable">
               <thead>
                 <tr>
-                  <th>اسم المزار / الفعالية</th>
+                  <th>اسم المزار والفعالية</th>
                   <th>الكمية</th>
-                  <th class="no-print" style="width:40px;"></th>
                 </tr>
               </thead>
               <tbody id="ticketItemsTableBody"></tbody>
             </table>
-          </div>
-
-          <div class="btn-group" style="justify-content:flex-start; margin-top:10px;">
-            <button type="button" class="add-more-btn" onclick="App.addTicketRow()">➕ إضافة صف</button>
           </div>
 
           <div class="form-group" style="margin-top:15px;"><label>ملاحظات</label><textarea id="ticketNotesShared" placeholder="ملاحظات إضافية..."></textarea></div>
@@ -1461,6 +1456,13 @@
 
   const $ = (id) => document.getElementById(id);
 
+  // قائمة المزارات الثابتة المستخدمة في صفحة إضافة تذكرة مزار
+  const TICKET_ATTRACTIONS = [
+    'الهرم', 'متحف كبير', 'سقاره', 'المتحف المصري', 'القلعه', 'دهشور',
+    'معبد الاقصر', 'ادفو', 'وادي الملوك', 'حتشبسوت', 'الكرنك', 'فيله',
+    'ابو سمبل', 'كوم امبو', 'عمود السواري', 'كتاكومب'
+  ];
+
   const showToast = (message, type = 'info', duration = 3500) => {
     const container = document.getElementById('toastContainer') || (() => {
       const div = document.createElement('div'); div.id = 'toastContainer'; div.className = 'toast-container';
@@ -1541,7 +1543,7 @@
       this.listenToAviation();
       this.listenToTickets();
       this.listenToSettlements();
-      this.addTicketRow();
+      this.renderFixedTicketRows();
     },
 
     normalizeKey(value) {
@@ -2049,40 +2051,26 @@
       });
     },
 
-    addTicketRow(name = '', qty = '') {
+    renderFixedTicketRows() {
       const tbody = $('ticketItemsTableBody');
-      const tr = document.createElement('tr');
+      tbody.innerHTML = '';
+      TICKET_ATTRACTIONS.forEach(attraction => {
+        const tr = document.createElement('tr');
 
-      const nameTd = document.createElement('td');
-      const nameInput = document.createElement('input');
-      nameInput.type = 'text'; nameInput.className = 'ticket-row-name';
-      nameInput.placeholder = 'مثال: الأهرامات / معبد الكرنك';
-      nameInput.value = name;
-      nameTd.appendChild(nameInput);
+        const nameTd = document.createElement('td');
+        nameTd.textContent = attraction;
+        nameTd.className = 'ticket-row-name';
+        nameTd.dataset.name = attraction;
 
-      const qtyTd = document.createElement('td');
-      const qtyInput = document.createElement('input');
-      qtyInput.type = 'number'; qtyInput.className = 'ticket-row-qty';
-      qtyInput.placeholder = 'العدد';
-      qtyInput.value = qty;
-      qtyTd.appendChild(qtyInput);
+        const qtyTd = document.createElement('td');
+        const qtyInput = document.createElement('input');
+        qtyInput.type = 'number'; qtyInput.className = 'ticket-row-qty';
+        qtyInput.placeholder = '0'; qtyInput.min = '0';
+        qtyTd.appendChild(qtyInput);
 
-      const actionsTd = document.createElement('td');
-      actionsTd.className = 'no-print';
-      const removeBtn = document.createElement('button');
-      removeBtn.type = 'button'; removeBtn.className = 'delete-btn'; removeBtn.textContent = '✕';
-      removeBtn.onclick = () => App.removeTicketRow(removeBtn);
-      actionsTd.appendChild(removeBtn);
-
-      tr.appendChild(nameTd); tr.appendChild(qtyTd); tr.appendChild(actionsTd);
-      tbody.appendChild(tr);
-    },
-
-    removeTicketRow(btnEl) {
-      const tbody = $('ticketItemsTableBody');
-      const tr = btnEl.closest('tr');
-      if (tr) tr.remove();
-      if (tbody.children.length === 0) this.addTicketRow();
+        tr.appendChild(nameTd); tr.appendChild(qtyTd);
+        tbody.appendChild(tr);
+      });
     },
 
     resetTicketForm() {
@@ -2090,8 +2078,7 @@
       $('ticketFileCodeShared').value = '';
       $('ticketGuideShared').value = '';
       $('ticketNotesShared').value = '';
-      $('ticketItemsTableBody').innerHTML = '';
-      this.addTicketRow();
+      this.renderFixedTicketRows();
     },
 
     async saveTicket() {
@@ -2105,12 +2092,12 @@
       const rows = document.querySelectorAll('#ticketItemsTableBody tr');
       const validRows = [];
       rows.forEach(tr => {
-        const ticketName = tr.querySelector('.ticket-row-name').value.trim();
+        const ticketName = tr.querySelector('.ticket-row-name').dataset.name;
         const qty = parseInt(tr.querySelector('.ticket-row-qty').value) || 0;
         if (qty > 0) validRows.push({ ticketName, qty });
       });
 
-      if (validRows.length === 0) return showToast('يرجى إدخال كمية صحيحة لصف واحد على الأقل', 'error');
+      if (validRows.length === 0) return showToast('يرجى إدخال كمية صحيحة لمزار واحد على الأقل', 'error');
 
       const btn = $('btnSaveTicket'); btn.disabled = true;
       try {
@@ -2134,26 +2121,22 @@
       btn.disabled = true; btn.innerText = 'جاري الاستيراد...';
       try {
         const rows = await readExcelFileAsRows(file);
-        let addedCount = 0, skipCount = 0;
-
-        // نشيل أي صف فاضي تماماً موجود في الجدول قبل إضافة صفوف الإكسيل
-        const existingRows = document.querySelectorAll('#ticketItemsTableBody tr');
-        const onlyEmptyRow = existingRows.length === 1 &&
-          !existingRows[0].querySelector('.ticket-row-name').value.trim() &&
-          !existingRows[0].querySelector('.ticket-row-qty').value;
-        if (onlyEmptyRow) $('ticketItemsTableBody').innerHTML = '';
+        let matchedCount = 0, skipCount = 0;
 
         rows.forEach(row => {
           const ticketName = String(row['اسم المزار'] ?? '').trim();
           const qty = parseInt(row['الكمية']) || 0;
           if (!ticketName || qty <= 0) { skipCount++; return; }
-          this.addTicketRow(ticketName, qty);
-          addedCount++;
+
+          const targetRow = Array.from(document.querySelectorAll('#ticketItemsTableBody tr'))
+            .find(tr => tr.querySelector('.ticket-row-name').dataset.name === ticketName);
+
+          if (!targetRow) { skipCount++; return; }
+          targetRow.querySelector('.ticket-row-qty').value = qty;
+          matchedCount++;
         });
 
-        if ($('ticketItemsTableBody').children.length === 0) this.addTicketRow();
-
-        showToast(`تم إضافة ${addedCount} صف للجدول` + (skipCount ? ` (تم تجاهل ${skipCount} لعدم اكتمال البيانات)` : '') + ' — راجع البيانات ثم اضغط حفظ', 'success');
+        showToast(`تم تعبئة كمية ${matchedCount} مزار من الملف` + (skipCount ? ` (تم تجاهل ${skipCount} صف لعدم مطابقة اسم المزار أو نقص البيانات)` : '') + ' — راجع البيانات ثم اضغط حفظ', 'success');
         input.value = '';
       } catch (e) { showToast(e.message, 'error'); }
       finally { btn.disabled = false; btn.innerText = '📥 استيراد من إكسيل'; }
