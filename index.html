@@ -406,12 +406,8 @@
           <div style="margin-top:25px; padding-top:20px; border-top:2px dashed #cbd5e1;">
             <h4 style="margin-bottom:10px; color:#0f172a;">📥 استيراد عدة موردين دفعة واحدة (ملف إكسيل)</h4>
             <p style="font-size:13px; color:#64748b; margin-bottom:12px;">أعمدة الملف المطلوبة: <strong>النوع، الاسم، المورد، الرقم الضريبي، حالة الضريبة</strong> (اكتب "خاضع 3%" أو "دفعات مقدمة")</p>
-            <div class="form-row" style="align-items:flex-end;">
-              <div class="form-group" style="margin-bottom:0;"><input type="file" id="supplierExcelFile" accept=".xlsx,.xls"></div>
-              <div class="form-group" style="flex:0 0 auto; margin-bottom:0;">
-                <button class="excel-btn" id="btnImportSuppliersExcel" onclick="App.importSuppliersFromExcel()">📥 استيراد من إكسيل</button>
-              </div>
-            </div>
+            <input type="file" id="supplierExcelFile" accept=".xlsx,.xls" style="display:none;" onchange="App.importSuppliersFromExcel()">
+            <button class="excel-btn" id="btnImportSuppliersExcel" onclick="document.getElementById('supplierExcelFile').click()">📥 اختيار ملف واستيراد</button>
           </div>
         </div>
 
@@ -473,12 +469,8 @@
           <div style="margin-top:25px; padding-top:20px; border-top:2px dashed #cbd5e1;">
             <h4 style="margin-bottom:10px; color:#0f172a;">📥 استيراد عدة حركات دفعة واحدة (ملف إكسيل)</h4>
             <p style="font-size:13px; color:#64748b; margin-bottom:12px;">أعمدة الملف المطلوبة: <strong>الجهة، رقم الملف، الوصول، المغادرة، النوع، المبلغ، العملة، البيان</strong> (النوع: "مدين" أو "دائن")</p>
-            <div class="form-row" style="align-items:flex-end;">
-              <div class="form-group" style="margin-bottom:0;"><input type="file" id="creditExcelFile" accept=".xlsx,.xls"></div>
-              <div class="form-group" style="flex:0 0 auto; margin-bottom:0;">
-                <button class="excel-btn" id="btnImportCreditExcel" onclick="App.importCreditFromExcel()">📥 استيراد من إكسيل</button>
-              </div>
-            </div>
+            <input type="file" id="creditExcelFile" accept=".xlsx,.xls" style="display:none;" onchange="App.importCreditFromExcel()">
+            <button class="excel-btn" id="btnImportCreditExcel" onclick="document.getElementById('creditExcelFile').click()">📥 اختيار ملف واستيراد</button>
           </div>
         </div>
 
@@ -651,12 +643,8 @@
           <div style="margin-top:25px; padding-top:20px; border-top:2px dashed #cbd5e1;">
             <h4 style="margin-bottom:10px; color:#0f172a;">📥 استيراد عدة تصفيات دفعة واحدة (ملف إكسيل)</h4>
             <p style="font-size:13px; color:#64748b; margin-bottom:12px;">أعمدة الملف المطلوبة: <strong>كود الملف، اسم الأوبريتور، الإيرادات، المصروفات، ملاحظات</strong></p>
-            <div class="form-row" style="align-items:flex-end;">
-              <div class="form-group" style="margin-bottom:0;"><input type="file" id="settlementExcelFile" accept=".xlsx,.xls"></div>
-              <div class="form-group" style="flex:0 0 auto; margin-bottom:0;">
-                <button class="excel-btn" id="btnImportSettlementExcel" onclick="App.importSettlementsFromExcel()">📥 استيراد من إكسيل</button>
-              </div>
-            </div>
+            <input type="file" id="settlementExcelFile" accept=".xlsx,.xls" style="display:none;" onchange="App.importSettlementsFromExcel()">
+            <button class="excel-btn" id="btnImportSettlementExcel" onclick="document.getElementById('settlementExcelFile').click()">📥 اختيار ملف واستيراد</button>
           </div>
         </div>
 
@@ -893,13 +881,9 @@
 
           <div style="margin-top:25px; padding-top:20px; border-top:2px dashed #cbd5e1;">
             <h4 style="margin-bottom:10px; color:#0f172a;">📥 استيراد عدة مزارات دفعة واحدة (ملف إكسيل)</h4>
-            <p style="font-size:13px; color:#64748b; margin-bottom:12px;">أعمدة الملف المطلوبة: <strong>اسم المزار، الكمية</strong> — سيتم إضافتها إلى الجدول أعلاه لمراجعتها قبل الحفظ</p>
-            <div class="form-row" style="align-items:flex-end;">
-              <div class="form-group" style="margin-bottom:0;"><input type="file" id="ticketExcelFile" accept=".xlsx,.xls"></div>
-              <div class="form-group" style="flex:0 0 auto; margin-bottom:0;">
-                <button class="excel-btn" id="btnImportTicketsExcel" onclick="App.importTicketRowsFromExcel()">📥 استيراد من إكسيل</button>
-              </div>
-            </div>
+            <p style="font-size:13px; color:#64748b; margin-bottom:12px;">أعمدة الملف المطلوبة: <strong>اسم المزار، الكمية</strong> — سيتم تعبئة خانة الكمية تلقائيًا لكل مزار مطابق في الجدول أعلاه</p>
+            <input type="file" id="ticketExcelFile" accept=".xlsx,.xls" style="display:none;" onchange="App.importTicketRowsFromExcel()">
+            <button class="excel-btn" id="btnImportTicketsExcel" onclick="document.getElementById('ticketExcelFile').click()">📥 اختيار ملف واستيراد</button>
           </div>
         </div>
 
@@ -1714,7 +1698,7 @@
         showToast(`تم استيراد ${result.successCount} من ${result.total} سجل` + (result.skipCount ? ` (تم تجاهل ${result.skipCount} لعدم اكتمال البيانات)` : ''), 'success');
         input.value = '';
       } catch (e) { showToast(e.message, 'error'); }
-      finally { btn.disabled = false; btn.innerText = '📥 استيراد من إكسيل'; }
+      finally { btn.disabled = false; btn.innerText = '📥 اختيار ملف واستيراد'; }
     },
 
     // 2. CREDIT BALANCES
@@ -1830,7 +1814,7 @@
         showToast(`تم استيراد ${result.successCount} من ${result.total} سجل` + (result.skipCount ? ` (تم تجاهل ${result.skipCount} لعدم اكتمال البيانات)` : ''), 'success');
         input.value = '';
       } catch (e) { showToast(e.message, 'error'); }
-      finally { btn.disabled = false; btn.innerText = '📥 استيراد من إكسيل'; }
+      finally { btn.disabled = false; btn.innerText = '📥 اختيار ملف واستيراد'; }
     },
 
     updateCreditDashboard() {
@@ -2139,7 +2123,7 @@
         showToast(`تم تعبئة كمية ${matchedCount} مزار من الملف` + (skipCount ? ` (تم تجاهل ${skipCount} صف لعدم مطابقة اسم المزار أو نقص البيانات)` : '') + ' — راجع البيانات ثم اضغط حفظ', 'success');
         input.value = '';
       } catch (e) { showToast(e.message, 'error'); }
-      finally { btn.disabled = false; btn.innerText = '📥 استيراد من إكسيل'; }
+      finally { btn.disabled = false; btn.innerText = '📥 اختيار ملف واستيراد'; }
     },
 
     async deleteTicket(id) {
@@ -2453,7 +2437,7 @@
         showToast(`تم استيراد ${result.successCount} من ${result.total} سجل` + (result.skipCount ? ` (تم تجاهل ${result.skipCount} لعدم اكتمال البيانات)` : ''), 'success');
         input.value = '';
       } catch (e) { showToast(e.message, 'error'); }
-      finally { btn.disabled = false; btn.innerText = '📥 استيراد من إكسيل'; }
+      finally { btn.disabled = false; btn.innerText = '📥 اختيار ملف واستيراد'; }
     },
 
     exportArchiveSettlementsList() {
