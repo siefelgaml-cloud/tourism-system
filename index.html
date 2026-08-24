@@ -867,25 +867,44 @@
       <div id="ticketsTab" class="tab-content">
         <div id="addTicketSubTab" class="sub-tab-content active">
           <h3>إضافة حركة تذاكر / مزارات</h3>
-          <div id="ticketItemsContainer">
-            <div class="ticket-item-card">
-              <div class="form-row">
-                <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select class="ticket-action"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
-                <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" class="ticket-file-code" placeholder="EG-2026-10" required></div>
-              </div>
-              <div class="form-row">
-                <div class="form-group"><label>اسم المزار / الفعالية</label><input type="text" class="ticket-name" placeholder="مثال: الأهرامات / معبد الكرنك"></div>
-                <div class="form-group"><label>اسم المندوب / المرشد</label><input type="text" class="ticket-guide" placeholder="اسم المندوب أو المرشد"></div>
-              </div>
-              <div class="form-row">
-                <div class="form-group"><label>الكمية</label><input type="number" class="ticket-qty" placeholder="العدد"></div>
-              </div>
-              <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
-            </div>
+          <div class="form-row">
+            <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select id="ticketActionShared"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
+            <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" id="ticketFileCodeShared" placeholder="EG-2026-10" required></div>
           </div>
-          <div class="btn-group" style="justify- space-between; align-items: center;">
-            <button type="button" class="add-more-btn" onclick="App.addTicketRow()">➕ إضافة تذكرة أخرى</button>
+          <div class="form-group"><label>اسم المندوب / المرشد</label><input type="text" id="ticketGuideShared" placeholder="اسم المندوب أو المرشد"></div>
+
+          <div class="table-wrapper" style="margin-top:10px;">
+            <table id="ticketItemsTable">
+              <thead>
+                <tr>
+                  <th>اسم المزار / الفعالية</th>
+                  <th>الكمية</th>
+                  <th class="no-print" style="width:40px;"></th>
+                </tr>
+              </thead>
+              <tbody id="ticketItemsTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="btn-group" style="justify-content:flex-start; margin-top:10px;">
+            <button type="button" class="add-more-btn" onclick="App.addTicketRow()">➕ إضافة صف</button>
+          </div>
+
+          <div class="form-group" style="margin-top:15px;"><label>ملاحظات</label><textarea id="ticketNotesShared" placeholder="ملاحظات إضافية..."></textarea></div>
+
+          <div class="btn-group">
             <button class="submit-btn" id="btnSaveTicket" onclick="App.saveTicket()">حفظ التذاكر</button>
+          </div>
+
+          <div style="margin-top:25px; padding-top:20px; border-top:2px dashed #cbd5e1;">
+            <h4 style="margin-bottom:10px; color:#0f172a;">📥 استيراد عدة مزارات دفعة واحدة (ملف إكسيل)</h4>
+            <p style="font-size:13px; color:#64748b; margin-bottom:12px;">أعمدة الملف المطلوبة: <strong>اسم المزار، الكمية</strong> — سيتم إضافتها إلى الجدول أعلاه لمراجعتها قبل الحفظ</p>
+            <div class="form-row" style="align-items:flex-end;">
+              <div class="form-group" style="margin-bottom:0;"><input type="file" id="ticketExcelFile" accept=".xlsx,.xls"></div>
+              <div class="form-group" style="flex:0 0 auto; margin-bottom:0;">
+                <button class="excel-btn" id="btnImportTicketsExcel" onclick="App.importTicketRowsFromExcel()">📥 استيراد من إكسيل</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1522,6 +1541,7 @@
       this.listenToAviation();
       this.listenToTickets();
       this.listenToSettlements();
+      this.addTicketRow();
     },
 
     normalizeKey(value) {
@@ -2029,67 +2049,114 @@
       });
     },
 
-    addTicketRow() {
-      const container = $('ticketItemsContainer');
-      const div = document.createElement('div');
-      div.className = 'ticket-item-card';
-      div.innerHTML = `
-        <div class="form-row">
-          <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select class="ticket-action"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
-          <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" class="ticket-file-code" placeholder="EG-2026-10" required></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>اسم المزار / الفعالية</label><input type="text" class="ticket-name" placeholder="مثال: الأهرامات / معبد الكرنك"></div>
-          <div class="form-group"><label>اسم المندوب / المرشد</label><input type="text" class="ticket-guide" placeholder="اسم المندوب أو المرشد"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>الكمية</label><input type="number" class="ticket-qty" placeholder="العدد"></div>
-        </div>
-        <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
-        <button type="button" class="delete-btn" style="position:absolute; top:10px; left:10px;" onclick="this.parentElement.remove()">✕ إزالة</button>
-      `;
-      container.appendChild(div);
+    addTicketRow(name = '', qty = '') {
+      const tbody = $('ticketItemsTableBody');
+      const tr = document.createElement('tr');
+
+      const nameTd = document.createElement('td');
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text'; nameInput.className = 'ticket-row-name';
+      nameInput.placeholder = 'مثال: الأهرامات / معبد الكرنك';
+      nameInput.value = name;
+      nameTd.appendChild(nameInput);
+
+      const qtyTd = document.createElement('td');
+      const qtyInput = document.createElement('input');
+      qtyInput.type = 'number'; qtyInput.className = 'ticket-row-qty';
+      qtyInput.placeholder = 'العدد';
+      qtyInput.value = qty;
+      qtyTd.appendChild(qtyInput);
+
+      const actionsTd = document.createElement('td');
+      actionsTd.className = 'no-print';
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button'; removeBtn.className = 'delete-btn'; removeBtn.textContent = '✕';
+      removeBtn.onclick = () => App.removeTicketRow(removeBtn);
+      actionsTd.appendChild(removeBtn);
+
+      tr.appendChild(nameTd); tr.appendChild(qtyTd); tr.appendChild(actionsTd);
+      tbody.appendChild(tr);
+    },
+
+    removeTicketRow(btnEl) {
+      const tbody = $('ticketItemsTableBody');
+      const tr = btnEl.closest('tr');
+      if (tr) tr.remove();
+      if (tbody.children.length === 0) this.addTicketRow();
+    },
+
+    resetTicketForm() {
+      $('ticketActionShared').value = 'اضافة';
+      $('ticketFileCodeShared').value = '';
+      $('ticketGuideShared').value = '';
+      $('ticketNotesShared').value = '';
+      $('ticketItemsTableBody').innerHTML = '';
+      this.addTicketRow();
     },
 
     async saveTicket() {
-      const cards = document.querySelectorAll('#ticketItemsContainer .ticket-item-card');
-      if (cards.length === 0) return showToast('لا توجد بيانات تذاكر لإضافتها', 'error');
+      const action = $('ticketActionShared').value;
+      const fileCode = $('ticketFileCodeShared').value.trim();
+      const guideName = $('ticketGuideShared').value.trim();
+      const notes = $('ticketNotesShared').value.trim();
+
+      if (!fileCode) return showToast('يرجى إدخال رقم الملف', 'error');
+
+      const rows = document.querySelectorAll('#ticketItemsTableBody tr');
+      const validRows = [];
+      rows.forEach(tr => {
+        const ticketName = tr.querySelector('.ticket-row-name').value.trim();
+        const qty = parseInt(tr.querySelector('.ticket-row-qty').value) || 0;
+        if (qty > 0) validRows.push({ ticketName, qty });
+      });
+
+      if (validRows.length === 0) return showToast('يرجى إدخال كمية صحيحة لصف واحد على الأقل', 'error');
 
       const btn = $('btnSaveTicket'); btn.disabled = true;
       try {
-        for (let card of cards) {
-          const action = card.querySelector('.ticket-action').value;
-          const fileCode = card.querySelector('.ticket-file-code').value.trim();
-          const ticketName = card.querySelector('.ticket-name').value.trim();
-          const guideName = card.querySelector('.ticket-guide').value.trim();
-          const qty = parseInt(card.querySelector('.ticket-qty').value) || 0;
-          const notes = card.querySelector('.ticket-notes').value.trim();
-
-          if (!fileCode || qty <= 0) continue;
-
+        for (let row of validRows) {
           await addDoc(collection(db, "ticket_records"), {
-            action, fileCode, ticketName, guideName, qty, notes, isDeleted: false, createdAt: new Date()
+            action, fileCode, ticketName: row.ticketName, guideName, qty: row.qty, notes, isDeleted: false, createdAt: new Date()
           });
         }
         showToast('تم حفظ التذاكر بنجاح', 'success');
-        $('ticketItemsContainer').innerHTML = `
-          <div class="ticket-item-card">
-            <div class="form-row">
-              <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select class="ticket-action"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
-              <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" class="ticket-file-code" placeholder="EG-2026-10" required></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label>اسم المزار / الفعالية</label><input type="text" class="ticket-name" placeholder="مثال: الأهرامات / معبد الكرنك"></div>
-              <div class="form-group"><label>اسم المندوب / المرشد</label><input type="text" class="ticket-guide" placeholder="اسم المندوب أو المرشد"></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label>الكمية</label><input type="number" class="ticket-qty" placeholder="العدد"></div>
-            </div>
-            <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
-          </div>
-        `;
+        this.resetTicketForm();
       } catch (e) { showToast(e.message, 'error'); } 
       finally { btn.disabled = false; }
+    },
+
+    async importTicketRowsFromExcel() {
+      const input = $('ticketExcelFile');
+      const file = input && input.files[0];
+      if (!file) return showToast('يرجى اختيار ملف إكسيل أولاً', 'error');
+
+      const btn = $('btnImportTicketsExcel');
+      btn.disabled = true; btn.innerText = 'جاري الاستيراد...';
+      try {
+        const rows = await readExcelFileAsRows(file);
+        let addedCount = 0, skipCount = 0;
+
+        // نشيل أي صف فاضي تماماً موجود في الجدول قبل إضافة صفوف الإكسيل
+        const existingRows = document.querySelectorAll('#ticketItemsTableBody tr');
+        const onlyEmptyRow = existingRows.length === 1 &&
+          !existingRows[0].querySelector('.ticket-row-name').value.trim() &&
+          !existingRows[0].querySelector('.ticket-row-qty').value;
+        if (onlyEmptyRow) $('ticketItemsTableBody').innerHTML = '';
+
+        rows.forEach(row => {
+          const ticketName = String(row['اسم المزار'] ?? '').trim();
+          const qty = parseInt(row['الكمية']) || 0;
+          if (!ticketName || qty <= 0) { skipCount++; return; }
+          this.addTicketRow(ticketName, qty);
+          addedCount++;
+        });
+
+        if ($('ticketItemsTableBody').children.length === 0) this.addTicketRow();
+
+        showToast(`تم إضافة ${addedCount} صف للجدول` + (skipCount ? ` (تم تجاهل ${skipCount} لعدم اكتمال البيانات)` : '') + ' — راجع البيانات ثم اضغط حفظ', 'success');
+        input.value = '';
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.disabled = false; btn.innerText = '📥 استيراد من إكسيل'; }
     },
 
     async deleteTicket(id) {
