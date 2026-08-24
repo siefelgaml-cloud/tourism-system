@@ -316,6 +316,7 @@
       <div id="ticketsSubMenu" class="sub-tabs-container" style="display:none;">
         <button class="sub-tab-btn active" onclick="openSubTab(event, 'addTicketSubTab', 'ticketsTab')">1- إضافة تذكرة مزار</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'ticketsListSubTab', 'ticketsTab')">2- سجل التذاكر والمخزون</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'ticketsBalanceSubTab', 'ticketsTab')">3- أرصدة التذاكر</button>
       </div>
     </div>
 
@@ -878,17 +879,6 @@
               </div>
               <div class="form-row">
                 <div class="form-group"><label>الكمية</label><input type="number" class="ticket-qty" placeholder="العدد"></div>
-                <div class="form-group">
-                  <label>سعر التذكرة والعملة</label>
-                  <div class="amount-input-group">
-                    <input type="number" class="ticket-unit-price" placeholder="سعر التذكرة..." step="any">
-                    <select class="ticket-currency">
-                      <option value="USD">USD</option>
-                      <option value="EGP">EGP</option>
-                      <option value="EUR">EUR</option>
-                    </select>
-                  </div>
-                </div>
               </div>
               <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
             </div>
@@ -936,6 +926,32 @@
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        <div id="ticketsBalanceSubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h3>أرصدة التذاكر (المخزون المتبقي لكل مزار)</h3>
+            <div class="btn-group no-print" style="margin:0;">
+              <button class="excel-btn" onclick="App.exportTicketsBalance()">📊 Excel</button>
+              <input type="text" id="searchTicketsBalance" placeholder="🔍 بحث عن مزار..." onkeyup="filterTicketsBalanceTable()" style="max-width:200px;">
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="ticketsBalanceTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>اسم المزار / الفعالية</th>
+                  <th>إجمالي الإضافة</th>
+                  <th>إجمالي الصرف</th>
+                  <th>الرصيد المتبقي</th>
+                </tr>
+              </thead>
+              <tbody id="ticketsBalanceTableBody">
+                <tr><td colspan="5" style="text-align:center;">لا توجد بيانات</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -1164,6 +1180,16 @@
     const input = document.getElementById("searchTickets");
     const filter = input ? input.value.toLowerCase() : "";
     const trs = document.querySelectorAll("#ticketsTable tbody tr");
+    trs.forEach(tr => {
+      if (tr.children.length === 1) return;
+      tr.style.display = tr.innerText.toLowerCase().includes(filter) ? "" : "none";
+    });
+  }
+
+  function filterTicketsBalanceTable() {
+    const input = document.getElementById("searchTicketsBalance");
+    const filter = input ? input.value.toLowerCase() : "";
+    const trs = document.querySelectorAll("#ticketsBalanceTable tbody tr");
     trs.forEach(tr => {
       if (tr.children.length === 1) return;
       tr.style.display = tr.innerText.toLowerCase().includes(filter) ? "" : "none";
@@ -1960,6 +1986,7 @@
         this.currentTickets = [];
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تذاكر مسجلة</td></tr>';
+          this.updateTicketsBalance();
           this.updateMasterDashboard();
           return;
         }
@@ -1971,7 +1998,8 @@
           if (data.isDeleted) return;
           this.currentTickets.push(data);
 
-          const total = (parseFloat(data.qty)||0) * (parseFloat(data.unitPrice)||0);
+          const hasPrice = data.unitPrice !== undefined && data.unitPrice !== null && data.unitPrice !== '';
+          const total = hasPrice ? (parseFloat(data.qty)||0) * (parseFloat(data.unitPrice)||0) : null;
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
           const actionBadge = data.action === 'صرف' ? '<span class="badge badge-deduction">صرف</span>' : '<span class="badge badge-deposit">إضافة</span>';
 
@@ -1983,9 +2011,9 @@
               <td>${escapeHTML(data.ticketName || '-')}</td>
               <td>${escapeHTML(data.guideName || '-')}</td>
               <td>${data.qty}</td>
-              <td>${data.unitPrice}</td>
-              <td style="font-weight:700;">${total.toLocaleString()}</td>
-              <td>${escapeHTML(data.currency || 'USD')}</td>
+              <td>${hasPrice ? data.unitPrice : '-'}</td>
+              <td style="font-weight:700;">${hasPrice ? total.toLocaleString() : '-'}</td>
+              <td>${hasPrice ? escapeHTML(data.currency || '-') : '-'}</td>
               <td>${escapeHTML(data.notes || '-')}</td>
               <td>${dateStr}</td>
               <td class="no-print">
@@ -1996,6 +2024,7 @@
           `;
         });
         tbody.innerHTML = htmlBuffer;
+        this.updateTicketsBalance();
         this.updateMasterDashboard();
       });
     },
@@ -2015,17 +2044,6 @@
         </div>
         <div class="form-row">
           <div class="form-group"><label>الكمية</label><input type="number" class="ticket-qty" placeholder="العدد"></div>
-          <div class="form-group">
-            <label>سعر التذكرة والعملة</label>
-            <div class="amount-input-group">
-              <input type="number" class="ticket-unit-price" placeholder="سعر التذكرة..." step="any">
-              <select class="ticket-currency">
-                <option value="USD">USD</option>
-                <option value="EGP">EGP</option>
-                <option value="EUR">EUR</option>
-              </select>
-            </div>
-          </div>
         </div>
         <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
         <button type="button" class="delete-btn" style="position:absolute; top:10px; left:10px;" onclick="this.parentElement.remove()">✕ إزالة</button>
@@ -2045,14 +2063,12 @@
           const ticketName = card.querySelector('.ticket-name').value.trim();
           const guideName = card.querySelector('.ticket-guide').value.trim();
           const qty = parseInt(card.querySelector('.ticket-qty').value) || 0;
-          const unitPrice = parseFloat(card.querySelector('.ticket-unit-price').value) || 0;
-          const currency = card.querySelector('.ticket-currency').value;
           const notes = card.querySelector('.ticket-notes').value.trim();
 
           if (!fileCode || qty <= 0) continue;
 
           await addDoc(collection(db, "ticket_records"), {
-            action, fileCode, ticketName, guideName, qty, unitPrice, currency, notes, isDeleted: false, createdAt: new Date()
+            action, fileCode, ticketName, guideName, qty, notes, isDeleted: false, createdAt: new Date()
           });
         }
         showToast('تم حفظ التذاكر بنجاح', 'success');
@@ -2068,17 +2084,6 @@
             </div>
             <div class="form-row">
               <div class="form-group"><label>الكمية</label><input type="number" class="ticket-qty" placeholder="العدد"></div>
-              <div class="form-group">
-                <label>سعر التذكرة والعملة</label>
-                <div class="amount-input-group">
-                  <input type="number" class="ticket-unit-price" placeholder="سعر التذكرة..." step="any">
-                  <select class="ticket-currency">
-                    <option value="USD">USD</option>
-                    <option value="EGP">EGP</option>
-                    <option value="EUR">EUR</option>
-                  </select>
-                </div>
-              </div>
             </div>
             <div class="form-group"><label>ملاحظات</label><textarea class="ticket-notes" placeholder="ملاحظات إضافية..."></textarea></div>
           </div>
@@ -2130,13 +2135,63 @@
 
     exportTicketsList() {
       if (this.currentTickets.length === 0) return showToast('لا توجد بيانات', 'error');
-      const data = this.currentTickets.map((item, idx) => ({
-        "م": idx+1, "الحركة": item.action, "رقم الملف": item.fileCode, "اسم المزار": item.ticketName,
-        "المندوب/المرشد": item.guideName, "الكمية": item.qty, "سعر الوحدة": item.unitPrice,
-        "إجمالي القيمة": (item.qty * item.unitPrice), "العملة": item.currency, "الملاحظات": item.notes
-      }));
+      const data = this.currentTickets.map((item, idx) => {
+        const hasPrice = item.unitPrice !== undefined && item.unitPrice !== null && item.unitPrice !== '';
+        return {
+          "م": idx+1, "الحركة": item.action, "رقم الملف": item.fileCode, "اسم المزار": item.ticketName,
+          "المندوب/المرشد": item.guideName, "الكمية": item.qty,
+          "سعر الوحدة": hasPrice ? item.unitPrice : '',
+          "إجمالي القيمة": hasPrice ? (item.qty * item.unitPrice) : '',
+          "العملة": hasPrice ? (item.currency || '') : '',
+          "الملاحظات": item.notes
+        };
+      });
       const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "التذاكر"); XLSX.writeFile(wb, "Tickets_List.xlsx");
+    },
+
+    updateTicketsBalance() {
+      const tbody = $('ticketsBalanceTableBody');
+      if (!tbody) return;
+
+      const grouped = {};
+      this.currentTickets.forEach(t => {
+        const name = (t.ticketName || '').trim() || 'بدون اسم مزار';
+        if (!grouped[name]) grouped[name] = { added: 0, deducted: 0 };
+        const qty = parseFloat(t.qty) || 0;
+        if (t.action === 'صرف') grouped[name].deducted += qty;
+        else grouped[name].added += qty;
+      });
+
+      const names = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'ar'));
+      if (names.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا توجد بيانات</td></tr>';
+        return;
+      }
+
+      let idx = 1;
+      tbody.innerHTML = names.map(name => {
+        const g = grouped[name];
+        const balance = g.added - g.deducted;
+        const balanceColor = balance < 0 ? '#dc2626' : (balance === 0 ? '#64748b' : '#15803d');
+        return `
+          <tr>
+            <td>${idx++}</td>
+            <td><strong>${escapeHTML(name)}</strong></td>
+            <td>${g.added.toLocaleString()}</td>
+            <td>${g.deducted.toLocaleString()}</td>
+            <td style="font-weight:800; color:${balanceColor};">${balance.toLocaleString()}</td>
+          </tr>
+        `;
+      }).join('');
+    },
+
+    exportTicketsBalance() {
+      const table = $('ticketsBalanceTable');
+      const rows = table.querySelectorAll('tbody tr');
+      if (rows.length === 0 || (rows.length === 1 && rows[0].children.length === 1)) return showToast('لا توجد بيانات', 'error');
+      const wb = XLSX.utils.table_to_book(table, { sheet: "أرصدة التذاكر" });
+      XLSX.writeFile(wb, "Tickets_Balance.xlsx");
     },
 
     // 5. SETTLEMENTS
