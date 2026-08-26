@@ -1463,7 +1463,41 @@
     }, duration);
   };
 
-  // قراءة أول شيت من ملف إكسيل وتحويله لمصفوفة كائنات (كل عمود بعنوان الهيدر)
+  // توحيد شكل النص العربي (إزالة التشكيل والتطويل والمسافات الزائدة، وتوحيد أشكال الألف/الياء/التاء المربوطة)
+  // عشان مطابقة أسماء الأعمدة والقيم تنجح حتى لو فيه فروق بسيطة في الكتابة أو ترتيب مختلف للأعمدة
+  const normalizeArabicText = (str) => {
+    return String(str ?? '')
+      .trim()
+      .replace(/[\u064B-\u065F\u0670\u0640]/g, '') // إزالة التشكيل والتطويل
+      .replace(/[أإآٱ]/g, 'ا')
+      .replace(/ى/g, 'ي')
+      .replace(/ة/g, 'ه')
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+  };
+
+  // تحويل الأرقام العربية (٠-٩) والفاصلة العشرية/الآلاف لأرقام إنجليزية عادية قبل التحويل الرقمي
+  const normalizeDigits = (value) => {
+    if (value === null || value === undefined) return '';
+    const arabicDigits = '٠١٢٣٤٥٦٧٨٩';
+    return String(value)
+      .replace(/[٠-٩]/g, d => arabicDigits.indexOf(d))
+      .replace(/,/g, '')
+      .trim();
+  };
+  const parseFlexNumber = (value) => parseFloat(normalizeDigits(value)) || 0;
+  const parseFlexInt = (value) => parseInt(normalizeDigits(value)) || 0;
+
+  // يقرأ قيمة عمود من صف إكسيل بغض النظر عن ترتيب الأعمدة أو الفروق البسيطة في اسم العمود (مسافات/تشكيل/أ-إ-آ/ة-ه)
+  const getRowValueFlexible = (row, candidateHeaders) => {
+    const normalizedCandidates = candidateHeaders.map(normalizeArabicText);
+    for (const key of Object.keys(row)) {
+      if (normalizedCandidates.includes(normalizeArabicText(key))) return row[key];
+    }
+    return '';
+  };
+
+  // قراءة أول شيت من ملف إكسيل وتحويله لمصفوفة كائنات (كل عمود بعنوان الهيدر) — يعمل بغض النظر عن ترتيب الأعمدة
   const readExcelFileAsRows = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -1682,15 +1716,15 @@
       try {
         const rows = await readExcelFileAsRows(file);
         const result = await bulkImportToCollection(rows, 'tax_discount_records', (row) => {
-          const propertyName = String(row['الاسم'] ?? '').trim();
-          const supplierName = String(row['المورد'] ?? '').trim();
-          const taxCardNumber = String(row['الرقم الضريبي'] ?? '').trim();
+          const propertyName = String(getRowValueFlexible(row, ['الاسم', 'اسم العقار', 'اسم الفندق']) ?? '').trim();
+          const supplierName = String(getRowValueFlexible(row, ['المورد', 'اسم المورد']) ?? '').trim();
+          const taxCardNumber = String(getRowValueFlexible(row, ['الرقم الضريبي', 'رقم البطاقة الضريبية', 'البطاقة الضريبية']) ?? '').trim();
           if (!propertyName || !supplierName || !taxCardNumber) return null;
 
-          let supplierType = String(row['النوع'] ?? 'فندق').trim();
+          let supplierType = String(getRowValueFlexible(row, ['النوع', 'نوع المورد']) || 'فندق').trim();
           if (!['فندق', 'كروز', 'مطعم'].includes(supplierType)) supplierType = 'فندق';
 
-          const taxStatusRaw = String(row['حالة الضريبة'] ?? '').trim();
+          const taxStatusRaw = String(getRowValueFlexible(row, ['حالة الضريبة', 'الضريبة']) ?? '').trim();
           const taxRate = (taxStatusRaw.includes('3') || taxStatusRaw === '0.03') ? 0.03 : 'advance_payment';
 
           return { supplierType, propertyName, supplierName, taxCardNumber, taxRate, isDeleted: false, createdAt: new Date() };
@@ -1796,18 +1830,18 @@
       try {
         const rows = await readExcelFileAsRows(file);
         const result = await bulkImportToCollection(rows, 'credit_balances', (row) => {
-          const entity = String(row['الجهة'] ?? '').trim();
-          const amount = parseFloat(row['المبلغ']);
-          if (!entity || isNaN(amount) || amount <= 0) return null;
+          const entity = String(getRowValueFlexible(row, ['الجهة', 'الفندق', 'اسم الجهة']) ?? '').trim();
+          const amount = parseFlexNumber(getRowValueFlexible(row, ['المبلغ', 'القيمة']));
+          if (!entity || amount <= 0) return null;
 
-          const fileCode = String(row['رقم الملف'] ?? '').trim();
-          const arrivalDate = excelDateToInputValue(row['الوصول']);
-          const departureDate = excelDateToInputValue(row['المغادرة']);
-          const typeRaw = String(row['النوع'] ?? '').trim();
-          const type = (typeRaw === 'دائن' || typeRaw === 'deduction') ? 'deduction' : 'deposit';
-          let currency = String(row['العملة'] ?? 'EGP').trim().toUpperCase();
+          const fileCode = String(getRowValueFlexible(row, ['رقم الملف', 'كود الملف']) ?? '').trim();
+          const arrivalDate = excelDateToInputValue(getRowValueFlexible(row, ['الوصول', 'تاريخ الوصول']));
+          const departureDate = excelDateToInputValue(getRowValueFlexible(row, ['المغادرة', 'تاريخ المغادرة']));
+          const typeRaw = String(getRowValueFlexible(row, ['النوع', 'نوع الحركة']) ?? '').trim();
+          const type = (normalizeArabicText(typeRaw) === normalizeArabicText('دائن') || typeRaw === 'deduction') ? 'deduction' : 'deposit';
+          let currency = String(getRowValueFlexible(row, ['العملة']) || 'EGP').trim().toUpperCase();
           if (!['EGP', 'USD', 'EUR'].includes(currency)) currency = 'EGP';
-          const description = String(row['البيان'] ?? '').trim();
+          const description = String(getRowValueFlexible(row, ['البيان', 'الوصف', 'ملاحظات']) ?? '').trim();
 
           return { entity, fileCode, arrivalDate, departureDate, type, amount, currency, description, isDeleted: false, createdAt: new Date() };
         });
@@ -2096,6 +2130,16 @@
       finally { btn.disabled = false; }
     },
 
+    // يطابق اسم مزار جاي من ملف إكسيل مع القائمة الثابتة، بمطابقة تامة أولاً وبعدين مطابقة جزئية (احتواء) كحل احتياطي
+    matchAttractionName(rawName) {
+      const norm = normalizeArabicText(rawName);
+      if (!norm) return null;
+      let found = TICKET_ATTRACTIONS.find(a => normalizeArabicText(a) === norm);
+      if (found) return found;
+      found = TICKET_ATTRACTIONS.find(a => norm.includes(normalizeArabicText(a)) || normalizeArabicText(a).includes(norm));
+      return found || null;
+    },
+
     async importTicketRowsFromExcel() {
       const input = $('ticketExcelFile');
       const file = input && input.files[0];
@@ -2108,8 +2152,9 @@
         let matchedCount = 0, skipCount = 0;
 
         rows.forEach(row => {
-          const ticketName = String(row['اسم المزار'] ?? '').trim();
-          const qty = parseInt(row['الكمية']) || 0;
+          const rawName = getRowValueFlexible(row, ['اسم المزار', 'المزار', 'اسم المزار والفعالية', 'الفعالية', 'اسم الفعالية']);
+          const qty = parseFlexInt(getRowValueFlexible(row, ['الكمية', 'العدد', 'الكميه']));
+          const ticketName = this.matchAttractionName(rawName);
           if (!ticketName || qty <= 0) { skipCount++; return; }
 
           const targetRow = Array.from(document.querySelectorAll('#ticketItemsTableBody tr'))
@@ -2424,13 +2469,13 @@
       try {
         const rows = await readExcelFileAsRows(file);
         const result = await bulkImportToCollection(rows, 'settlement_records', (row) => {
-          const fileCode = String(row['كود الملف'] ?? '').trim();
-          const guideName = String(row['اسم الأوبريتور'] ?? '').trim();
+          const fileCode = String(getRowValueFlexible(row, ['كود الملف', 'رقم الملف']) ?? '').trim();
+          const guideName = String(getRowValueFlexible(row, ['اسم الأوبريتور', 'الأوبريتور', 'المرشد']) ?? '').trim();
           if (!fileCode || !guideName) return null;
 
-          const revenue = parseFloat(row['الإيرادات']) || 0;
-          const expenses = parseFloat(row['المصروفات']) || 0;
-          const notes = String(row['ملاحظات'] ?? '').trim();
+          const revenue = parseFlexNumber(getRowValueFlexible(row, ['الإيرادات', 'الايرادات']));
+          const expenses = parseFlexNumber(getRowValueFlexible(row, ['المصروفات']));
+          const notes = String(getRowValueFlexible(row, ['ملاحظات', 'ملاحظات التصفية']) ?? '').trim();
 
           return { fileCode, guideName, revenue, expenses, notes, isApproved: false, isDeleted: false, createdAt: new Date() };
         });
