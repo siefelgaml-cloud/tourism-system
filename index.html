@@ -806,7 +806,20 @@
           <div class="form-row">
             <div class="form-group"><label>عدد الأفراد</label><input type="number" id="aviationPassengersCount" placeholder="العدد" min="1"></div>
             <div class="form-group">
-              <label>القيمة والعملة</label>
+              <label>سعر البيع والعملة</label>
+              <div class="amount-input-group">
+                <input type="number" id="aviationSellingPrice" placeholder="سعر البيع..." step="any">
+                <select id="aviationSellingCurrency">
+                  <option value="USD">USD</option>
+                  <option value="EGP">EGP</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>القيمة الفعلية والعملة</label>
               <div class="amount-input-group">
                 <input type="number" id="ticketCost" placeholder="المبلغ..." step="any">
                 <select id="aviationCurrency">
@@ -850,14 +863,16 @@
                     <th>تاريخ الإصدار</th>
                     <th>الأوبريتور</th>
                     <th>عدد الأفراد</th>
-                    <th>القيمة</th>
+                    <th>سعر البيع</th>
+                    <th>عملة البيع</th>
+                    <th>القيمة الفعلية</th>
                     <th>العملة</th>
                     <th>التاريخ</th>
                     <th class="no-print">إجراءات</th>
                   </tr>
                 </thead>
                 <tbody id="aviationTableBody">
-                  <tr><td colspan="14" style="text-align:center;">جاري التحميل...</td></tr>
+                  <tr><td colspan="16" style="text-align:center;">جاري التحميل...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -1005,7 +1020,18 @@
     <div class="form-group"><label>الأوبريتور</label><input type="text" id="editAviationOperator"></div>
     <div class="form-group"><label>عدد الأفراد</label><input type="number" id="editAviationPassengersCount" min="1"></div>
     <div class="form-group">
-      <label>القيمة والعملة</label>
+      <label>سعر البيع والعملة</label>
+      <div class="amount-input-group">
+        <input type="number" id="editAviationSellingPrice" step="any">
+        <select id="editAviationSellingCurrency">
+          <option value="USD">USD</option>
+          <option value="EGP">EGP</option>
+          <option value="EUR">EUR</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>القيمة الفعلية والعملة</label>
       <div class="amount-input-group">
         <input type="number" id="editTicketCost" step="any">
         <select id="editAviationCurrency">
@@ -1934,7 +1960,7 @@
         const tbody = $('aviationTableBody');
         this.currentAviation = [];
         if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;">لا توجد حجوزات مسجلة</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="16" style="text-align:center;">لا توجد حجوزات مسجلة</td></tr>';
           this.updateMasterDashboard();
           return;
         }
@@ -1961,6 +1987,8 @@
               <td>${issueDateStr}</td>
               <td>${escapeHTML(data.operatorName || '-')}</td>
               <td>${data.passengersCount || '-'}</td>
+              <td style="font-weight:700; color:#0369a1;">${data.sellingPrice != null && data.sellingPrice !== '' ? (parseFloat(data.sellingPrice)||0).toLocaleString() : '-'}</td>
+              <td>${data.sellingPrice != null && data.sellingPrice !== '' ? escapeHTML(data.sellingCurrency || 'USD') : '-'}</td>
               <td style="font-weight:700;">${(parseFloat(data.ticketCost)||0).toLocaleString()}</td>
               <td>${escapeHTML(data.currency || 'USD')}</td>
               <td>${dateStr}</td>
@@ -1986,6 +2014,9 @@
       const issueDate = $('aviationIssueDate').value;
       const operatorName = $('aviationOperator').value.trim();
       const passengersCount = parseInt($('aviationPassengersCount').value) || 0;
+      const sellingPriceRaw = $('aviationSellingPrice').value;
+      const sellingPrice = sellingPriceRaw === '' ? null : parseFloat(sellingPriceRaw);
+      const sellingCurrency = $('aviationSellingCurrency').value;
       const ticketCost = parseFloat($('ticketCost').value);
       const currency = $('aviationCurrency').value;
 
@@ -1995,12 +2026,14 @@
       try {
         await addDoc(collection(db, "aviation_records"), {
           transactionType, airlineName, pnrNumber, ticketNumber, passengerName, fileCode,
-          issueDate, operatorName, passengersCount, ticketCost, currency, isDeleted: false, createdAt: new Date()
+          issueDate, operatorName, passengersCount, sellingPrice, sellingCurrency,
+          ticketCost, currency, isDeleted: false, createdAt: new Date()
         });
         showToast('تم حفظ حجز الطيران بنجاح', 'success');
         $('airlineName').value = ''; $('pnrNumber').value = ''; $('aviationTicketNumber').value = '';
         $('passengerName').value = ''; $('aviationFileCode').value = ''; $('aviationIssueDate').value = '';
-        $('aviationOperator').value = ''; $('aviationPassengersCount').value = ''; $('ticketCost').value = '';
+        $('aviationOperator').value = ''; $('aviationPassengersCount').value = '';
+        $('aviationSellingPrice').value = ''; $('ticketCost').value = '';
         $('aviationTransactionType').value = 'بيع';
       } catch (e) { showToast(e.message, 'error'); } 
       finally { btn.disabled = false; }
@@ -2024,6 +2057,8 @@
       $('editAviationIssueDate').value = item.issueDate || '';
       $('editAviationOperator').value = item.operatorName || '';
       $('editAviationPassengersCount').value = item.passengersCount || '';
+      $('editAviationSellingPrice').value = (item.sellingPrice != null) ? item.sellingPrice : '';
+      $('editAviationSellingCurrency').value = item.sellingCurrency || 'USD';
       $('editTicketCost').value = item.ticketCost || '';
       $('editAviationCurrency').value = item.currency || 'USD';
       $('editAviationModal').style.display = 'flex';
@@ -2042,6 +2077,9 @@
       const issueDate = $('editAviationIssueDate').value;
       const operatorName = $('editAviationOperator').value.trim();
       const passengersCount = parseInt($('editAviationPassengersCount').value) || 0;
+      const sellingPriceRaw = $('editAviationSellingPrice').value;
+      const sellingPrice = sellingPriceRaw === '' ? null : parseFloat(sellingPriceRaw);
+      const sellingCurrency = $('editAviationSellingCurrency').value;
       const ticketCost = parseFloat($('editTicketCost').value);
       const currency = $('editAviationCurrency').value;
 
@@ -2049,7 +2087,7 @@
       try {
         await updateDoc(doc(db, "aviation_records", id), {
           transactionType, airlineName, pnrNumber, ticketNumber, passengerName, fileCode,
-          issueDate, operatorName, passengersCount, ticketCost, currency
+          issueDate, operatorName, passengersCount, sellingPrice, sellingCurrency, ticketCost, currency
         });
         showToast('تم تعديل حجز الطيران', 'success');
         this.closeAviationEditModal();
@@ -2062,7 +2100,8 @@
         "م": idx+1, "نوع العملية": item.transactionType || 'بيع', "شركة الطيران": item.airlineName, "PNR": item.pnrNumber,
         "رقم التذكرة": item.ticketNumber || '', "المسافر": item.passengerName, "رقم الملف": item.fileCode,
         "تاريخ الإصدار": item.issueDate || '', "الأوبريتور": item.operatorName || '', "عدد الأفراد": item.passengersCount || '',
-        "القيمة": item.ticketCost, "العملة": item.currency
+        "سعر البيع": (item.sellingPrice != null) ? item.sellingPrice : '', "عملة البيع": (item.sellingPrice != null) ? (item.sellingCurrency || '') : '',
+        "القيمة الفعلية": item.ticketCost, "العملة": item.currency
       }));
       const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "الطيران"); XLSX.writeFile(wb, "Aviation_List.xlsx");
