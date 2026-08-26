@@ -788,14 +788,23 @@
         <div id="addAviationSubTab" class="sub-tab-content active">
           <h3>تسجيل حجز طيران جديد</h3>
           <div class="form-row">
+            <div class="form-group"><label>نوع العملية</label><select id="aviationTransactionType"><option value="بيع">بيع</option><option value="رد">رد</option></select></div>
             <div class="form-group"><label>خط الطيران / الشركة</label><input type="text" id="airlineName" placeholder="مثال: مصر للطيران / طيران الإمارات"></div>
+          </div>
+          <div class="form-row">
             <div class="form-group"><label>رقم PNR / كود الحجز</label><input type="text" id="pnrNumber" placeholder="مثال: X7YK9L"></div>
+            <div class="form-group"><label>رقم التذكرة</label><input type="text" id="aviationTicketNumber" placeholder="رقم التذكرة"></div>
           </div>
           <div class="form-row">
             <div class="form-group"><label>اسم المسافر / العميل</label><input type="text" id="passengerName" placeholder="اسم الراكب"></div>
             <div class="form-group"><label>رقم الملف (File Code)</label><input type="text" id="aviationFileCode" placeholder="EG-2026-10"></div>
           </div>
           <div class="form-row">
+            <div class="form-group"><label>تاريخ الإصدار</label><input type="date" id="aviationIssueDate"></div>
+            <div class="form-group"><label>الأوبريتور</label><input type="text" id="aviationOperator" placeholder="اسم الأوبريتور"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>عدد الأفراد</label><input type="number" id="aviationPassengersCount" placeholder="العدد" min="1"></div>
             <div class="form-group">
               <label>القيمة والعملة</label>
               <div class="amount-input-group">
@@ -832,10 +841,15 @@
                 <thead>
                   <tr>
                     <th>#</th>
+                    <th>نوع العملية</th>
                     <th>شركة الطيران</th>
                     <th>PNR</th>
+                    <th>رقم التذكرة</th>
                     <th>المسافر</th>
                     <th>رقم الملف</th>
+                    <th>تاريخ الإصدار</th>
+                    <th>الأوبريتور</th>
+                    <th>عدد الأفراد</th>
                     <th>القيمة</th>
                     <th>العملة</th>
                     <th>التاريخ</th>
@@ -843,7 +857,7 @@
                   </tr>
                 </thead>
                 <tbody id="aviationTableBody">
-                  <tr><td colspan="9" style="text-align:center;">جاري التحميل...</td></tr>
+                  <tr><td colspan="14" style="text-align:center;">جاري التحميل...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -981,10 +995,15 @@
   <div class="modal-content">
     <h3>تعديل حجز الطيران</h3>
     <input type="hidden" id="editAviationId">
+    <div class="form-group"><label>نوع العملية</label><select id="editAviationTransactionType"><option value="بيع">بيع</option><option value="رد">رد</option></select></div>
     <div class="form-group"><label>خط الطيران</label><input type="text" id="editAirlineName"></div>
     <div class="form-group"><label>PNR</label><input type="text" id="editPnrNumber"></div>
+    <div class="form-group"><label>رقم التذكرة</label><input type="text" id="editAviationTicketNumber"></div>
     <div class="form-group"><label>اسم المسافر</label><input type="text" id="editPassengerName"></div>
     <div class="form-group"><label>رقم الملف</label><input type="text" id="editAviationFileCode"></div>
+    <div class="form-group"><label>تاريخ الإصدار</label><input type="date" id="editAviationIssueDate"></div>
+    <div class="form-group"><label>الأوبريتور</label><input type="text" id="editAviationOperator"></div>
+    <div class="form-group"><label>عدد الأفراد</label><input type="number" id="editAviationPassengersCount" min="1"></div>
     <div class="form-group">
       <label>القيمة والعملة</label>
       <div class="amount-input-group">
@@ -1915,7 +1934,7 @@
         const tbody = $('aviationTableBody');
         this.currentAviation = [];
         if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">لا توجد حجوزات مسجلة</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;">لا توجد حجوزات مسجلة</td></tr>';
           this.updateMasterDashboard();
           return;
         }
@@ -1928,13 +1947,20 @@
           this.currentAviation.push(data);
 
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
+          const issueDateStr = data.issueDate ? new Date(data.issueDate).toLocaleDateString('en-GB') : '-';
+          const typeBadge = data.transactionType === 'رد' ? '<span class="badge badge-deduction">رد</span>' : '<span class="badge badge-deposit">بيع</span>';
           htmlBuffer += `
             <tr>
               <td>${idx++}</td>
+              <td>${typeBadge}</td>
               <td><strong>${escapeHTML(data.airlineName)}</strong></td>
               <td>${escapeHTML(data.pnrNumber)}</td>
+              <td>${escapeHTML(data.ticketNumber || '-')}</td>
               <td>${escapeHTML(data.passengerName)}</td>
               <td>${escapeHTML(data.fileCode || '-')}</td>
+              <td>${issueDateStr}</td>
+              <td>${escapeHTML(data.operatorName || '-')}</td>
+              <td>${data.passengersCount || '-'}</td>
               <td style="font-weight:700;">${(parseFloat(data.ticketCost)||0).toLocaleString()}</td>
               <td>${escapeHTML(data.currency || 'USD')}</td>
               <td>${dateStr}</td>
@@ -1951,10 +1977,15 @@
     },
 
     async saveAviation() {
+      const transactionType = $('aviationTransactionType').value;
       const airlineName = $('airlineName').value.trim();
       const pnrNumber = $('pnrNumber').value.trim();
+      const ticketNumber = $('aviationTicketNumber').value.trim();
       const passengerName = $('passengerName').value.trim();
       const fileCode = $('aviationFileCode').value.trim();
+      const issueDate = $('aviationIssueDate').value;
+      const operatorName = $('aviationOperator').value.trim();
+      const passengersCount = parseInt($('aviationPassengersCount').value) || 0;
       const ticketCost = parseFloat($('ticketCost').value);
       const currency = $('aviationCurrency').value;
 
@@ -1963,10 +1994,14 @@
       const btn = $('btnSaveAviation'); btn.disabled = true;
       try {
         await addDoc(collection(db, "aviation_records"), {
-          airlineName, pnrNumber, passengerName, fileCode, ticketCost, currency, isDeleted: false, createdAt: new Date()
+          transactionType, airlineName, pnrNumber, ticketNumber, passengerName, fileCode,
+          issueDate, operatorName, passengersCount, ticketCost, currency, isDeleted: false, createdAt: new Date()
         });
         showToast('تم حفظ حجز الطيران بنجاح', 'success');
-        $('airlineName').value = ''; $('pnrNumber').value = ''; $('passengerName').value = ''; $('aviationFileCode').value = ''; $('ticketCost').value = '';
+        $('airlineName').value = ''; $('pnrNumber').value = ''; $('aviationTicketNumber').value = '';
+        $('passengerName').value = ''; $('aviationFileCode').value = ''; $('aviationIssueDate').value = '';
+        $('aviationOperator').value = ''; $('aviationPassengersCount').value = ''; $('ticketCost').value = '';
+        $('aviationTransactionType').value = 'بيع';
       } catch (e) { showToast(e.message, 'error'); } 
       finally { btn.disabled = false; }
     },
@@ -1980,10 +2015,15 @@
       const item = this.currentAviation.find(a => a.id === id);
       if (!item) return;
       $('editAviationId').value = id;
+      $('editAviationTransactionType').value = item.transactionType || 'بيع';
       $('editAirlineName').value = item.airlineName || '';
       $('editPnrNumber').value = item.pnrNumber || '';
+      $('editAviationTicketNumber').value = item.ticketNumber || '';
       $('editPassengerName').value = item.passengerName || '';
       $('editAviationFileCode').value = item.fileCode || '';
+      $('editAviationIssueDate').value = item.issueDate || '';
+      $('editAviationOperator').value = item.operatorName || '';
+      $('editAviationPassengersCount').value = item.passengersCount || '';
       $('editTicketCost').value = item.ticketCost || '';
       $('editAviationCurrency').value = item.currency || 'USD';
       $('editAviationModal').style.display = 'flex';
@@ -1993,16 +2033,24 @@
 
     async saveEditedAviation() {
       const id = $('editAviationId').value;
+      const transactionType = $('editAviationTransactionType').value;
       const airlineName = $('editAirlineName').value.trim();
       const pnrNumber = $('editPnrNumber').value.trim();
+      const ticketNumber = $('editAviationTicketNumber').value.trim();
       const passengerName = $('editPassengerName').value.trim();
       const fileCode = $('editAviationFileCode').value.trim();
+      const issueDate = $('editAviationIssueDate').value;
+      const operatorName = $('editAviationOperator').value.trim();
+      const passengersCount = parseInt($('editAviationPassengersCount').value) || 0;
       const ticketCost = parseFloat($('editTicketCost').value);
       const currency = $('editAviationCurrency').value;
 
       if (!airlineName || !pnrNumber || isNaN(ticketCost)) return showToast('يرجى ملء الحقول المطلوبة', 'error');
       try {
-        await updateDoc(doc(db, "aviation_records", id), { airlineName, pnrNumber, passengerName, fileCode, ticketCost, currency });
+        await updateDoc(doc(db, "aviation_records", id), {
+          transactionType, airlineName, pnrNumber, ticketNumber, passengerName, fileCode,
+          issueDate, operatorName, passengersCount, ticketCost, currency
+        });
         showToast('تم تعديل حجز الطيران', 'success');
         this.closeAviationEditModal();
       } catch (e) { showToast(e.message, 'error'); }
@@ -2011,8 +2059,10 @@
     exportAviationList() {
       if (this.currentAviation.length === 0) return showToast('لا توجد بيانات', 'error');
       const data = this.currentAviation.map((item, idx) => ({
-        "م": idx+1, "شركة الطيران": item.airlineName, "PNR": item.pnrNumber,
-        "المسافر": item.passengerName, "رقم الملف": item.fileCode, "القيمة": item.ticketCost, "العملة": item.currency
+        "م": idx+1, "نوع العملية": item.transactionType || 'بيع', "شركة الطيران": item.airlineName, "PNR": item.pnrNumber,
+        "رقم التذكرة": item.ticketNumber || '', "المسافر": item.passengerName, "رقم الملف": item.fileCode,
+        "تاريخ الإصدار": item.issueDate || '', "الأوبريتور": item.operatorName || '', "عدد الأفراد": item.passengersCount || '',
+        "القيمة": item.ticketCost, "العملة": item.currency
       }));
       const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "الطيران"); XLSX.writeFile(wb, "Aviation_List.xlsx");
