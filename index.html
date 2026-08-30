@@ -307,6 +307,7 @@
       <div id="aviationSubMenu" class="sub-tabs-container" style="display:none;">
         <button class="sub-tab-btn active" onclick="openSubTab(event, 'addAviationSubTab', 'aviationTab')">1- إضافة حجز طيران</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'aviationListSubTab', 'aviationTab')">2- سجل حجوزات الطيران</button>
+        <button class="sub-tab-btn" onclick="openSubTab(event, 'aviationCommissionSubTab', 'aviationTab')">3- العمولة</button>
       </div>
 
       <button class="tab-btn" id="ticketsBtn" onclick="toggleTicketsMenu(event)">
@@ -880,6 +881,38 @@
               </table>
             </div>
           </div>
+        </div>
+
+        <div id="aviationCommissionSubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h3>عمولة حجوزات الطيران (عمليات الكاش)</h3>
+            <div class="btn-group no-print" style="margin:0;">
+              <button class="excel-btn" onclick="App.exportAviationCommissionList()">📊 Excel</button>
+            </div>
+          </div>
+          <div class="dashboard-grid" style="flex-wrap:wrap;">
+            <div class="dash-card" style="border-right:5px solid #0284c7; background:#f0f9ff;">
+              <span class="dash-card-title" style="color:#0369a1;">🏷️ إجمالي سعر البيع</span>
+              <div class="dash-card-value" id="commissionTotalSelling" style="color:#075985;">0</div>
+            </div>
+            <div class="dash-card" style="border-right:5px solid #7c3aed; background:#f5f3ff;">
+              <span class="dash-card-title" style="color:#6d28d9;">💰 إجمالي القيمة الفعلية</span>
+              <div class="dash-card-value" id="commissionTotalActual" style="color:#5b21b6;">0</div>
+            </div>
+            <div class="dash-card" style="border-right:5px solid #16a34a; background:#f0fdf4;">
+              <span class="dash-card-title" style="color:#166534;">📈 صافي الربح</span>
+              <div class="dash-card-value" id="commissionNetProfit" style="color:#15803d;">0</div>
+            </div>
+            <div class="dash-card" style="border-right:5px solid #f59e0b; background:#fffbeb;">
+              <span class="dash-card-title" style="color:#b45309;">📊 نسبة العمولة</span>
+              <div class="dash-card-value" style="color:#92400e;">40%</div>
+            </div>
+            <div class="dash-card" style="border-right:5px solid #dc2626; background:#fef2f2;">
+              <span class="dash-card-title" style="color:#991b1b;">💵 قيمة العمولة</span>
+              <div class="dash-card-value" id="commissionAmountTotal" style="color:#b91c1c;">0</div>
+            </div>
+          </div>
+          <p id="commissionMatchedCount" style="font-size:13px; color:#64748b; margin-top:5px;"></p>
         </div>
       </div>
 
@@ -1965,6 +1998,7 @@
         this.currentAviation = [];
         if (snapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="18" style="text-align:center;">لا توجد حجوزات مسجلة</td></tr>';
+          this.renderAviationCommissionTable();
           this.updateMasterDashboard();
           return;
         }
@@ -2012,8 +2046,68 @@
           `;
         });
         tbody.innerHTML = htmlBuffer;
+        this.renderAviationCommissionTable();
         this.updateMasterDashboard();
       });
+    },
+
+    // حساب صافي الربح لحجز طيران واحد (إجمالي سعر البيع - إجمالي القيمة الفعلية)
+    calcAviationNetProfit(item) {
+      const passengersCount = parseFloat(item.passengersCount) || 0;
+      const hasSelling = item.sellingPrice != null && item.sellingPrice !== '';
+      const totalSelling = hasSelling ? passengersCount * (parseFloat(item.sellingPrice) || 0) : 0;
+      const totalActual = passengersCount * (parseFloat(item.ticketCost) || 0);
+      return { totalSelling, totalActual, netProfit: totalSelling - totalActual };
+    },
+
+    // نسبة العمولة الثابتة المطبقة على عمليات الكاش
+    AVIATION_COMMISSION_RATE: 40,
+
+    // يرجع فقط عمليات البيع أو الرد اللي كلمة "cash" موجودة في رقم الملف بتاعها
+    getCashAviationRecords() {
+      return this.currentAviation.filter(item => (item.fileCode || '').toLowerCase().includes('cash'));
+    },
+
+    renderAviationCommissionTable() {
+      const cashRecords = this.getCashAviationRecords();
+
+      let totalSelling = 0, totalActual = 0;
+      cashRecords.forEach(item => {
+        const calcs = this.calcAviationNetProfit(item);
+        totalSelling += calcs.totalSelling;
+        totalActual += calcs.totalActual;
+      });
+      const netProfit = totalSelling - totalActual;
+      const commissionAmount = netProfit * (this.AVIATION_COMMISSION_RATE / 100);
+
+      const setVal = (id, val) => {
+        const el = $(id);
+        if (el) el.textContent = val.toLocaleString(undefined, { maximumFractionDigits: 2 });
+      };
+      setVal('commissionTotalSelling', totalSelling);
+      setVal('commissionTotalActual', totalActual);
+      setVal('commissionNetProfit', netProfit);
+      setVal('commissionAmountTotal', commissionAmount);
+
+      const countEl = $('commissionMatchedCount');
+      if (countEl) countEl.textContent = `عدد العمليات المطابقة (تحتوي على "cash" في رقم الملف): ${cashRecords.length}`;
+    },
+
+    exportAviationCommissionList() {
+      const cashRecords = this.getCashAviationRecords();
+      if (cashRecords.length === 0) return showToast('لا توجد عمليات كاش مطابقة', 'error');
+
+      const data = cashRecords.map((item, idx) => {
+        const { totalSelling, totalActual, netProfit } = this.calcAviationNetProfit(item);
+        const commissionAmount = netProfit * (this.AVIATION_COMMISSION_RATE / 100);
+        return {
+          "م": idx+1, "نوع العملية": item.transactionType || 'بيع', "شركة الطيران": item.airlineName, "رقم الملف": item.fileCode,
+          "إجمالي سعر البيع": totalSelling, "إجمالي القيمة الفعلية": totalActual, "صافي الربح": netProfit,
+          "نسبة العمولة": this.AVIATION_COMMISSION_RATE + '%', "قيمة العمولة": commissionAmount
+        };
+      });
+      const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "عمولة الطيران"); XLSX.writeFile(wb, "Aviation_Commission.xlsx");
     },
 
     async saveAviation() {
