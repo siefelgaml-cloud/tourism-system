@@ -930,6 +930,7 @@
                 <tr>
                   <th>اسم المزار والفعالية</th>
                   <th>الكمية</th>
+                  <th>تاريخ الصلاحية</th>
                 </tr>
               </thead>
               <tbody id="ticketItemsTableBody"></tbody>
@@ -974,16 +975,14 @@
                     <th>اسم المزار</th>
                     <th>المندوب/المرشد</th>
                     <th>الكمية</th>
-                    <th>سعر الوحدة</th>
-                    <th>إجمالي القيمة</th>
-                    <th>العملة</th>
+                    <th>تاريخ الصلاحية</th>
                     <th>الملاحظات</th>
                     <th>التاريخ</th>
                     <th class="no-print">إجراءات</th>
                   </tr>
                 </thead>
                 <tbody id="ticketsTableBody">
-                  <tr><td colspan="12" style="text-align:center;">جاري التحميل...</td></tr>
+                  <tr><td colspan="10" style="text-align:center;">جاري التحميل...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -1098,17 +1097,7 @@
     </div>
     <div class="form-row">
       <div class="form-group"><label>الكمية</label><input type="number" id="editTicketQty"></div>
-      <div class="form-group">
-        <label>سعر التذكرة والعملة</label>
-        <div class="amount-input-group">
-          <input type="number" id="editTicketUnitPrice" step="any">
-          <select id="editTicketCurrency">
-            <option value="USD">USD</option>
-            <option value="EGP">EGP</option>
-            <option value="EUR">EUR</option>
-          </select>
-        </div>
-      </div>
+      <div class="form-group"><label>تاريخ الصلاحية</label><input type="date" id="editTicketExpiry"></div>
     </div>
     <div class="form-group"><label>ملاحظات</label><textarea id="editTicketNotes"></textarea></div>
     <div class="btn-group" style="justify-content:flex-end;">
@@ -2248,7 +2237,7 @@
         const tbody = $('ticketsTableBody');
         this.currentTickets = [];
         if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">لا توجد تذاكر مسجلة</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">لا توجد تذاكر مسجلة</td></tr>';
           this.updateTicketsBalance();
           this.updateMasterDashboard();
           return;
@@ -2261,10 +2250,15 @@
           if (data.isDeleted) return;
           this.currentTickets.push(data);
 
-          const hasPrice = data.unitPrice !== undefined && data.unitPrice !== null && data.unitPrice !== '';
-          const total = hasPrice ? (parseFloat(data.qty)||0) * (parseFloat(data.unitPrice)||0) : null;
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
           const actionBadge = data.action === 'صرف' ? '<span class="badge badge-deduction">صرف</span>' : '<span class="badge badge-deposit">إضافة</span>';
+
+          let expiryStr = '-';
+          if (data.expiryDate) {
+            const expiryDateObj = new Date(data.expiryDate);
+            const isExpired = expiryDateObj < new Date(new Date().toDateString());
+            expiryStr = `<span style="${isExpired ? 'color:#dc2626; font-weight:700;' : ''}">${expiryDateObj.toLocaleDateString('en-GB')}</span>`;
+          }
 
           htmlBuffer += `
             <tr>
@@ -2274,9 +2268,7 @@
               <td>${escapeHTML(data.ticketName || '-')}</td>
               <td>${escapeHTML(data.guideName || '-')}</td>
               <td>${data.qty}</td>
-              <td>${hasPrice ? data.unitPrice : '-'}</td>
-              <td style="font-weight:700;">${hasPrice ? total.toLocaleString() : '-'}</td>
-              <td>${hasPrice ? escapeHTML(data.currency || '-') : '-'}</td>
+              <td>${expiryStr}</td>
               <td>${escapeHTML(data.notes || '-')}</td>
               <td>${dateStr}</td>
               <td class="no-print">
@@ -2309,7 +2301,12 @@
         qtyInput.placeholder = '0'; qtyInput.min = '0';
         qtyTd.appendChild(qtyInput);
 
-        tr.appendChild(nameTd); tr.appendChild(qtyTd);
+        const expiryTd = document.createElement('td');
+        const expiryInput = document.createElement('input');
+        expiryInput.type = 'date'; expiryInput.className = 'ticket-row-expiry';
+        expiryTd.appendChild(expiryInput);
+
+        tr.appendChild(nameTd); tr.appendChild(qtyTd); tr.appendChild(expiryTd);
         tbody.appendChild(tr);
       });
     },
@@ -2335,7 +2332,8 @@
       rows.forEach(tr => {
         const ticketName = tr.querySelector('.ticket-row-name').dataset.name;
         const qty = parseInt(tr.querySelector('.ticket-row-qty').value) || 0;
-        if (qty > 0) validRows.push({ ticketName, qty });
+        const expiryDate = tr.querySelector('.ticket-row-expiry').value;
+        if (qty > 0) validRows.push({ ticketName, qty, expiryDate });
       });
 
       if (validRows.length === 0) return showToast('يرجى إدخال كمية صحيحة لمزار واحد على الأقل', 'error');
@@ -2344,7 +2342,7 @@
       try {
         for (let row of validRows) {
           await addDoc(collection(db, "ticket_records"), {
-            action, fileCode, ticketName: row.ticketName, guideName, qty: row.qty, notes, isDeleted: false, createdAt: new Date()
+            action, fileCode, ticketName: row.ticketName, guideName, qty: row.qty, expiryDate: row.expiryDate, notes, isDeleted: false, createdAt: new Date()
           });
         }
         showToast('تم حفظ التذاكر بنجاح', 'success');
@@ -2408,8 +2406,7 @@
       $('editTicketName').value = item.ticketName || '';
       $('editTicketGuide').value = item.guideName || '';
       $('editTicketQty').value = item.qty || '';
-      $('editTicketUnitPrice').value = item.unitPrice || '';
-      $('editTicketCurrency').value = item.currency || 'USD';
+      $('editTicketExpiry').value = item.expiryDate || '';
       $('editTicketNotes').value = item.notes || '';
       $('editTicketModal').style.display = 'flex';
     },
@@ -2423,13 +2420,12 @@
       const ticketName = $('editTicketName').value.trim();
       const guideName = $('editTicketGuide').value.trim();
       const qty = parseInt($('editTicketQty').value) || 0;
-      const unitPrice = parseFloat($('editTicketUnitPrice').value) || 0;
-      const currency = $('editTicketCurrency').value;
+      const expiryDate = $('editTicketExpiry').value;
       const notes = $('editTicketNotes').value.trim();
 
       if (!fileCode || qty <= 0) return showToast('يرجى استكمال الحقول المطلوبة', 'error');
       try {
-        await updateDoc(doc(db, "ticket_records", id), { action, fileCode, ticketName, guideName, qty, unitPrice, currency, notes });
+        await updateDoc(doc(db, "ticket_records", id), { action, fileCode, ticketName, guideName, qty, expiryDate, notes });
         showToast('تم تعديل التذكرة بنجاح', 'success');
         this.closeTicketEditModal();
       } catch(e) { showToast(e.message, 'error'); }
@@ -2437,17 +2433,12 @@
 
     exportTicketsList() {
       if (this.currentTickets.length === 0) return showToast('لا توجد بيانات', 'error');
-      const data = this.currentTickets.map((item, idx) => {
-        const hasPrice = item.unitPrice !== undefined && item.unitPrice !== null && item.unitPrice !== '';
-        return {
-          "م": idx+1, "الحركة": item.action, "رقم الملف": item.fileCode, "اسم المزار": item.ticketName,
-          "المندوب/المرشد": item.guideName, "الكمية": item.qty,
-          "سعر الوحدة": hasPrice ? item.unitPrice : '',
-          "إجمالي القيمة": hasPrice ? (item.qty * item.unitPrice) : '',
-          "العملة": hasPrice ? (item.currency || '') : '',
-          "الملاحظات": item.notes
-        };
-      });
+      const data = this.currentTickets.map((item, idx) => ({
+        "م": idx+1, "الحركة": item.action, "رقم الملف": item.fileCode, "اسم المزار": item.ticketName,
+        "المندوب/المرشد": item.guideName, "الكمية": item.qty,
+        "تاريخ الصلاحية": item.expiryDate || '',
+        "الملاحظات": item.notes
+      }));
       const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "التذاكر"); XLSX.writeFile(wb, "Tickets_List.xlsx");
     },
