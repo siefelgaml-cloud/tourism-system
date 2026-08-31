@@ -2068,20 +2068,28 @@
       return { totalSelling, totalActual, netProfit: totalSelling - totalActual };
     },
 
+    // نسبة العمولة الثابتة المطبقة في صفحة العمولة
+    AVIATION_COMMISSION_RATE: 40,
+
+    // يرجع فقط عمليات البيع أو الرد اللي كلمة "cash" موجودة في رقم الملف بتاعها
+    getCashAviationRecords() {
+      return this.currentAviation.filter(item => (item.fileCode || '').toLowerCase().includes('cash'));
+    },
+
     renderAviationCommissionTable() {
       const tbody = $('aviationCommissionTableBody');
       if (!tbody) return;
 
-      if (this.currentAviation.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">لا توجد بيانات</td></tr>';
+      const cashRecords = this.getCashAviationRecords();
+      if (cashRecords.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">لا توجد عمليات كاش مطابقة (تحتوي على "cash" في رقم الملف)</td></tr>';
         return;
       }
 
       let idx = 1;
-      tbody.innerHTML = this.currentAviation.map(item => {
+      tbody.innerHTML = cashRecords.map(item => {
         const { totalSelling, totalActual, netProfit } = this.calcAviationNetProfit(item);
-        const commissionRate = (item.commissionRate != null) ? item.commissionRate : 0;
-        const commissionAmount = netProfit * (parseFloat(commissionRate) / 100);
+        const commissionAmount = netProfit * (this.AVIATION_COMMISSION_RATE / 100);
         const typeBadge = item.transactionType === 'رد' ? '<span class="badge badge-deduction">رد</span>' : '<span class="badge badge-deposit">بيع</span>';
         const profitColor = netProfit < 0 ? '#dc2626' : '#15803d';
 
@@ -2094,33 +2102,24 @@
             <td>${totalSelling.toLocaleString()}</td>
             <td>${totalActual.toLocaleString()}</td>
             <td style="font-weight:700; color:${profitColor};">${netProfit.toLocaleString()}</td>
-            <td>
-              <input type="number" class="commission-rate-input" value="${commissionRate}" step="any" min="0" max="100"
-                style="width:80px; padding:6px;" onchange="App.updateAviationCommissionRate('${item.id}', this)"> %
-            </td>
+            <td>${this.AVIATION_COMMISSION_RATE}%</td>
             <td style="font-weight:700; color:#16a34a;">${commissionAmount.toLocaleString(undefined, {maximumFractionDigits: 2})}</td>
           </tr>
         `;
       }).join('');
     },
 
-    async updateAviationCommissionRate(id, inputEl) {
-      const rate = parseFloat(inputEl.value) || 0;
-      try {
-        await updateDoc(doc(db, "aviation_records", id), { commissionRate: rate });
-      } catch (e) { showToast(e.message, 'error'); }
-    },
-
     exportAviationCommissionList() {
-      if (this.currentAviation.length === 0) return showToast('لا توجد بيانات', 'error');
-      const data = this.currentAviation.map((item, idx) => {
+      const cashRecords = this.getCashAviationRecords();
+      if (cashRecords.length === 0) return showToast('لا توجد عمليات كاش مطابقة', 'error');
+
+      const data = cashRecords.map((item, idx) => {
         const { totalSelling, totalActual, netProfit } = this.calcAviationNetProfit(item);
-        const commissionRate = (item.commissionRate != null) ? item.commissionRate : 0;
-        const commissionAmount = netProfit * (parseFloat(commissionRate) / 100);
+        const commissionAmount = netProfit * (this.AVIATION_COMMISSION_RATE / 100);
         return {
           "م": idx+1, "نوع العملية": item.transactionType || 'بيع', "شركة الطيران": item.airlineName, "رقم الملف": item.fileCode,
           "إجمالي سعر البيع": totalSelling, "إجمالي القيمة الفعلية": totalActual, "صافي الربح": netProfit,
-          "نسبة العمولة": commissionRate + '%', "قيمة العمولة": commissionAmount
+          "نسبة العمولة": this.AVIATION_COMMISSION_RATE + '%', "قيمة العمولة": commissionAmount
         };
       });
       const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
