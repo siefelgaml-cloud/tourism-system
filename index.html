@@ -269,35 +269,51 @@
     <div class="tabs-vertical">
       <button class="tab-btn active" onclick="openTab(event, 'masterDashboardTab')"><span>📈 Dashboard الرئيسية</span></button>
 
-      <button class="tab-btn" id="taxDiscountBtn" onclick="toggleTaxDiscountMenu(event)">
-        <span>📋 الخصم والإضافة</span>
-        <span id="taxArrowIcon" style="font-size:12px;">▼</span>
+      <button class="tab-btn" id="accountsBtn" onclick="toggleAccountsMenu(event)">
+        <span>🧮 الحسابات</span>
+        <span id="accountsArrowIcon" style="font-size:12px;">▼</span>
       </button>
-      <div id="taxDiscountSubMenu" class="sub-tabs-container" style="display:none;">
-        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSupplierSubTab', 'taxDiscountTab')">1- إضافة مورد</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab', 'taxDiscountTab')">2- قائمة الموردين</button>
-      </div>
+      <div id="accountsSubMenu" class="sub-tabs-container" style="display:none;">
+        <button class="tab-btn" id="taxDiscountBtn" onclick="toggleTaxDiscountMenu(event)">
+          <span>📋 الخصم والإضافة</span>
+          <span id="taxArrowIcon" style="font-size:12px;">▼</span>
+        </button>
+        <div id="taxDiscountSubMenu" class="sub-tabs-container" style="display:none;">
+          <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSupplierSubTab', 'taxDiscountTab')">1- إضافة مورد</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'suppliersListSubTab', 'taxDiscountTab')">2- قائمة الموردين</button>
+        </div>
 
-      <button class="tab-btn" id="creditBtn" onclick="toggleCreditMenu(event)">
-        <span>💳 أرصدة الكريديت</span>
-        <span id="creditArrowIcon" style="font-size:12px;">▼</span>
-      </button>
-      <div id="creditSubMenu" class="sub-tabs-container" style="display:none;">
-        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addCreditSubTab', 'creditTab')">1- تسجيل حركة</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditRecordsSubTab', 'creditTab')">2- سجل العمليات</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditSummarySubTab', 'creditTab')">3- الملخص والـ Dashboard</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'creditStatementSubTab', 'creditTab')">4- كشف الحساب المستقل</button>
-      </div>
+        <button class="tab-btn" id="creditBtn" onclick="toggleCreditMenu(event)">
+          <span>💳 أرصدة الكريديت</span>
+          <span id="creditArrowIcon" style="font-size:12px;">▼</span>
+        </button>
+        <div id="creditSubMenu" class="sub-tabs-container" style="display:none;">
+          <button class="sub-tab-btn active" onclick="openSubTab(event, 'addCreditSubTab', 'creditTab')">1- تسجيل حركة</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'creditRecordsSubTab', 'creditTab')">2- سجل العمليات</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'creditSummarySubTab', 'creditTab')">3- الملخص والـ Dashboard</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'creditStatementSubTab', 'creditTab')">4- كشف الحساب المستقل</button>
+        </div>
 
-      <!-- قسم تصفية الأوبريتور -->
-      <button class="tab-btn" id="settlementBtn" onclick="toggleSettlementMenu(event)">
-        <span>📄 تصفية الأوبريتور</span>
-        <span id="settlementArrowIcon" style="font-size:12px;">▼</span>
-      </button>
-      <div id="settlementSubMenu" class="sub-tabs-container" style="display:none;">
-        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSettlementSubTab', 'settlementTab')">1- إضافة تصفية ملف</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementListSubTab', 'settlementTab')">2- سجل تصفيات الملفات</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementArchiveSubTab', 'settlementTab')">3- الأرشيف (التصفيات المعتمدة)</button>
+        <!-- قسم تصفية الأوبريتور -->
+        <button class="tab-btn" id="settlementBtn" onclick="toggleSettlementMenu(event)">
+          <span>📄 تصفية الأوبريتور</span>
+          <span id="settlementArrowIcon" style="font-size:12px;">▼</span>
+        </button>
+        <div id="settlementSubMenu" class="sub-tabs-container" style="display:none;">
+          <button class="sub-tab-btn active" onclick="openSubTab(event, 'addSettlementSubTab', 'settlementTab')">1- إضافة تصفية ملف</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementListSubTab', 'settlementTab')">2- سجل تصفيات الملفات</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'settlementArchiveSubTab', 'settlementTab')">3- الأرشيف (التصفيات المعتمدة)</button>
+        </div>
+
+        <button class="tab-btn" id="ticketsBtn" onclick="toggleTicketsMenu(event)">
+          <span>🎟️ مخزون التذاكر</span>
+          <span id="ticketsArrowIcon" style="font-size:12px;">▼</span>
+        </button>
+        <div id="ticketsSubMenu" class="sub-tabs-container" style="display:none;">
+          <button class="sub-tab-btn active" onclick="openSubTab(event, 'addTicketSubTab', 'ticketsTab')">1- إضافة تذكرة مزار</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'ticketsListSubTab', 'ticketsTab')">2- سجل التذاكر والمخزون</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'ticketsBalanceSubTab', 'ticketsTab')">3- أرصدة التذاكر</button>
+        </div>
       </div>
 
       <button class="tab-btn" id="aviationBtn" onclick="toggleAviationMenu(event)">
@@ -308,16 +324,6 @@
         <button class="sub-tab-btn active" onclick="openSubTab(event, 'addAviationSubTab', 'aviationTab')">1- إضافة حجز طيران</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'aviationListSubTab', 'aviationTab')">2- سجل حجوزات الطيران</button>
         <button class="sub-tab-btn" onclick="openSubTab(event, 'aviationCommissionSubTab', 'aviationTab')">3- العمولة</button>
-      </div>
-
-      <button class="tab-btn" id="ticketsBtn" onclick="toggleTicketsMenu(event)">
-        <span>🎟️ مخزون التذاكر</span>
-        <span id="ticketsArrowIcon" style="font-size:12px;">▼</span>
-      </button>
-      <div id="ticketsSubMenu" class="sub-tabs-container" style="display:none;">
-        <button class="sub-tab-btn active" onclick="openSubTab(event, 'addTicketSubTab', 'ticketsTab')">1- إضافة تذكرة مزار</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'ticketsListSubTab', 'ticketsTab')">2- سجل التذاكر والمخزون</button>
-        <button class="sub-tab-btn" onclick="openSubTab(event, 'ticketsBalanceSubTab', 'ticketsTab')">3- أرصدة التذاكر</button>
       </div>
     </div>
 
@@ -1162,6 +1168,13 @@
 
     document.getElementById(subTabId).classList.add("active");
     evt.currentTarget.classList.add("active");
+  }
+
+  function toggleAccountsMenu(evt) {
+    const menu = document.getElementById("accountsSubMenu");
+    const isHidden = menu.style.display === "none" || menu.style.display === "";
+    menu.style.display = isHidden ? "flex" : "none";
+    document.getElementById("accountsArrowIcon").innerText = isHidden ? "▲" : "▼";
   }
 
   function toggleTaxDiscountMenu(evt) {
