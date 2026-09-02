@@ -1645,15 +1645,24 @@
       return Boolean(key) && records.some(record => !record.isDeleted && record.id !== excludeId && this.normalizeKey(record[field]) === key);
     },
 
-    calculateSettlementValues(revenueInput, expensesInput) {
-      const revenue = parseFloat(revenueInput) || 0;
-      const expenses = parseFloat(expensesInput) || 0;
+    calculateSettlementValues(revenueInput, expensesInput, exchangeRateInput) {
+      const rawRevenue = parseFloat(revenueInput) || 0;
+      const rawExpenses = parseFloat(expensesInput) || 0;
+      const exchangeRate = parseFloat(exchangeRateInput) || 0;
+      const rate = exchangeRate > 0 ? exchangeRate : 1;
+
+      // تحويل الإيرادات والمصروفات للعملة الأخرى باستخدام سعر الصرف قبل حساب الربح والعمولة
+      const revenue = rawRevenue * rate;
+      const expenses = rawExpenses * rate;
       const profit = revenue - expenses;
       const netAfterTax = profit / 1.14;
       const commissionRate = 0.10;
       const commissionAmount = netAfterTax * commissionRate;
 
       return {
+        rawRevenue,
+        rawExpenses,
+        exchangeRate: rate,
         revenue,
         expenses,
         profit,
@@ -2518,7 +2527,7 @@
 
           if (data.guideName) guidesSet.add(data.guideName.trim());
 
-          const calcs = this.calculateSettlementValues(data.revenue, data.expenses);
+          const calcs = this.calculateSettlementValues(data.revenue, data.expenses, data.exchangeRate);
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
           if (data.isApproved) {
@@ -2669,7 +2678,7 @@
       const active = this.currentSettlements.filter(s => !s.isApproved);
       if (active.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
       const data = active.map((item, idx) => {
-        const calcs = this.calculateSettlementValues(item.revenue, item.expenses);
+        const calcs = this.calculateSettlementValues(item.revenue, item.expenses, item.exchangeRate);
         return {
           "م": idx + 1, "كود الملف": item.fileCode, "اسم الأوبريتور": item.guideName,
           "الإيرادات": calcs.revenue, "المصروفات": calcs.expenses, "الربح": calcs.profit,
@@ -2711,7 +2720,7 @@
       const archived = this.currentSettlements.filter(s => s.isApproved);
       if (archived.length === 0) return showToast('لا توجد بيانات في الأرشيف للتصدير', 'error');
       const data = archived.map((item, idx) => {
-        const calcs = this.calculateSettlementValues(item.revenue, item.expenses);
+        const calcs = this.calculateSettlementValues(item.revenue, item.expenses, item.exchangeRate);
         return {
           "م": idx + 1, "كود الملف": item.fileCode, "اسم الأوبريتور": item.guideName,
           "الإيرادات": calcs.revenue, "المصروفات": calcs.expenses, "الربح": calcs.profit,
@@ -2775,7 +2784,7 @@
 
       let totalCommissions = 0;
       this.currentSettlements.forEach(s => {
-        const calcs = this.calculateSettlementValues(s.revenue, s.expenses);
+        const calcs = this.calculateSettlementValues(s.revenue, s.expenses, s.exchangeRate);
         totalCommissions += calcs.commissionAmount;
       });
       if ($('mDashTotalSettlementCommissions')) $('mDashTotalSettlementCommissions').innerText = totalCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
