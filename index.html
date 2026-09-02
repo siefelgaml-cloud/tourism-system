@@ -195,6 +195,7 @@
     .badge-taxable { background: #dcfce7; color: #166534; }
     .badge-advance { background: #e0e7ff; color: #3730a3; }
     .badge-archive { background: #ccfbf1; color: #0f766e; }
+    .badge-void { background: #e5e7eb; color: #374151; }
 
     .suggestions-dropdown {
       position: absolute; top: 100%; left: 0; right: 0;
@@ -642,6 +643,10 @@
             <div class="form-group"><label>إجمالي الإيرادات</label><input type="number" id="settlementRevenue" placeholder="الإيراد..." step="any"></div>
             <div class="form-group"><label>إجمالي المصروفات</label><input type="number" id="settlementExpenses" placeholder="المصروف..." step="any"></div>
           </div>
+          <div class="form-row">
+            <div class="form-group"><label>العملة</label><select id="settlementCurrency"><option value="USD">USD</option><option value="EGP">EGP</option></select></div>
+            <div class="form-group"><label>سعر الصرف</label><input type="number" id="settlementExchangeRate" placeholder="سعر الصرف..." step="any"></div>
+          </div>
           <div class="form-group"><label>ملاحظات التصفية</label><textarea id="settlementNotes" placeholder="أي تفاصيل أو ملاحظات أصل التصفية..."></textarea></div>
           <div class="btn-group">
             <button class="submit-btn" id="btnSaveSettlement" onclick="App.saveSettlement()">حفظ التصفية</button>
@@ -795,7 +800,7 @@
         <div id="addAviationSubTab" class="sub-tab-content active">
           <h3>تسجيل حجز طيران جديد</h3>
           <div class="form-row">
-            <div class="form-group"><label>نوع العملية</label><select id="aviationTransactionType"><option value="بيع">بيع</option><option value="رد">رد</option></select></div>
+            <div class="form-group"><label>نوع العملية</label><select id="aviationTransactionType"><option value="بيع">بيع</option><option value="رد">رد</option><option value="VOID">VOID</option></select></div>
             <div class="form-group"><label>خط الطيران / الشركة</label><input type="text" id="airlineName" placeholder="مثال: مصر للطيران / طيران الإمارات"></div>
           </div>
           <div class="form-row">
@@ -813,28 +818,14 @@
           <div class="form-row">
             <div class="form-group"><label>عدد الأفراد</label><input type="number" id="aviationPassengersCount" placeholder="العدد" min="1"></div>
             <div class="form-group">
-              <label>سعر البيع والعملة</label>
-              <div class="amount-input-group">
-                <input type="number" id="aviationSellingPrice" placeholder="سعر البيع..." step="any">
-                <select id="aviationSellingCurrency">
-                  <option value="USD">USD</option>
-                  <option value="EGP">EGP</option>
-                  <option value="EUR">EUR</option>
-                </select>
-              </div>
+              <label>سعر البيع (EGP)</label>
+              <input type="number" id="aviationSellingPrice" placeholder="سعر البيع..." step="any">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>القيمة الفعلية والعملة</label>
-              <div class="amount-input-group">
-                <input type="number" id="ticketCost" placeholder="المبلغ..." step="any">
-                <select id="aviationCurrency">
-                  <option value="USD">USD</option>
-                  <option value="EGP">EGP</option>
-                  <option value="EUR">EUR</option>
-                </select>
-              </div>
+              <label>القيمة الفعلية (EGP)</label>
+              <input type="number" id="ticketCost" placeholder="المبلغ..." step="any">
             </div>
           </div>
           <div class="form-group"><label>ملاحظات</label><textarea id="aviationNotes" placeholder="ملاحظات إضافية..."></textarea></div>
@@ -1050,7 +1041,7 @@
   <div class="modal-content">
     <h3>تعديل حجز الطيران</h3>
     <input type="hidden" id="editAviationId">
-    <div class="form-group"><label>نوع العملية</label><select id="editAviationTransactionType"><option value="بيع">بيع</option><option value="رد">رد</option></select></div>
+    <div class="form-group"><label>نوع العملية</label><select id="editAviationTransactionType"><option value="بيع">بيع</option><option value="رد">رد</option><option value="VOID">VOID</option></select></div>
     <div class="form-group"><label>خط الطيران</label><input type="text" id="editAirlineName"></div>
     <div class="form-group"><label>PNR</label><input type="text" id="editPnrNumber"></div>
     <div class="form-group"><label>رقم التذكرة</label><input type="text" id="editAviationTicketNumber"></div>
@@ -1060,26 +1051,12 @@
     <div class="form-group"><label>الأوبريتور</label><input type="text" id="editAviationOperator"></div>
     <div class="form-group"><label>عدد الأفراد</label><input type="number" id="editAviationPassengersCount" min="1"></div>
     <div class="form-group">
-      <label>سعر البيع والعملة</label>
-      <div class="amount-input-group">
-        <input type="number" id="editAviationSellingPrice" step="any">
-        <select id="editAviationSellingCurrency">
-          <option value="USD">USD</option>
-          <option value="EGP">EGP</option>
-          <option value="EUR">EUR</option>
-        </select>
-      </div>
+      <label>سعر البيع (EGP)</label>
+      <input type="number" id="editAviationSellingPrice" step="any">
     </div>
     <div class="form-group">
-      <label>القيمة الفعلية والعملة</label>
-      <div class="amount-input-group">
-        <input type="number" id="editTicketCost" step="any">
-        <select id="editAviationCurrency">
-          <option value="USD">USD</option>
-          <option value="EGP">EGP</option>
-          <option value="EUR">EUR</option>
-        </select>
-      </div>
+      <label>القيمة الفعلية (EGP)</label>
+      <input type="number" id="editTicketCost" step="any">
     </div>
     <div class="form-group"><label>ملاحظات</label><textarea id="editAviationNotes"></textarea></div>
     <div class="btn-group" style="justify-content:flex-end;">
@@ -1123,6 +1100,8 @@
     <div class="form-group"><label>اسم الأوبريتور</label><input type="text" id="editGuideName"></div>
     <div class="form-group"><label>الإيرادات</label><input type="number" id="editSettlementRevenue" step="any"></div>
     <div class="form-group"><label>المصروفات</label><input type="number" id="editSettlementExpenses" step="any"></div>
+    <div class="form-group"><label>العملة</label><select id="editSettlementCurrency"><option value="USD">USD</option><option value="EGP">EGP</option></select></div>
+    <div class="form-group"><label>سعر الصرف</label><input type="number" id="editSettlementExchangeRate" step="any"></div>
     <div class="form-group"><label>ملاحظات</label><textarea id="editSettlementNotes"></textarea></div>
     <div class="btn-group" style="justify-content:flex-end;">
       <button class="submit-btn" onclick="App.saveEditedSettlement()">حفظ التعديلات</button>
@@ -2023,7 +2002,7 @@
 
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
           const issueDateStr = data.issueDate ? new Date(data.issueDate).toLocaleDateString('en-GB') : '-';
-          const typeBadge = data.transactionType === 'رد' ? '<span class="badge badge-deduction">رد</span>' : '<span class="badge badge-deposit">بيع</span>';
+          const typeBadge = data.transactionType === 'رد' ? '<span class="badge badge-deduction">رد</span>' : data.transactionType === 'VOID' ? '<span class="badge badge-void">VOID</span>' : '<span class="badge badge-deposit">بيع</span>';
 
           const passengersCount = parseFloat(data.passengersCount) || 0;
           const hasSelling = data.sellingPrice != null && data.sellingPrice !== '';
@@ -2093,7 +2072,7 @@
       tbody.innerHTML = cashRecords.map(item => {
         const { totalSelling, totalActual, netProfit } = this.calcAviationNetProfit(item);
         const commissionAmount = netProfit * (this.AVIATION_COMMISSION_RATE / 100);
-        const typeBadge = item.transactionType === 'رد' ? '<span class="badge badge-deduction">رد</span>' : '<span class="badge badge-deposit">بيع</span>';
+        const typeBadge = item.transactionType === 'رد' ? '<span class="badge badge-deduction">رد</span>' : item.transactionType === 'VOID' ? '<span class="badge badge-void">VOID</span>' : '<span class="badge badge-deposit">بيع</span>';
         const profitColor = netProfit < 0 ? '#dc2626' : '#15803d';
 
         return `
@@ -2141,9 +2120,9 @@
       const passengersCount = parseInt($('aviationPassengersCount').value) || 0;
       const sellingPriceRaw = $('aviationSellingPrice').value;
       const sellingPrice = sellingPriceRaw === '' ? null : parseFloat(sellingPriceRaw);
-      const sellingCurrency = $('aviationSellingCurrency').value;
+      const sellingCurrency = 'EGP';
       const ticketCost = parseFloat($('ticketCost').value);
-      const currency = $('aviationCurrency').value;
+      const currency = 'EGP';
       const notes = $('aviationNotes').value.trim();
 
       if (!airlineName || !pnrNumber || isNaN(ticketCost)) return showToast('يرجى ملء الحقول الأساسية', 'error');
@@ -2184,9 +2163,7 @@
       $('editAviationOperator').value = item.operatorName || '';
       $('editAviationPassengersCount').value = item.passengersCount || '';
       $('editAviationSellingPrice').value = (item.sellingPrice != null) ? item.sellingPrice : '';
-      $('editAviationSellingCurrency').value = item.sellingCurrency || 'USD';
       $('editTicketCost').value = item.ticketCost || '';
-      $('editAviationCurrency').value = item.currency || 'USD';
       $('editAviationNotes').value = item.notes || '';
       $('editAviationModal').style.display = 'flex';
     },
@@ -2206,9 +2183,9 @@
       const passengersCount = parseInt($('editAviationPassengersCount').value) || 0;
       const sellingPriceRaw = $('editAviationSellingPrice').value;
       const sellingPrice = sellingPriceRaw === '' ? null : parseFloat(sellingPriceRaw);
-      const sellingCurrency = $('editAviationSellingCurrency').value;
+      const sellingCurrency = 'EGP';
       const ticketCost = parseFloat($('editTicketCost').value);
-      const currency = $('editAviationCurrency').value;
+      const currency = 'EGP';
       const notes = $('editAviationNotes').value.trim();
 
       if (!airlineName || !pnrNumber || isNaN(ticketCost)) return showToast('يرجى ملء الحقول المطلوبة', 'error');
@@ -2617,6 +2594,8 @@
       const guideName = $('guideName').value.trim();
       const revenue = parseFloat($('settlementRevenue').value) || 0;
       const expenses = parseFloat($('settlementExpenses').value) || 0;
+      const currency = $('settlementCurrency').value;
+      const exchangeRate = parseFloat($('settlementExchangeRate').value) || 0;
       const notes = $('settlementNotes').value.trim();
 
       if (!fileCode || !guideName) return showToast('يرجى ادخال كود الملف واسم الأوبريتور', 'error');
@@ -2624,10 +2603,11 @@
       const btn = $('btnSaveSettlement'); btn.disabled = true;
       try {
         await addDoc(collection(db, "settlement_records"), {
-          fileCode, guideName, revenue, expenses, notes, isApproved: false, isDeleted: false, createdAt: new Date()
+          fileCode, guideName, revenue, expenses, currency, exchangeRate, notes, isApproved: false, isDeleted: false, createdAt: new Date()
         });
         showToast('تم حفظ التصفية بنجاح', 'success');
-        $('fileCode').value = ''; $('guideName').value = ''; $('settlementRevenue').value = ''; $('settlementExpenses').value = ''; $('settlementNotes').value = '';
+        $('fileCode').value = ''; $('guideName').value = ''; $('settlementRevenue').value = ''; $('settlementExpenses').value = '';
+        $('settlementCurrency').value = 'USD'; $('settlementExchangeRate').value = ''; $('settlementNotes').value = '';
       } catch(e) { showToast(e.message, 'error'); }
       finally { btn.disabled = false; }
     },
@@ -2659,6 +2639,8 @@
       $('editGuideName').value = item.guideName || '';
       $('editSettlementRevenue').value = item.revenue || '';
       $('editSettlementExpenses').value = item.expenses || '';
+      $('editSettlementCurrency').value = item.currency || 'USD';
+      $('editSettlementExchangeRate').value = item.exchangeRate || '';
       $('editSettlementNotes').value = item.notes || '';
       $('editSettlementModal').style.display = 'flex';
     },
@@ -2671,11 +2653,13 @@
       const guideName = $('editGuideName').value.trim();
       const revenue = parseFloat($('editSettlementRevenue').value) || 0;
       const expenses = parseFloat($('editSettlementExpenses').value) || 0;
+      const currency = $('editSettlementCurrency').value;
+      const exchangeRate = parseFloat($('editSettlementExchangeRate').value) || 0;
       const notes = $('editSettlementNotes').value.trim();
 
       if (!fileCode || !guideName) return showToast('يرجى استكمال البيانات', 'error');
       try {
-        await updateDoc(doc(db, "settlement_records", id), { fileCode, guideName, revenue, expenses, notes });
+        await updateDoc(doc(db, "settlement_records", id), { fileCode, guideName, revenue, expenses, currency, exchangeRate, notes });
         showToast('تم تعديل التصفية بنجاح', 'success');
         this.closeSettlementEditModal();
       } catch(e) { showToast(e.message, 'error'); }
