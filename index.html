@@ -250,10 +250,12 @@
       #printableStatementArea, #printableStatementArea *,
       #printableAviationArea, #printableAviationArea *,
       #printableTicketsArea, #printableTicketsArea *,
+      #printableTicketReceiptArea, #printableTicketReceiptArea *,
       #printableTicketsBalanceArea, #printableTicketsBalanceArea *,
       #printableSettlementArea, #printableSettlementArea *,
       #printableSettlementArchiveArea, #printableSettlementArchiveArea * { visibility: visible; }
-      #printableArea, #printableSuppliersArea, #printableStatementArea, #printableAviationArea, #printableTicketsArea, #printableTicketsBalanceArea, #printableSettlementArea, #printableSettlementArchiveArea { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
+      #printableArea, #printableSuppliersArea, #printableStatementArea, #printableAviationArea, #printableTicketsArea, #printableTicketReceiptArea, #printableTicketsBalanceArea, #printableSettlementArea, #printableSettlementArchiveArea { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
+      #printableTicketReceiptArea { display: block !important; }
       .no-print { display: none !important; }
       .pdf-report-header { display: block !important; }
     }
@@ -948,6 +950,9 @@
             <button class="excel-btn" id="btnImportTicketsExcel" onclick="document.getElementById('ticketExcelFile').click()">📥 اختيار ملف واستيراد</button>
           </div>
         </div>
+
+        <!-- منطقة مخفية تُستخدم فقط عند الطباعة الفورية لإيصال صرف التذاكر -->
+        <div id="printableTicketReceiptArea" style="display:none;"></div>
 
         <div id="ticketsListSubTab" class="sub-tab-content">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
@@ -2379,9 +2384,57 @@
           });
         }
         showToast('تم حفظ التذاكر بنجاح', 'success');
+        if (action === 'صرف') this.printTicketReceipt({ fileCode, guideName, notes, rows: validRows });
         this.resetTicketForm();
       } catch (e) { showToast(e.message, 'error'); } 
       finally { btn.disabled = false; }
+    },
+
+    // بناء إيصال صرف تذاكر وطباعته فورًا، مع سطر توقيع للشخص المستلم
+    printTicketReceipt({ fileCode, guideName, notes, rows }) {
+      const todayStr = new Date().toLocaleDateString('en-GB');
+      const rowsHtml = rows.map((r, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${escapeHTML(r.ticketName)}</td>
+          <td>${r.qty}</td>
+        </tr>
+      `).join('');
+      const totalQty = rows.reduce((sum, r) => sum + (parseFloat(r.qty) || 0), 0);
+
+      const receiptHtml = `
+        <div class="pdf-report-header" style="display:block;">
+          <h2>إيصال صرف تذاكر مزارات</h2>
+          <p>منظومة الحسابات السياحية</p>
+        </div>
+        <table style="width:100%; margin-bottom:20px;">
+          <tr><td style="padding:6px 10px; font-weight:700;">رقم الملف:</td><td style="padding:6px 10px;">${escapeHTML(fileCode || '-')}</td>
+              <td style="padding:6px 10px; font-weight:700;">التاريخ:</td><td style="padding:6px 10px;">${todayStr}</td></tr>
+          <tr><td style="padding:6px 10px; font-weight:700;">اسم المندوب / المرشد:</td><td style="padding:6px 10px;" colspan="3">${escapeHTML(guideName || '-')}</td></tr>
+          ${notes ? `<tr><td style="padding:6px 10px; font-weight:700;">ملاحظات:</td><td style="padding:6px 10px;" colspan="3">${escapeHTML(notes)}</td></tr>` : ''}
+        </table>
+        <table style="width:100%; border-collapse:collapse;" border="1">
+          <thead>
+            <tr>
+              <th style="padding:8px;">#</th>
+              <th style="padding:8px;">اسم المزار / الفعالية</th>
+              <th style="padding:8px;">الكمية المصروفة</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+          <tfoot>
+            <tr><td style="padding:8px; font-weight:700;" colspan="2">الإجمالي</td><td style="padding:8px; font-weight:700;">${totalQty}</td></tr>
+          </tfoot>
+        </table>
+        <div style="margin-top:60px; display:flex; justify-content:space-between;">
+          <div>توقيع المُسلِّم: ____________________</div>
+          <div>توقيع المستلم: ____________________</div>
+        </div>
+      `;
+
+      const receiptArea = $('printableTicketReceiptArea');
+      receiptArea.innerHTML = receiptHtml;
+      setTimeout(() => window.print(), 200);
     },
 
     // يطابق اسم مزار جاي من ملف إكسيل مع القائمة الثابتة، بمطابقة تامة أولاً وبعدين مطابقة جزئية (احتواء) كحل احتياطي
