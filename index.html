@@ -918,7 +918,7 @@
           <h3>إضافة حركة تذاكر / مزارات</h3>
           <div class="form-row">
             <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select id="ticketActionShared"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
-            <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" id="ticketFileCodeShared" placeholder="EG-2026-10" required></div>
+            <div class="form-group"><label>رقم الملف <span style="color:#94a3b8; font-size:12px;">(إلزامي في حالة الصرف فقط)</span></label><input type="text" id="ticketFileCodeShared" placeholder="EG-2026-10"></div>
           </div>
           <div class="form-group"><label>اسم المندوب / المرشد</label><input type="text" id="ticketGuideShared" placeholder="اسم المندوب أو المرشد"></div>
 
@@ -1086,7 +1086,7 @@
     <input type="hidden" id="editTicketId">
     <div class="form-row">
       <div class="form-group"><label>نوع الحركة <span style="color:red;">*</span></label><select id="editTicketAction"><option value="اضافة">إضافة</option><option value="صرف">صرف</option></select></div>
-      <div class="form-group"><label>رقم الملف <span style="color:red;">*</span></label><input type="text" id="editTicketFileCode"></div>
+      <div class="form-group"><label>رقم الملف <span style="color:#94a3b8; font-size:12px;">(إلزامي في حالة الصرف فقط)</span></label><input type="text" id="editTicketFileCode"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>اسم المزار</label><select id="editTicketName"></select></div>
@@ -2358,8 +2358,7 @@
       const guideName = $('ticketGuideShared').value.trim();
       const notes = $('ticketNotesShared').value.trim();
 
-      // رقم الملف إلزامي فقط في حالة الصرف، وفي الإضافة يُسمح بتركه فارغًا
-      if (action === 'صرف' && !fileCode) return showToast('رقم الملف إلزامي في حالة الصرف', 'error');
+      if (action === 'صرف' && !fileCode) return showToast('يرجى إدخال رقم الملف في حالة الصرف', 'error');
 
       const rows = document.querySelectorAll('#ticketItemsTableBody tr');
       const validRows = [];
@@ -2437,10 +2436,21 @@
       $('editTicketId').value = id;
       $('editTicketAction').value = item.action || 'اضافة';
       $('editTicketFileCode').value = item.fileCode || '';
-      // تعبئة قائمة المزارات الثابتة واختيار اسم المزار الحالي تلقائيًا
-      $('editTicketName').innerHTML = TICKET_ATTRACTIONS
-        .map(a => `<option value="${escapeHTML(a)}"${a === (item.ticketName || '') ? ' selected' : ''}>${escapeHTML(a)}</option>`)
-        .join('');
+
+      // نبني قائمة المزارات في الدروب داون، ونضيف اسم المزار الحالي كخيار إضافي لو مش موجود أصلاً في القائمة الثابتة
+      const nameSelect = $('editTicketName');
+      nameSelect.innerHTML = '';
+      const currentName = item.ticketName || '';
+      const options = TICKET_ATTRACTIONS.includes(currentName) || !currentName
+        ? TICKET_ATTRACTIONS
+        : [currentName, ...TICKET_ATTRACTIONS];
+      options.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name; opt.textContent = name;
+        nameSelect.appendChild(opt);
+      });
+      nameSelect.value = currentName || TICKET_ATTRACTIONS[0];
+
       $('editTicketGuide').value = item.guideName || '';
       $('editTicketQty').value = item.qty || '';
       $('editTicketExpiry').value = item.expiryDate || '';
@@ -2454,13 +2464,14 @@
       const id = $('editTicketId').value;
       const action = $('editTicketAction').value;
       const fileCode = $('editTicketFileCode').value.trim();
-      const ticketName = $('editTicketName').value.trim();
+      const ticketName = $('editTicketName').value;
       const guideName = $('editTicketGuide').value.trim();
       const qty = parseInt($('editTicketQty').value) || 0;
       const expiryDate = $('editTicketExpiry').value;
       const notes = $('editTicketNotes').value.trim();
 
-      if (!fileCode || qty <= 0) return showToast('يرجى استكمال الحقول المطلوبة', 'error');
+      if (action === 'صرف' && !fileCode) return showToast('يرجى إدخال رقم الملف في حالة الصرف', 'error');
+      if (qty <= 0) return showToast('يرجى إدخال كمية صحيحة', 'error');
       try {
         await updateDoc(doc(db, "ticket_records", id), { action, fileCode, ticketName, guideName, qty, expiryDate, notes });
         showToast('تم تعديل التذكرة بنجاح', 'success');
