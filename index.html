@@ -1525,6 +1525,9 @@
     getFirestore, collection, addDoc, updateDoc, doc, 
     onSnapshot, query, orderBy 
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import {
+    getAuth, signInAnonymously, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBnVZaF4cbNqTM03tA3dWEFk2k3aWj0djs",
@@ -1537,6 +1540,7 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const auth = getAuth(app);
 
   const deleteDocAsync = async (documentReference) => updateDoc(documentReference, {
     isDeleted: true,
@@ -2940,7 +2944,19 @@
   };
 
   window.App = App;
-  document.addEventListener('DOMContentLoaded', () => App.init());
+
+  // تسجيل دخول تلقائي مجهول (Anonymous Auth) قبل تشغيل أي استعلام على Firestore،
+  // بحيث لا تُقرأ أو تُكتب أي بيانات إلا بعد التأكد من نجاح المصادقة
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      App.init();
+    }
+  });
+
+  signInAnonymously(auth).catch((error) => {
+    console.error('Anonymous sign-in failed:', error);
+    showToast('تعذر الاتصال بالنظام (فشل تسجيل الدخول التلقائي): ' + error.message, 'error', 10000);
+  });
 </script>
 </body>
 </html>
