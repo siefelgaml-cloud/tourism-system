@@ -2945,17 +2945,25 @@
 
   window.App = App;
 
-  // تسجيل دخول تلقائي مجهول (Anonymous Auth) قبل تشغيل أي استعلام على Firestore،
-  // بحيث لا تُقرأ أو تُكتب أي بيانات إلا بعد التأكد من نجاح المصادقة
+  let appInitialized = false;
+  const initAppOnce = () => {
+    if (appInitialized) return;
+    appInitialized = true;
+    App.init();
+  };
+
+  // نشغّل التطبيق فورًا من غير ما ننتظر نتيجة تسجيل الدخول، عشان أي مشكلة مؤقتة في المصادقة (زي مشاكل إعداد المشروع)
+  // متوقفش وصول الفريق لبياناته. لو الـ Firestore Rules بتشترط تسجيل دخول، القراءة/الكتابة وقتها هترفض من Firestore نفسها
+  // برسالة صلاحيات واضحة، لكن النظام نفسه هيفضل شغال ومحاول.
+  initAppOnce();
+
+  // نحاول تسجيل الدخول المجهول في الخلفية (تجهيزًا لتفعيل الحماية لاحقًا)، من غير ما نعطّل عمل النظام لو فشل مؤقتًا
   onAuthStateChanged(auth, (user) => {
-    if (user) {
-      App.init();
-    }
+    if (user) initAppOnce();
   });
 
   signInAnonymously(auth).catch((error) => {
     console.error('Anonymous sign-in failed:', error);
-    showToast('تعذر الاتصال بالنظام (فشل تسجيل الدخول التلقائي): ' + error.message, 'error', 10000);
   });
 </script>
 </body>
