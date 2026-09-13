@@ -8,7 +8,7 @@
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyBnVZaF4cbNqTM03tA3dWEFk2k3aWj0djs",
+    apiKey: "AIzaSyBnVZaF4cbNqTM03tA3dWEfk2k3aWj0djs",
     authDomain: "tourism-management-syste-b0c23.firebaseapp.com",
     projectId: "tourism-management-syste-b0c23",
     storageBucket: "tourism-management-syste-b0c23.firebasestorage.app",
