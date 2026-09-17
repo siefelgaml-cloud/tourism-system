@@ -155,23 +155,23 @@
         <div id="addSupplierSubTab" class="sub-tab-content active">
           <h3 data-i18n="h_add_supplier">تسجيل مورد جديد</h3>
           <div class="form-row">
-            <div class="form-group"><label>النوع</label><select id="supplierType"><option value="فندق">فندق</option><option value="كروز">كروز</option><option value="مطعم">مطعم</option></select></div>
-            <div class="form-group"><label>الاسم (فندق/كروز/مطعم)</label><input type="text" id="propertyName" placeholder="الاسم"></div>
+            <div class="form-group"><label data-i18n="lbl_type">النوع</label><select id="supplierType"><option value="فندق" data-i18n="opt_hotel">فندق</option><option value="كروز" data-i18n="opt_cruise">كروز</option><option value="مطعم" data-i18n="opt_restaurant">مطعم</option></select></div>
+            <div class="form-group"><label data-i18n="lbl_property_name">الاسم (فندق/كروز/مطعم)</label><input type="text" id="propertyName" placeholder="الاسم" data-i18n-placeholder="ph_name"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>اسم المورد</label><input type="text" id="supplierName" placeholder="اسم المورد"></div>
-            <div class="form-group"><label>رقم البطاقة الضريبية</label><input type="text" id="taxCardNumber" placeholder="رقم البطاقة"></div>
+            <div class="form-group"><label data-i18n="lbl_supplier_name">اسم المورد</label><input type="text" id="supplierName" placeholder="اسم المورد" data-i18n-placeholder="lbl_supplier_name"></div>
+            <div class="form-group"><label data-i18n="lbl_tax_card_number">رقم البطاقة الضريبية</label><input type="text" id="taxCardNumber" placeholder="رقم البطاقة" data-i18n-placeholder="ph_tax_card"></div>
           </div>
-          <div class="form-group"><label>حالة الضريبة</label><select id="taxType"><option value="0.03">خاضع لضريبة 3%</option><option value="advance_payment">دفعات مقدمة</option></select></div>
+          <div class="form-group"><label data-i18n="lbl_tax_status">حالة الضريبة</label><select id="taxType"><option value="0.03" data-i18n="opt_taxed_3">خاضع لضريبة 3%</option><option value="advance_payment" data-i18n="opt_advance_payment">دفعات مقدمة</option></select></div>
           <div class="btn-group">
-            <button class="submit-btn" id="btnSaveSupplier" onclick="App.saveSupplier()">حفظ البيانات</button>
+            <button class="submit-btn" id="btnSaveSupplier" onclick="App.saveSupplier()" data-i18n="btn_save_data">حفظ البيانات</button>
           </div>
 
           <div style="margin-top:25px; padding-top:20px; border-top:2px dashed #cbd5e1;">
             <h4 style="margin-bottom:10px; color:#0f172a;" data-i18n="h_import_suppliers">📥 استيراد عدة موردين دفعة واحدة (ملف إكسيل)</h4>
             <p style="font-size:13px; color:#64748b; margin-bottom:12px;">أعمدة الملف المطلوبة: <strong>النوع، الاسم، المورد، الرقم الضريبي، حالة الضريبة</strong> (اكتب "خاضع 3%" أو "دفعات مقدمة")</p>
             <input type="file" id="supplierExcelFile" accept=".xlsx,.xls" style="display:none;" onchange="App.importSuppliersFromExcel()">
-            <button class="excel-btn" id="btnImportSuppliersExcel" onclick="document.getElementById('supplierExcelFile').click()">📥 اختيار ملف واستيراد</button>
+            <button class="excel-btn" id="btnImportSuppliersExcel" onclick="document.getElementById('supplierExcelFile').click()" data-i18n="btn_choose_import">📥 اختيار ملف واستيراد</button>
           </div>
         </div>
 
@@ -179,18 +179,18 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h3 data-i18n="h_suppliers_list">سجل الموردين</h3>
             <div class="btn-group no-print" style="margin:0;">
-              <button class="print-btn" onclick="printSuppliersList()">𖥕 طباعة</button>
-              <button class="pdf-btn" onclick="downloadSuppliersPDF()">📄 PDF</button>
-              <button class="excel-btn" onclick="App.exportSuppliersList()">📊 Excel</button>
-              <input type="text" id="searchSupplier" placeholder="🔍 بحث..." onkeyup="filterSuppliersTable()" style="max-width:200px;">
+              <button class="print-btn" onclick="printSuppliersList()" data-i18n="btn_print">𖥕 طباعة</button>
+              <button class="pdf-btn" onclick="downloadSuppliersPDF()" data-i18n="btn_pdf">📄 PDF</button>
+              <button class="excel-btn" onclick="App.exportSuppliersList()" data-i18n="btn_excel">📊 Excel</button>
+              <input type="text" id="searchSupplier" placeholder="🔍 بحث..." onkeyup="filterSuppliersTable()" style="max-width:200px;" data-i18n-placeholder="ph_search">
             </div>
           </div>
           <div id="printableSuppliersArea">
             <div class="pdf-report-header">
-              <h2>تقرير سجل الموردين المسجلين</h2>
-              <p>منظومة الحسابات والخصم والإضافة</p>
+              <h2 data-i18n="report_suppliers_h2">تقرير سجل الموردين المسجلين</h2>
+              <p data-i18n="report_suppliers_p">منظومة الحسابات والخصم والإضافة</p>
             </div>
-            <div class="table-wrapper"><table id="suppliersTable"><thead><tr><th>#</th><th>النوع</th><th>الاسم</th><th>المورد</th><th>الرقم الضريبي</th><th>حالة الضريبة</th><th>التاريخ</th><th class="no-print">إجراءات</th></tr></thead><tbody id="suppliersTableBody"><tr><td colspan="8" style="text-align:center;">جاري التحميل...</td></tr></tbody></table></div>
+            <div class="table-wrapper"><table id="suppliersTable"><thead><tr><th>#</th><th data-i18n="lbl_type">النوع</th><th data-i18n="lbl_name">الاسم</th><th data-i18n="lbl_supplier">المورد</th><th data-i18n="lbl_tax_number">الرقم الضريبي</th><th data-i18n="lbl_tax_status">حالة الضريبة</th><th data-i18n="lbl_date">التاريخ</th><th class="no-print" data-i18n="lbl_actions">إجراءات</th></tr></thead><tbody id="suppliersTableBody"><tr><td colspan="8" style="text-align:center;" data-i18n="msg_loading">جاري التحميل...</td></tr></tbody></table></div>
           </div>
         </div>
       </div>
@@ -792,14 +792,14 @@
   <div class="modal-content">
     <h3 data-i18n="h_edit_supplier">تعديل المورد</h3>
     <input type="hidden" id="editSupplierId">
-    <div class="form-group"><label>النوع</label><select id="editSupplierType"><option value="فندق">فندق</option><option value="كروز">كروز</option><option value="مطعم">مطعم</option></select></div>
-    <div class="form-group"><label>الاسم</label><input type="text" id="editPropertyName"></div>
-    <div class="form-group"><label>اسم المورد</label><input type="text" id="editSupplierName"></div>
-    <div class="form-group"><label>الرقم الضريبي</label><input type="text" id="editTaxCardNumber"></div>
-    <div class="form-group"><label>حالة الضريبة</label><select id="editTaxType"><option value="0.03">خاضع 3%</option><option value="advance_payment">دفعات مقدمة</option></select></div>
+    <div class="form-group"><label data-i18n="lbl_type">النوع</label><select id="editSupplierType"><option value="فندق" data-i18n="opt_hotel">فندق</option><option value="كروز" data-i18n="opt_cruise">كروز</option><option value="مطعم" data-i18n="opt_restaurant">مطعم</option></select></div>
+    <div class="form-group"><label data-i18n="lbl_name">الاسم</label><input type="text" id="editPropertyName"></div>
+    <div class="form-group"><label data-i18n="lbl_supplier_name">اسم المورد</label><input type="text" id="editSupplierName"></div>
+    <div class="form-group"><label data-i18n="lbl_tax_number">الرقم الضريبي</label><input type="text" id="editTaxCardNumber"></div>
+    <div class="form-group"><label data-i18n="lbl_tax_status">حالة الضريبة</label><select id="editTaxType"><option value="0.03" data-i18n="opt_taxed_3_short">خاضع 3%</option><option value="advance_payment" data-i18n="opt_advance_payment">دفعات مقدمة</option></select></div>
     <div class="btn-group" style="justify-content:flex-end;">
-      <button class="submit-btn" onclick="App.saveEditedSupplier()">حفظ التعديلات</button>
-      <button class="print-btn" onclick="App.closeEditModal()">إلغاء</button>
+      <button class="submit-btn" onclick="App.saveEditedSupplier()" data-i18n="btn_save_edits">حفظ التعديلات</button>
+      <button class="print-btn" onclick="App.closeEditModal()" data-i18n="btn_cancel">إلغاء</button>
     </div>
   </div>
 </div>

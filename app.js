@@ -194,7 +194,7 @@
         const tbody = $('suppliersTableBody');
         this.currentSuppliers = [];
         if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا توجد بيانات</td></tr>';
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">${t('msg_no_data')}</td></tr>`;
           this.updateMasterDashboard();
           return;
         }
@@ -206,11 +206,11 @@
           if (data.isDeleted) return;
           this.currentSuppliers.push(data);
 
-          const typeBadge = data.supplierType === 'كروز' ? '<span class="badge badge-cruise">كروز</span>' :
-                            data.supplierType === 'مطعم' ? '<span class="badge badge-restaurant">مطعم</span>' :
-                            '<span class="badge badge-hotel">فندق</span>';
-          const taxBadge = (data.taxRate === 0.03 || data.taxRate === "0.03") ? '<span class="badge badge-taxable">خاضع 3%</span>' :
-                           '<span class="badge badge-advance">دفعات مقدمة</span>';
+          const typeBadge = data.supplierType === 'كروز' ? `<span class="badge badge-cruise">${t('opt_cruise')}</span>` :
+                            data.supplierType === 'مطعم' ? `<span class="badge badge-restaurant">${t('opt_restaurant')}</span>` :
+                            `<span class="badge badge-hotel">${t('opt_hotel')}</span>`;
+          const taxBadge = (data.taxRate === 0.03 || data.taxRate === "0.03") ? `<span class="badge badge-taxable">${t('opt_taxed_3_short')}</span>` :
+                           `<span class="badge badge-advance">${t('opt_advance_payment')}</span>`;
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
           htmlBuffer += `
@@ -223,8 +223,8 @@
               <td>${taxBadge}</td>
               <td>${dateStr}</td>
               <td class="no-print">
-                <button class="edit-btn" onclick="App.openEditModal('${docSnap.id}')">تعديل</button>
-                <button class="delete-btn" onclick="App.deleteSupplier('${docSnap.id}')">حذف</button>
+                <button class="edit-btn" onclick="App.openEditModal('${docSnap.id}')">${t('btn_edit')}</button>
+                <button class="delete-btn" onclick="App.deleteSupplier('${docSnap.id}')">${t('btn_delete')}</button>
               </td>
             </tr>
           `;
@@ -291,14 +291,14 @@
     },
 
     exportSuppliersList() {
-      if (this.currentSuppliers.length === 0) return showToast('لا توجد بيانات للتصدير', 'error');
+      if (this.currentSuppliers.length === 0) return showToast(t('msg_no_data_export'), 'error');
       const data = this.currentSuppliers.map((item, idx) => ({
-        "م": idx+1, "النوع": item.supplierType || 'فندق', "الاسم": item.propertyName || '',
-        "المورد": item.supplierName || '', "الرقم الضريبي": item.taxCardNumber || '',
-        "حالة الضريبة": (item.taxRate === 0.03 || item.taxRate === "0.03") ? 'خاضع 3%' : 'دفعات مقدمة'
+        [t('col_idx')]: idx+1, [t('lbl_type')]: item.supplierType || 'فندق', [t('lbl_name')]: item.propertyName || '',
+        [t('lbl_supplier')]: item.supplierName || '', [t('lbl_tax_number')]: item.taxCardNumber || '',
+        [t('lbl_tax_status')]: (item.taxRate === 0.03 || item.taxRate === "0.03") ? t('opt_taxed_3_short') : t('opt_advance_payment')
       }));
       const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "الموردين");
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, t('sheet_suppliers'));
       XLSX.writeFile(wb, "Suppliers_List.xlsx");
     },
 
@@ -1411,11 +1411,11 @@
       const tbody = $('masterDashboardTbody');
       if (tbody) {
         tbody.innerHTML = `
-          <tr><td>الخصم والإضافة</td><td>${this.currentSuppliers.length}</td><td>-</td><td>-</td><td>${this.currentSuppliers.length} موردين</td></tr>
-          <tr><td>أرصدة الكريديت</td><td>${this.currentCredit.length}</td><td>-</td><td>-</td><td>EGP: ${creditEGP.toLocaleString()} | USD: ${creditUSD.toLocaleString()}</td></tr>
-          <tr><td>تصفية الأوبريتور</td><td>${this.currentSettlements.length}</td><td>-</td><td>-</td><td>إجمالي العمولات: ${totalCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td></tr>
-          <tr><td>حجوزات الطيران</td><td>${this.currentAviation.length}</td><td>-</td><td>${totalAviation.toLocaleString()}</td><td>-</td></tr>
-          <tr><td>مخزون التذاكر</td><td>${this.currentTickets.length}</td><td>-</td><td>${totalTickets.toLocaleString()}</td><td>-</td></tr>
+          <tr><td>${t('table_sector_tax_discount')}</td><td>${this.currentSuppliers.length}</td><td>-</td><td>-</td><td>${this.currentSuppliers.length} ${t('suffix_suppliers')}</td></tr>
+          <tr><td>${t('table_sector_credit')}</td><td>${this.currentCredit.length}</td><td>-</td><td>-</td><td>EGP: ${creditEGP.toLocaleString()} | USD: ${creditUSD.toLocaleString()}</td></tr>
+          <tr><td>${t('table_sector_settlement')}</td><td>${this.currentSettlements.length}</td><td>-</td><td>-</td><td>${t('label_total_commissions')}: ${totalCommissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td></tr>
+          <tr><td>${t('table_sector_aviation')}</td><td>${this.currentAviation.length}</td><td>-</td><td>${totalAviation.toLocaleString()}</td><td>-</td></tr>
+          <tr><td>${t('table_sector_tickets')}</td><td>${this.currentTickets.length}</td><td>-</td><td>${totalTickets.toLocaleString()}</td><td>-</td></tr>
         `;
       }
     }

@@ -84,6 +84,49 @@ const translations = {
     h_edit_ticket: "تعديل تذكرة المزار",
     h_edit_settlement: "تعديل تصفية الملف",
 
+    lbl_type: "النوع",
+    opt_hotel: "فندق",
+    opt_cruise: "كروز",
+    opt_restaurant: "مطعم",
+    lbl_property_name: "الاسم (فندق/كروز/مطعم)",
+    ph_name: "الاسم",
+    lbl_supplier_name: "اسم المورد",
+    lbl_tax_card_number: "رقم البطاقة الضريبية",
+    ph_tax_card: "رقم البطاقة",
+    lbl_tax_status: "حالة الضريبة",
+    opt_taxed_3: "خاضع لضريبة 3%",
+    opt_taxed_3_short: "خاضع 3%",
+    opt_advance_payment: "دفعات مقدمة",
+    btn_save_data: "حفظ البيانات",
+    btn_choose_import: "📥 اختيار ملف واستيراد",
+    btn_print: "𖥕 طباعة",
+    btn_pdf: "📄 PDF",
+    btn_excel: "📊 Excel",
+    ph_search: "🔍 بحث...",
+    report_suppliers_h2: "تقرير سجل الموردين المسجلين",
+    report_suppliers_p: "منظومة الحسابات والخصم والإضافة",
+    lbl_name: "الاسم",
+    lbl_supplier: "المورد",
+    lbl_tax_number: "الرقم الضريبي",
+    lbl_date: "التاريخ",
+    lbl_actions: "إجراءات",
+    msg_loading: "جاري التحميل...",
+    btn_save_edits: "حفظ التعديلات",
+    btn_cancel: "إلغاء",
+    msg_no_data_export: "لا توجد بيانات للتصدير",
+    col_idx: "م",
+    sheet_suppliers: "الموردين",
+    msg_no_data: "لا توجد بيانات",
+    btn_edit: "تعديل",
+    btn_delete: "حذف",
+    table_sector_tax_discount: "الخصم والإضافة",
+    table_sector_credit: "أرصدة الكريديت",
+    table_sector_settlement: "تصفية الأوبريتور",
+    table_sector_aviation: "حجوزات الطيران",
+    table_sector_tickets: "مخزون التذاكر",
+    suffix_suppliers: "موردين",
+    label_total_commissions: "إجمالي العمولات",
+
     lang_toggle: "EN"
   },
 
@@ -165,6 +208,49 @@ const translations = {
     h_edit_ticket: "Edit Attraction Ticket",
     h_edit_settlement: "Edit File Settlement",
 
+    lbl_type: "Type",
+    opt_hotel: "Hotel",
+    opt_cruise: "Cruise",
+    opt_restaurant: "Restaurant",
+    lbl_property_name: "Name (Hotel/Cruise/Restaurant)",
+    ph_name: "Name",
+    lbl_supplier_name: "Supplier Name",
+    lbl_tax_card_number: "Tax Card Number",
+    ph_tax_card: "Card Number",
+    lbl_tax_status: "Tax Status",
+    opt_taxed_3: "Subject to 3% Tax",
+    opt_taxed_3_short: "3% Taxed",
+    opt_advance_payment: "Advance Payments",
+    btn_save_data: "Save Data",
+    btn_choose_import: "📥 Choose File & Import",
+    btn_print: "𖥕 Print",
+    btn_pdf: "📄 PDF",
+    btn_excel: "📊 Excel",
+    ph_search: "🔍 Search...",
+    report_suppliers_h2: "Registered Suppliers Log Report",
+    report_suppliers_p: "Discounts & Additions Accounts System",
+    lbl_name: "Name",
+    lbl_supplier: "Supplier",
+    lbl_tax_number: "Tax Number",
+    lbl_date: "Date",
+    lbl_actions: "Actions",
+    msg_loading: "Loading...",
+    btn_save_edits: "Save Changes",
+    btn_cancel: "Cancel",
+    msg_no_data_export: "No data to export",
+    col_idx: "#",
+    sheet_suppliers: "Suppliers",
+    msg_no_data: "No data available",
+    btn_edit: "Edit",
+    btn_delete: "Delete",
+    table_sector_tax_discount: "Discounts & Additions",
+    table_sector_credit: "Credit Balances",
+    table_sector_settlement: "Operator Settlement",
+    table_sector_aviation: "Flight Bookings",
+    table_sector_tickets: "Ticket Inventory",
+    suffix_suppliers: "suppliers",
+    label_total_commissions: "Total Commissions",
+
     lang_toggle: "AR"
   }
 };
@@ -198,9 +284,10 @@ function applyTranslations() {
 }
 
 function setLanguage(lang) {
-  currentLang = lang;
   localStorage.setItem('appLang', lang);
-  applyTranslations();
+  // نعيد تحميل الصفحة عشان كل المحتوى المتولّد ديناميكيًا (الجداول، الشارات، الرسائل)
+  // يترندر من جديد بنفس اللغة الجديدة من أول لحظة، بدل ما نحتاج نعيد كتابة كل دالة عرض على حدة
+  location.reload();
 }
 
 function toggleLanguage() {
