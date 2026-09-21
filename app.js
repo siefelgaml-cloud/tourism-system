@@ -141,6 +141,7 @@
     currentAviation: [],
     currentTickets: [],
     currentSettlements: [],
+    currentShops: [],
 
     init() {
       this.listenToSuppliers();
@@ -148,6 +149,7 @@
       this.listenToAviation();
       this.listenToTickets();
       this.listenToSettlements();
+      this.listenToShops();
       this.renderFixedTicketRows();
     },
 
@@ -502,6 +504,145 @@
         `;
       });
       tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">لا توجد بيانات</td></tr>';
+    },
+
+    // 2.5. SHOPS (المحلات)
+    listenToShops() {
+      const q = query(collection(db, "shop_balances"), orderBy("createdAt", "desc"));
+      onSnapshot(q, (snapshot) => {
+        const tbody = $('shopsTableBody');
+        this.currentShops = [];
+        if (snapshot.empty) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">${t('msg_no_shop_transactions')}</td></tr>`;
+          this.updateShopsDashboard();
+          this.updateMasterDashboard();
+          return;
+        }
+
+        let idx = 1;
+        let htmlBuffer = '';
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data(); data.id = docSnap.id;
+          if (data.isDeleted) return;
+          this.currentShops.push(data);
+
+          const badge = data.type === 'deposit' ? `<span class="badge badge-deposit">${t('opt_debit_short')}</span>` : `<span class="badge badge-deduction">${t('opt_credit_short')}</span>`;
+          const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
+
+          htmlBuffer += `
+            <tr>
+              <td>${idx++}</td>
+              <td><strong>${escapeHTML(data.entity)}</strong></td>
+              <td>${escapeHTML(data.fileCode || '-')}</td>
+              <td>${badge}</td>
+              <td style="font-weight:700;">${(parseFloat(data.amount)||0).toLocaleString()}</td>
+              <td>${escapeHTML(data.currency || 'EGP')}</td>
+              <td>${escapeHTML(data.description || '-')}</td>
+              <td>${dateStr}</td>
+              <td class="no-print">
+                <button class="delete-btn" onclick="App.deleteShop('${docSnap.id}')">${t('btn_delete')}</button>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = htmlBuffer;
+        this.updateShopsDashboard();
+        this.updateMasterDashboard();
+      });
+    },
+
+    async saveShop() {
+      const entity = $('shopEntity').value.trim();
+      const fileCode = $('shopFileCode').value.trim();
+      const type = $('shopType').value;
+      const amount = parseFloat($('shopAmount').value);
+      const currency = $('shopCurrency').value;
+      const description = $('shopDescription').value.trim();
+
+      if (!entity || isNaN(amount) || amount <= 0) return showToast(t('msg_enter_shop_amount'), 'error');
+
+      const btn = $('btnSaveShop'); btn.disabled = true;
+      try {
+        await addDoc(collection(db, "shop_balances"), {
+          entity, fileCode, type, amount, currency, description, isDeleted: false, createdAt: new Date()
+        });
+        showToast(t('msg_transaction_saved'), 'success');
+        $('shopEntity').value = ''; $('shopFileCode').value = ''; $('shopAmount').value = ''; $('shopDescription').value = '';
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.disabled = false; }
+    },
+
+    async deleteShop(id) {
+      if (!confirm(t('confirm_delete_transaction'))) return;
+      try { await deleteDocAsync(doc(db, "shop_balances", id)); showToast(t('msg_deleted'), 'success'); } catch(e) { showToast(e.message, 'error'); }
+    },
+
+    exportShopsList() {
+      if (this.currentShops.length === 0) return showToast(t('msg_no_data_export'), 'error');
+      const data = this.currentShops.map((item, idx) => ({
+        [t('col_idx')]: idx+1, [t('lbl_shop')]: item.entity, [t('lbl_file_code')]: item.fileCode,
+        [t('lbl_type')]: item.type === 'deposit' ? t('opt_debit_short') : t('opt_credit_short'),
+        [t('lbl_amount')]: item.amount, [t('lbl_currency')]: item.currency, [t('lbl_description')]: item.description
+      }));
+      const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, t('sheet_shops')); XLSX.writeFile(wb, "Shops_List.xlsx");
+    },
+
+    updateShopsDashboard() {
+      const byCurrencyDebit = {}, byCurrencyCredit = {};
+      const grouped = {};
+
+      this.currentShops.forEach(s => {
+        const amt = parseFloat(s.amount) || 0;
+        const cur = (s.currency || 'EGP').toUpperCase();
+
+        if (s.type === 'deposit') byCurrencyDebit[cur] = (byCurrencyDebit[cur] || 0) + amt;
+        else byCurrencyCredit[cur] = (byCurrencyCredit[cur] || 0) + amt;
+
+        const key = `${s.entity}_${cur}`;
+        if (!grouped[key]) grouped[key] = { entity: s.entity, currency: cur, debit: 0, credit: 0 };
+        if (s.type === 'deposit') grouped[key].debit += amt;
+        else grouped[key].credit += amt;
+      });
+
+      const allCurrencies = Array.from(new Set([...Object.keys(byCurrencyDebit), ...Object.keys(byCurrencyCredit)]));
+
+      const renderBreakdown = (elId, valuesMap) => {
+        const el = $(elId);
+        if (!el) return;
+        if (allCurrencies.length === 0) { el.innerHTML = '0'; return; }
+        el.innerHTML = allCurrencies.map(cur => {
+          const val = valuesMap[cur] || 0;
+          return `<div class="cur-row"><span class="cur-code">${cur}</span><span>${val.toLocaleString(undefined, {maximumFractionDigits: 2})}</span></div>`;
+        }).join('');
+      };
+
+      const netByCurrency = {};
+      allCurrencies.forEach(cur => { netByCurrency[cur] = (byCurrencyDebit[cur] || 0) - (byCurrencyCredit[cur] || 0); });
+
+      renderBreakdown('shopDashTotalDeposits', byCurrencyDebit);
+      renderBreakdown('shopDashTotalDeductions', byCurrencyCredit);
+      renderBreakdown('shopDashNetBalance', netByCurrency);
+
+      const tbody = $('shopSummaryTableBody');
+      if (!tbody) return;
+      let html = '', idx = 1;
+      Object.values(grouped).forEach(g => {
+        const net = g.debit - g.credit;
+        const statusBadge = net >= 0 ? `<span class="badge badge-deposit">${t('status_owed_to_us')}</span>` : `<span class="badge badge-deduction">${t('status_owed_by_us')}</span>`;
+        html += `
+          <tr>
+            <td>${idx++}</td>
+            <td><strong>${escapeHTML(g.entity)}</strong></td>
+            <td>${g.currency}</td>
+            <td style="color:#16a34a; font-weight:700;">${g.debit.toLocaleString()}</td>
+            <td style="color:#dc2626; font-weight:700;">${g.credit.toLocaleString()}</td>
+            <td style="font-weight:800;">${net.toLocaleString()}</td>
+            <td>${statusBadge}</td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html || `<tr><td colspan="7" style="text-align:center;">${t('msg_no_data')}</td></tr>`;
     },
 
     // 3. AVIATION

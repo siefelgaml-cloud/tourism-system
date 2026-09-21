@@ -71,6 +71,16 @@
           <button class="sub-tab-btn" onclick="openSubTab(event, 'ticketsListSubTab', 'ticketsTab')" data-i18n="sub_tickets_list">2- سجل التذاكر والمخزون</button>
           <button class="sub-tab-btn" onclick="openSubTab(event, 'ticketsBalanceSubTab', 'ticketsTab')" data-i18n="sub_tickets_balance">3- أرصدة التذاكر</button>
         </div>
+
+        <button class="tab-btn" id="shopsBtn" onclick="toggleShopsMenu(event)">
+          <span data-i18n="nav_shops">🛍️ المحلات</span>
+          <span id="shopsArrowIcon" style="font-size:12px;">▼</span>
+        </button>
+        <div id="shopsSubMenu" class="sub-tabs-container" style="display:none;">
+          <button class="sub-tab-btn active" onclick="openSubTab(event, 'addShopSubTab', 'shopsTab')" data-i18n="sub_add_shop">1- تسجيل حركة</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'shopRecordsSubTab', 'shopsTab')" data-i18n="sub_shop_records">2- سجل العمليات</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'shopSummarySubTab', 'shopsTab')" data-i18n="sub_shop_summary">3- الملخص والـ Dashboard</button>
+        </div>
       </div>
 
       <button class="tab-btn" id="aviationBtn" onclick="toggleAviationMenu(event)">
@@ -778,6 +788,69 @@
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="shopsTab" class="tab-content">
+        <div id="addShopSubTab" class="sub-tab-content active">
+          <h3 data-i18n="h_add_shop">تسجيل حركة مع محل</h3>
+          <div class="form-row">
+            <div class="form-group" style="position:relative;">
+              <label data-i18n="lbl_shop_name">اسم المحل</label>
+              <input type="text" id="shopEntity" placeholder="أدخل اسم المحل..." data-i18n-placeholder="ph_shop_name" autocomplete="off" oninput="searchShopEntitySuggestions()" onfocus="searchShopEntitySuggestions()">
+              <div id="shopEntitySuggestions" class="suggestions-dropdown" style="display:none;"></div>
+            </div>
+            <div class="form-group"><label data-i18n="lbl_file_code">رقم الملف</label><input type="text" id="shopFileCode" placeholder="EG-2026-99"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label data-i18n="lbl_transaction_type">نوع الحركة</label><select id="shopType"><option value="deposit" data-i18n="opt_debit">مدين (لنا)</option><option value="deduction" data-i18n="opt_credit">دائن (المستخدم)</option></select></div>
+            <div class="form-group">
+              <label data-i18n="lbl_amount_currency">المبلغ والعملة</label>
+              <div class="amount-input-group">
+                <input type="number" id="shopAmount" placeholder="أدخل المبلغ..." data-i18n-placeholder="ph_amount" step="any" inputmode="decimal">
+                <select id="shopCurrency">
+                  <option value="EGP">EGP</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group"><label data-i18n="lbl_description">البيان</label><textarea id="shopDescription" placeholder="تفاصيل الحركة..." data-i18n-placeholder="ph_transaction_details"></textarea></div>
+          <div class="btn-group">
+            <button class="submit-btn" id="btnSaveShop" onclick="App.saveShop()" data-i18n="btn_save_transaction">تسجيل الحركة</button>
+          </div>
+        </div>
+
+        <div id="shopRecordsSubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h3 data-i18n="h_shop_records">سجل عمليات المحلات</h3>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="text" id="searchShop" placeholder="🔍 بحث..." data-i18n-placeholder="ph_search" onkeyup="filterShopsTable()" style="max-width:200px;">
+              <button class="excel-btn" onclick="App.exportShopsList()" data-i18n="btn_excel">📊 Excel</button>
+            </div>
+          </div>
+          <div class="table-wrapper"><table id="shopsTable"><thead><tr><th>#</th><th data-i18n="lbl_shop">المحل</th><th data-i18n="lbl_file_code">رقم الملف</th><th data-i18n="lbl_type">النوع</th><th data-i18n="lbl_amount">المبلغ</th><th data-i18n="lbl_currency">العملة</th><th data-i18n="lbl_description">البيان</th><th data-i18n="lbl_date">التاريخ</th><th data-i18n="lbl_actions">إجراءات</th></tr></thead><tbody id="shopsTableBody"><tr><td colspan="9" style="text-align:center;" data-i18n="msg_loading">جاري التحميل...</td></tr></tbody></table></div>
+        </div>
+
+        <div id="shopSummarySubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3 data-i18n="h_shop_summary">ملخص Dashboard المحلات</h3>
+            <div class="btn-group no-print" style="margin:0;"><button class="print-btn" onclick="printDashboard()" data-i18n="btn_print">𖥕 طباعة</button><button class="pdf-btn" onclick="downloadShopsDashboardPDF()" data-i18n="btn_pdf">📄 PDF</button></div>
+          </div>
+          <div id="printableShopsArea">
+            <div class="pdf-report-header">
+              <h2 data-i18n="report_shops_h2">تقرير ملخص أرصدة المحلات</h2>
+              <p data-i18n="dash_report_p">منظومة الحسابات السياحية الشاملة</p>
+            </div>
+            <div class="dashboard-grid">
+              <div class="dash-card" style="border-right:4px solid #16a34a;background:#f0fdf4;"><span class="dash-card-title" style="color:#166534;" data-i18n="lbl_total_debit">إجمالي المدين</span><div class="dash-card-value currency-breakdown" id="shopDashTotalDeposits" style="color:#15803d;">0</div></div>
+              <div class="dash-card" style="border-right:4px solid #dc2626;background:#fef2f2;"><span class="dash-card-title" style="color:#991b1b;" data-i18n="lbl_total_credit">إجمالي الدائن</span><div class="dash-card-value currency-breakdown" id="shopDashTotalDeductions" style="color:#b91c1c;">0</div></div>
+              <div class="dash-card" style="border-right:4px solid #0284c7;background:#f0f9ff;"><span class="dash-card-title" style="color:#075985;" data-i18n="lbl_net_balance">صافي الرصيد</span><div class="dash-card-value currency-breakdown" id="shopDashNetBalance" style="color:#0369a1;">0</div></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:25px; margin-bottom:10px;"><h4 data-i18n="h_cumulative_summary">ملخص الأرصدة التجميعي</h4><input type="text" id="searchShopSummary" class="no-print" placeholder="🔍 بحث..." data-i18n-placeholder="ph_search" onkeyup="filterShopSummaryTable()" style="max-width:200px;"></div>
+            <div class="table-wrapper"><table id="shopSummaryTable"><thead><tr><th>#</th><th data-i18n="lbl_shop">المحل</th><th data-i18n="lbl_currency">العملة</th><th data-i18n="lbl_total_debit">إجمالي المدين</th><th data-i18n="lbl_total_credit">إجمالي الدائن</th><th data-i18n="lbl_net_balance">صافي الرصيد</th><th data-i18n="lbl_status">الحالة</th></tr></thead><tbody id="shopSummaryTableBody"><tr><td colspan="7" style="text-align:center;" data-i18n="msg_calculating">جاري الحساب...</td></tr></tbody></table></div>
           </div>
         </div>
       </div>

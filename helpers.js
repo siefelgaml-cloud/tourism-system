@@ -74,6 +74,14 @@
     openTab(evt, "ticketsTab");
   }
 
+  function toggleShopsMenu(evt) {
+    const menu = document.getElementById("shopsSubMenu");
+    const isHidden = menu.style.display === "none" || menu.style.display === "";
+    menu.style.display = isHidden ? "flex" : "none";
+    document.getElementById("shopsArrowIcon").innerText = isHidden ? "▲" : "▼";
+    openTab(evt, "shopsTab");
+  }
+
   function toggleSettlementMenu(evt) {
     const menu = document.getElementById("settlementSubMenu");
     const isHidden = menu.style.display === "none" || menu.style.display === "";
@@ -106,6 +114,26 @@
     const input = document.getElementById("searchEntitySummary");
     const filter = input ? input.value.toLowerCase() : "";
     const trs = document.querySelectorAll("#entitySummaryTable tbody tr");
+    trs.forEach(tr => {
+      if (tr.children.length === 1) return;
+      tr.style.display = tr.innerText.toLowerCase().includes(filter) ? "" : "none";
+    });
+  }
+
+  function filterShopsTable() {
+    const input = document.getElementById("searchShop");
+    const filter = input ? input.value.toLowerCase() : "";
+    const trs = document.querySelectorAll("#shopsTable tbody tr");
+    trs.forEach(tr => {
+      if (tr.children.length === 1) return;
+      tr.style.display = tr.innerText.toLowerCase().includes(filter) ? "" : "none";
+    });
+  }
+
+  function filterShopSummaryTable() {
+    const input = document.getElementById("searchShopSummary");
+    const filter = input ? input.value.toLowerCase() : "";
+    const trs = document.querySelectorAll("#shopSummaryTable tbody tr");
     trs.forEach(tr => {
       if (tr.children.length === 1) return;
       tr.style.display = tr.innerText.toLowerCase().includes(filter) ? "" : "none";
@@ -237,6 +265,10 @@
     const element = document.getElementById('printableArea');
     html2pdf().set({ margin: 0.5, filename: 'Credit_Dashboard.pdf', jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }, html2canvas: { ignoreElements: (el) => el.classList && el.classList.contains('no-print') } }).from(element).save();
   }
+  function downloadShopsDashboardPDF() {
+    const element = document.getElementById('printableShopsArea');
+    html2pdf().set({ margin: 0.5, filename: 'Shops_Dashboard.pdf', jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }, html2canvas: { ignoreElements: (el) => el.classList && el.classList.contains('no-print') } }).from(element).save();
+  }
   function downloadMasterDashboardPDF() {
     const element = document.getElementById('printableMasterDashboard');
     html2pdf().set({ margin: 0.5, filename: 'Master_Dashboard.pdf', jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }, html2canvas: { ignoreElements: (el) => el.classList && el.classList.contains('no-print') } }).from(element).save();
@@ -315,6 +347,24 @@
   function selectCreditEntitySuggestion(name) {
     document.getElementById('creditEntity').value = name;
     document.getElementById('creditEntitySuggestions').style.display = 'none';
+  }
+  function searchShopEntitySuggestions() {
+    const queryVal = document.getElementById('shopEntity').value.trim().toLowerCase();
+    const dropdown = document.getElementById('shopEntitySuggestions');
+    if (!queryVal || !window.App) { dropdown.style.display = 'none'; return; }
+
+    // نبحث في أسماء المحلات المسجلة فعليًا في سجل عمليات المحلات
+    const matched = [...new Set(window.App.currentShops.map(s => s.entity))]
+      .filter(e => e && e.toLowerCase().includes(queryVal));
+
+    if (matched.length === 0) { dropdown.style.display = 'none'; return; }
+
+    dropdown.innerHTML = matched.map(m => `<div class="suggestion-item" onclick="selectShopEntitySuggestion('${escapeHTML(m)}')"><span>${escapeHTML(m)}</span></div>`).join('');
+    dropdown.style.display = 'block';
+  }
+  function selectShopEntitySuggestion(name) {
+    document.getElementById('shopEntity').value = name;
+    document.getElementById('shopEntitySuggestions').style.display = 'none';
   }
   function renderRunningStatement() {
     const entity = document.getElementById('stEntityName').value.trim();

@@ -229,9 +229,10 @@
       #printableAviationArea, #printableAviationArea *,
       #printableTicketsArea, #printableTicketsArea *,
       #printableTicketsBalanceArea, #printableTicketsBalanceArea *,
+      #printableShopsArea, #printableShopsArea *,
       #printableSettlementArea, #printableSettlementArea *,
       #printableSettlementArchiveArea, #printableSettlementArchiveArea * { visibility: visible; }
-      #printableArea, #printableSuppliersArea, #printableStatementArea, #printableAviationArea, #printableTicketsArea, #printableTicketsBalanceArea, #printableSettlementArea, #printableSettlementArchiveArea { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
+      #printableArea, #printableSuppliersArea, #printableStatementArea, #printableAviationArea, #printableTicketsArea, #printableTicketsBalanceArea, #printableShopsArea, #printableSettlementArea, #printableSettlementArchiveArea { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; }
       .no-print { display: none !important; }
       .pdf-report-header { display: block !important; }
     }
