@@ -405,7 +405,22 @@
       commissionInput.value = (shop && shop.commissionRate != null) ? shop.commissionRate : '';
     }
     if (typeInput) {
-      typeInput.value = (shop && shop.type) ? shop.type : '';
+      const shopType = (shop && shop.type) ? String(shop.type).trim() : '';
+      let matchedValue = '';
+      if (shopType) {
+        const options = Array.from(typeInput.options);
+        // 1) مطابقة مباشرة لقيمة الخيار
+        const exact = options.find(o => o.value === shopType);
+        if (exact) {
+          matchedValue = exact.value;
+        } else {
+          // 2) مطابقة بعد التطبيع (تتعامل مع اختلاف ه/ة والمسافات)
+          const normalize = s => String(s).replace(/[ةه]/g, 'ه').replace(/\s+/g, '').trim();
+          const fuzzy = options.find(o => normalize(o.value) === normalize(shopType));
+          matchedValue = fuzzy ? fuzzy.value : '';
+        }
+      }
+      typeInput.value = matchedValue;
     }
   }
   function renderRunningStatement() {
