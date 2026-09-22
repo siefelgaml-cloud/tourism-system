@@ -515,7 +515,7 @@
         const tbody = $('shopsTableBody');
         this.currentShops = [];
         if (snapshot.empty) {
-          tbody.innerHTML = `<tr><td colspan="15" style="text-align:center;">${t('msg_no_shop_transactions')}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;">${t('msg_no_shop_transactions')}</td></tr>`;
           this.updateShopsDashboard();
           this.updateMasterDashboard();
           return;
@@ -541,11 +541,9 @@
           htmlBuffer += `
             <tr>
               <td>${idx++}</td>
-              <td><strong>${escapeHTML(data.entity || '-')}</strong></td>
-              <td>${escapeHTML(data.guideName || '-')}</td>
+              <td><strong>${escapeHTML(data.entity)}</strong></td>
+              <td>${escapeHTML(data.guideName || data.fileCode || '-')}</td>
               <td>${escapeHTML(data.shopType || '-')}</td>
-              <td>${escapeHTML(data.fileCode || '-')}</td>
-              <td>${escapeHTML(data.month || '-')}</td>
               <td>${badge}</td>
               <td style="font-weight:700;">${amountVal.toLocaleString()}</td>
               <td>${escapeHTML(data.currency || 'EGP')}</td>
@@ -570,8 +568,6 @@
       const entity = $('shopEntity').value.trim();
       const guideName = $('shopGuideName').value.trim();
       const shopType = $('shopShopType').value;
-      const fileCode = $('shopFileCode').value.trim();
-      const month = $('shopMonth').value;
       const type = $('shopType').value;
       const amount = parseFloat($('shopAmount').value);
       const currency = $('shopCurrency').value;
@@ -585,10 +581,10 @@
       const btn = $('btnSaveShop'); btn.disabled = true;
       try {
         await addDoc(collection(db, "shop_balances"), {
-          entity, guideName, shopType, fileCode, month, type, amount, currency, commission, description, isDeleted: false, createdAt: new Date()
+          entity, guideName, shopType, type, amount, currency, commission, description, isDeleted: false, createdAt: new Date()
         });
         showToast(t('msg_transaction_saved'), 'success');
-        $('shopEntity').value = ''; $('shopGuideName').value = ''; $('shopShopType').value = ''; $('shopFileCode').value = ''; $('shopMonth').value = ''; $('shopAmount').value = ''; $('shopCommission').value = ''; $('shopDescription').value = '';
+        $('shopEntity').value = ''; $('shopGuideName').value = ''; $('shopShopType').value = ''; $('shopAmount').value = ''; $('shopCommission').value = ''; $('shopDescription').value = '';
       } catch (e) { showToast(e.message, 'error'); }
       finally { btn.disabled = false; }
     },
@@ -605,10 +601,8 @@
         const commissionPct = (item.commission != null && item.commission !== '') ? parseFloat(item.commission) : null;
         const commissionAmount = commissionPct != null ? (amountVal * commissionPct / 100) : '';
         return {
-          [t('col_idx')]: idx+1, [t('lbl_shop')]: item.entity, [t('lbl_guide_name')]: item.guideName || '',
+          [t('col_idx')]: idx+1, [t('lbl_shop')]: item.entity, [t('lbl_guide_name')]: item.guideName || item.fileCode || '',
           [t('lbl_shop_type')]: item.shopType || '',
-          [t('lbl_file_code')]: item.fileCode || '',
-          [t('lbl_month')]: item.month || '',
           [t('lbl_type')]: item.type === 'deposit' ? t('opt_debit_short') : t('opt_credit_short'),
           [t('lbl_amount')]: item.amount, [t('lbl_currency')]: item.currency,
           [t('lbl_commission')]: commissionPct != null ? commissionPct + '%' : '',
