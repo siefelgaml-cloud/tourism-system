@@ -856,6 +856,10 @@
             <div class="form-group"><label data-i18n="lbl_shop_type">نوع المحل</label><select id="shopShopType"><option value="" data-i18n="opt_select_type">-- اختر النوع --</option><option value="بردي" data-i18n="opt_shop_papyrus">بردي</option><option value="بازار" data-i18n="opt_shop_bazaar">بازار</option><option value="قطن" data-i18n="opt_shop_cotton">قطن</option><option value="ريحه" data-i18n="opt_shop_perfume">ريحه</option><option value="حجر" data-i18n="opt_shop_stone">حجر</option><option value="سجاد" data-i18n="opt_shop_carpet">سجاد</option><option value="أخرى" data-i18n="opt_region_other">أخرى</option></select></div>
           </div>
           <div class="form-row">
+            <div class="form-group"><label data-i18n="lbl_file_code">رقم الملف</label><input type="text" id="shopFileCode" placeholder="أدخل رقم الملف..." data-i18n-placeholder="ph_file_code"></div>
+            <div class="form-group"><label data-i18n="lbl_month">الشهر</label><input type="month" id="shopMonth" data-i18n-placeholder="ph_month"></div>
+          </div>
+          <div class="form-row">
             <div class="form-group"><label data-i18n="lbl_transaction_type">نوع الحركة</label><select id="shopType"><option value="deposit" data-i18n="opt_debit">مدين (لنا)</option><option value="deduction" data-i18n="opt_credit">دائن (المحصل)</option></select></div>
             <div class="form-group">
               <label data-i18n="lbl_amount_currency">المبلغ والعملة</label>
@@ -884,7 +888,7 @@
               <button class="excel-btn" onclick="App.exportShopsList()" data-i18n="btn_excel">📊 Excel</button>
             </div>
           </div>
-          <div class="table-wrapper"><table id="shopsTable"><thead><tr><th>#</th><th data-i18n="lbl_shop">المحل</th><th data-i18n="lbl_guide_name">اسم المرشد</th><th data-i18n="lbl_shop_type">نوع المحل</th><th data-i18n="lbl_type">النوع</th><th data-i18n="lbl_amount">المبلغ</th><th data-i18n="lbl_currency">العملة</th><th data-i18n="lbl_commission">العمولة</th><th data-i18n="lbl_commission_amount">مبلغ العمولة</th><th data-i18n="lbl_status">الحالة</th><th data-i18n="lbl_description">البيان</th><th data-i18n="lbl_date">التاريخ</th><th data-i18n="lbl_actions">إجراءات</th></tr></thead><tbody id="shopsTableBody"><tr><td colspan="13" style="text-align:center;" data-i18n="msg_loading">جاري التحميل...</td></tr></tbody></table></div>
+          <div class="table-wrapper"><table id="shopsTable"><thead><tr><th>#</th><th data-i18n="lbl_shop">المحل</th><th data-i18n="lbl_guide_name">اسم المرشد</th><th data-i18n="lbl_shop_type">نوع المحل</th><th data-i18n="lbl_file_code">رقم الملف</th><th data-i18n="lbl_month">الشهر</th><th data-i18n="lbl_type">النوع</th><th data-i18n="lbl_amount">المبلغ</th><th data-i18n="lbl_currency">العملة</th><th data-i18n="lbl_commission">العمولة</th><th data-i18n="lbl_commission_amount">مبلغ العمولة</th><th data-i18n="lbl_status">الحالة</th><th data-i18n="lbl_description">البيان</th><th data-i18n="lbl_date">التاريخ</th><th data-i18n="lbl_actions">إجراءات</th></tr></thead><tbody id="shopsTableBody"><tr><td colspan="15" style="text-align:center;" data-i18n="msg_loading">جاري التحميل...</td></tr></tbody></table></div>
         </div>
 
         <div id="shopSummarySubTab" class="sub-tab-content">
