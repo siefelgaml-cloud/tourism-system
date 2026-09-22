@@ -163,6 +163,10 @@
 
     .table-wrapper { overflow-x: auto; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    /* Wide tables (e.g. Shop Operations) keep fixed column widths so every
+       cell stays vertically aligned under its header instead of collapsing. */
+    #shopsTable { min-width: 1150px; table-layout: auto; }
+    #shopsTable th, #shopsTable td { white-space: nowrap; }
     th { background: #f1f5f9; color: #1e293b; font-weight: 700; padding: 12px 14px; text-align: right; border-bottom: 2px solid #e2e8f0; }
     td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
     tr:hover td { background: #f8fafc; }
