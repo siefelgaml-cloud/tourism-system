@@ -515,7 +515,7 @@
         const tbody = $('shopsTableBody');
         this.currentShops = [];
         if (snapshot.empty) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">${t('msg_no_shop_transactions')}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;">${t('msg_no_shop_transactions')}</td></tr>`;
           this.updateShopsDashboard();
           this.updateMasterDashboard();
           return;
@@ -531,15 +531,25 @@
           const badge = data.type === 'deposit' ? `<span class="badge badge-deposit">${t('opt_debit_short')}</span>` : `<span class="badge badge-deduction">${t('opt_credit_short')}</span>`;
           const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-';
 
+          const amountVal = parseFloat(data.amount) || 0;
+          const commissionPct = (data.commission != null && data.commission !== '') ? parseFloat(data.commission) : null;
+          const commissionAmount = commissionPct != null ? (amountVal * commissionPct / 100) : null;
+          const statusBadge = data.type === 'deposit'
+            ? `<span class="badge badge-advance">${t('status_under_collection')}</span>`
+            : `<span class="badge badge-deposit">${t('status_collected')}</span>`;
+
           htmlBuffer += `
             <tr>
               <td>${idx++}</td>
               <td><strong>${escapeHTML(data.entity)}</strong></td>
               <td>${escapeHTML(data.guideName || data.fileCode || '-')}</td>
+              <td>${escapeHTML(data.shopType || '-')}</td>
               <td>${badge}</td>
-              <td style="font-weight:700;">${(parseFloat(data.amount)||0).toLocaleString()}</td>
+              <td style="font-weight:700;">${amountVal.toLocaleString()}</td>
               <td>${escapeHTML(data.currency || 'EGP')}</td>
-              <td>${data.commission != null && data.commission !== '' ? data.commission + '%' : '-'}</td>
+              <td>${commissionPct != null ? commissionPct + '%' : '-'}</td>
+              <td style="font-weight:700; color:#7c3aed;">${commissionAmount != null ? commissionAmount.toLocaleString(undefined, {maximumFractionDigits: 2}) : '-'}</td>
+              <td>${statusBadge}</td>
               <td>${escapeHTML(data.description || '-')}</td>
               <td>${dateStr}</td>
               <td class="no-print">
@@ -557,6 +567,7 @@
     async saveShop() {
       const entity = $('shopEntity').value.trim();
       const guideName = $('shopGuideName').value.trim();
+      const shopType = $('shopShopType').value;
       const type = $('shopType').value;
       const amount = parseFloat($('shopAmount').value);
       const currency = $('shopCurrency').value;
@@ -569,10 +580,10 @@
       const btn = $('btnSaveShop'); btn.disabled = true;
       try {
         await addDoc(collection(db, "shop_balances"), {
-          entity, guideName, type, amount, currency, commission, description, isDeleted: false, createdAt: new Date()
+          entity, guideName, shopType, type, amount, currency, commission, description, isDeleted: false, createdAt: new Date()
         });
         showToast(t('msg_transaction_saved'), 'success');
-        $('shopEntity').value = ''; $('shopGuideName').value = ''; $('shopAmount').value = ''; $('shopCommission').value = ''; $('shopDescription').value = '';
+        $('shopEntity').value = ''; $('shopGuideName').value = ''; $('shopShopType').value = ''; $('shopAmount').value = ''; $('shopCommission').value = ''; $('shopDescription').value = '';
       } catch (e) { showToast(e.message, 'error'); }
       finally { btn.disabled = false; }
     },
@@ -584,13 +595,21 @@
 
     exportShopsList() {
       if (this.currentShops.length === 0) return showToast(t('msg_no_data_export'), 'error');
-      const data = this.currentShops.map((item, idx) => ({
-        [t('col_idx')]: idx+1, [t('lbl_shop')]: item.entity, [t('lbl_guide_name')]: item.guideName || item.fileCode || '',
-        [t('lbl_type')]: item.type === 'deposit' ? t('opt_debit_short') : t('opt_credit_short'),
-        [t('lbl_amount')]: item.amount, [t('lbl_currency')]: item.currency,
-        [t('lbl_commission')]: (item.commission != null && item.commission !== '') ? item.commission + '%' : '',
-        [t('lbl_description')]: item.description
-      }));
+      const data = this.currentShops.map((item, idx) => {
+        const amountVal = parseFloat(item.amount) || 0;
+        const commissionPct = (item.commission != null && item.commission !== '') ? parseFloat(item.commission) : null;
+        const commissionAmount = commissionPct != null ? (amountVal * commissionPct / 100) : '';
+        return {
+          [t('col_idx')]: idx+1, [t('lbl_shop')]: item.entity, [t('lbl_guide_name')]: item.guideName || item.fileCode || '',
+          [t('lbl_shop_type')]: item.shopType || '',
+          [t('lbl_type')]: item.type === 'deposit' ? t('opt_debit_short') : t('opt_credit_short'),
+          [t('lbl_amount')]: item.amount, [t('lbl_currency')]: item.currency,
+          [t('lbl_commission')]: commissionPct != null ? commissionPct + '%' : '',
+          [t('lbl_commission_amount')]: commissionAmount,
+          [t('lbl_status')]: item.type === 'deposit' ? t('status_under_collection') : t('status_collected'),
+          [t('lbl_description')]: item.description
+        };
+      });
       const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, t('sheet_shops')); XLSX.writeFile(wb, "Shops_List.xlsx");
     },

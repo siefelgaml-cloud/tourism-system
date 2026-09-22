@@ -363,8 +363,8 @@
     const dropdown = document.getElementById('shopEntitySuggestions');
     if (!queryVal || !window.App) { dropdown.style.display = 'none'; return; }
 
-    // لو الاسم مطابق تمامًا لمحل في الدليل، نعبّي نسبة العمولة تلقائيًا
-    applyShopCommission(document.getElementById('shopEntity').value);
+    // لو الاسم مطابق تمامًا لمحل في الدليل، نعبّي نسبة العمولة ونوع المحل تلقائيًا
+    applyShopAutoFill(document.getElementById('shopEntity').value);
 
     // نبحث في المحلات المسجلة في دليل المحلات، وكمان في أسماء المحلات اللي ليها حركات سابقة
     const directoryMatches = (window.App.currentShopDirectory || [])
@@ -390,17 +390,23 @@
   function selectShopEntitySuggestion(name) {
     document.getElementById('shopEntity').value = name;
     document.getElementById('shopEntitySuggestions').style.display = 'none';
-    applyShopCommission(name);
+    applyShopAutoFill(name);
   }
 
-  // تعبئة نسبة العمولة تلقائيًا من دليل المحلات بمجرد اختيار/كتابة اسم المحل
-  function applyShopCommission(name) {
+  // تعبئة نسبة العمولة ونوع المحل تلقائيًا من دليل المحلات بمجرد اختيار/كتابة اسم المحل
+  function applyShopAutoFill(name) {
     const commissionInput = document.getElementById('shopCommission');
-    if (!commissionInput) return;
+    const typeInput = document.getElementById('shopShopType');
     const target = (name || '').trim().toLowerCase();
     const shop = (window.App && window.App.currentShopDirectory || [])
       .find(s => (s.name || '').trim().toLowerCase() === target);
-    commissionInput.value = (shop && shop.commissionRate != null) ? shop.commissionRate : '';
+
+    if (commissionInput) {
+      commissionInput.value = (shop && shop.commissionRate != null) ? shop.commissionRate : '';
+    }
+    if (typeInput) {
+      typeInput.value = (shop && shop.type) ? shop.type : '';
+    }
   }
   function renderRunningStatement() {
     const entity = document.getElementById('stEntityName').value.trim();
