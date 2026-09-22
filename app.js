@@ -571,7 +571,7 @@
       const guideName = $('shopGuideName').value.trim();
       const shopType = $('shopShopType').value;
       const fileCode = $('shopFileCode').value.trim();
-      const month = $('shopMonth').value;
+      const period = $('shopPeriod').value;
       const type = $('shopType').value;
       const amount = parseFloat($('shopAmount').value);
       const currency = $('shopCurrency').value;
@@ -585,10 +585,10 @@
       const btn = $('btnSaveShop'); btn.disabled = true;
       try {
         await addDoc(collection(db, "shop_balances"), {
-          entity, guideName, shopType, fileCode, month, type, amount, currency, commission, description, isDeleted: false, createdAt: new Date()
+          entity, guideName, shopType, fileCode, period, type, amount, currency, commission, description, isDeleted: false, createdAt: new Date()
         });
         showToast(t('msg_transaction_saved'), 'success');
-        $('shopEntity').value = ''; $('shopGuideName').value = ''; $('shopShopType').value = ''; $('shopFileCode').value = ''; $('shopMonth').value = ''; $('shopAmount').value = ''; $('shopCommission').value = ''; $('shopDescription').value = '';
+        $('shopEntity').value = ''; $('shopGuideName').value = ''; $('shopShopType').value = ''; $('shopFileCode').value = ''; $('shopPeriod').selectedIndex = 0; $('shopAmount').value = ''; $('shopCommission').value = ''; $('shopDescription').value = '';
       } catch (e) { showToast(e.message, 'error'); }
       finally { btn.disabled = false; }
     },
@@ -608,7 +608,7 @@
           [t('col_idx')]: idx+1, [t('lbl_shop')]: item.entity, [t('lbl_guide_name')]: item.guideName || '',
           [t('lbl_shop_type')]: item.shopType || '',
           [t('lbl_file_code')]: item.fileCode || '',
-          [t('lbl_month')]: item.month || '',
+          [t('lbl_period')]: item.period || item.month || '',
           [t('lbl_type')]: item.type === 'deposit' ? t('opt_debit_short') : t('opt_credit_short'),
           [t('lbl_amount')]: item.amount, [t('lbl_currency')]: item.currency,
           [t('lbl_commission')]: commissionPct != null ? commissionPct + '%' : '',
@@ -628,13 +628,16 @@
       this.currentShops.forEach(s => {
         const amt = parseFloat(s.amount) || 0;
         const cur = (s.currency || 'EGP').toUpperCase();
+        // إجمالي المدين = مبلغ العمولة المستحقة (المبلغ × نسبة العمولة) للحركات المدينة فقط
+        const commissionPct = (s.commission != null && s.commission !== '') ? parseFloat(s.commission) : null;
+        const commissionAmount = (s.type === 'deposit' && commissionPct != null) ? (amt * commissionPct / 100) : 0;
 
-        if (s.type === 'deposit') byCurrencyDebit[cur] = (byCurrencyDebit[cur] || 0) + amt;
+        if (s.type === 'deposit') byCurrencyDebit[cur] = (byCurrencyDebit[cur] || 0) + commissionAmount;
         else byCurrencyCredit[cur] = (byCurrencyCredit[cur] || 0) + amt;
 
         const key = `${s.entity}_${cur}`;
         if (!grouped[key]) grouped[key] = { entity: s.entity, currency: cur, debit: 0, credit: 0 };
-        if (s.type === 'deposit') grouped[key].debit += amt;
+        if (s.type === 'deposit') grouped[key].debit += commissionAmount;
         else grouped[key].credit += amt;
       });
 
