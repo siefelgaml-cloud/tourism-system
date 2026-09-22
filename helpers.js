@@ -422,7 +422,32 @@
       }
       typeInput.value = matchedValue;
     }
+
+    // مراعاة حالة قفل العمولة حسب نوع الحركة الحالي بعد التعبئة التلقائية
+    onShopTypeChange();
   }
+
+  // عند اختيار "دائن (المحصل)" يعني المبلغ محصّل بالكامل من المحل، فلا داعي لحساب عمولة
+  // فيتم قفل خانة نسبة العمولة وتصفيرها. وعند الرجوع لـ "مدين (لنا)" تُعاد تفعيلها
+  // وتُعاد تعبئتها تلقائيًا من دليل المحلات إن وُجد.
+  function onShopTypeChange() {
+    const typeSelect = document.getElementById('shopType');
+    const commissionInput = document.getElementById('shopCommission');
+    if (!typeSelect || !commissionInput) return;
+
+    if (typeSelect.value === 'deduction') {
+      commissionInput.value = '';
+      commissionInput.disabled = true;
+    } else {
+      commissionInput.disabled = false;
+      const entityName = document.getElementById('shopEntity') ? document.getElementById('shopEntity').value : '';
+      const target = (entityName || '').trim().toLowerCase();
+      const shop = (window.App && window.App.currentShopDirectory || [])
+        .find(s => (s.name || '').trim().toLowerCase() === target);
+      commissionInput.value = (shop && shop.commissionRate != null) ? shop.commissionRate : commissionInput.value;
+    }
+  }
+
   function renderRunningStatement() {
     const entity = document.getElementById('stEntityName').value.trim();
     const currency = document.getElementById('stCurrency').value;

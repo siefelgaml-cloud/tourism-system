@@ -572,7 +572,8 @@
       const amount = parseFloat($('shopAmount').value);
       const currency = $('shopCurrency').value;
       const commissionRaw = $('shopCommission').value;
-      const commission = commissionRaw === '' ? null : parseFloat(commissionRaw);
+      // في حالة "دائن (المحصل)" المبلغ محصل بالكامل من المحل فلا تُحتسب عمولة
+      const commission = (type === 'deduction' || commissionRaw === '') ? null : parseFloat(commissionRaw);
       const description = $('shopDescription').value.trim();
 
       if (!entity || isNaN(amount) || amount <= 0) return showToast(t('msg_enter_shop_amount'), 'error');
