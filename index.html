@@ -860,7 +860,7 @@
             <div class="form-group"><label data-i18n="lbl_month">الشهر</label><input type="month" id="shopMonth" data-i18n-placeholder="ph_month"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label data-i18n="lbl_transaction_type">نوع الحركة</label><select id="shopType"><option value="deposit" data-i18n="opt_debit">مدين (لنا)</option><option value="deduction" data-i18n="opt_credit">دائن (المحصل)</option></select></div>
+            <div class="form-group"><label data-i18n="lbl_transaction_type">نوع الحركة</label><select id="shopType" onchange="onShopTypeChange()"><option value="deposit" data-i18n="opt_debit">مدين (لنا)</option><option value="deduction" data-i18n="opt_credit">دائن (المحصل)</option></select></div>
             <div class="form-group">
               <label data-i18n="lbl_amount_currency">المبلغ والعملة</label>
               <div class="amount-input-group">
