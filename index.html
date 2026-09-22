@@ -77,9 +77,11 @@
           <span id="shopsArrowIcon" style="font-size:12px;">▼</span>
         </button>
         <div id="shopsSubMenu" class="sub-tabs-container" style="display:none;">
-          <button class="sub-tab-btn active" onclick="openSubTab(event, 'addShopSubTab', 'shopsTab')" data-i18n="sub_add_shop">1- تسجيل حركة</button>
-          <button class="sub-tab-btn" onclick="openSubTab(event, 'shopRecordsSubTab', 'shopsTab')" data-i18n="sub_shop_records">2- سجل العمليات</button>
-          <button class="sub-tab-btn" onclick="openSubTab(event, 'shopSummarySubTab', 'shopsTab')" data-i18n="sub_shop_summary">3- الملخص والـ Dashboard</button>
+          <button class="sub-tab-btn active" onclick="openSubTab(event, 'addShopDirectorySubTab', 'shopsTab')" data-i18n="sub_add_shop_directory">1- إضافة محل</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'shopDirectoryListSubTab', 'shopsTab')" data-i18n="sub_shop_directory_list">2- دليل المحلات</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'addShopSubTab', 'shopsTab')" data-i18n="sub_add_shop">3- تسجيل حركة</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'shopRecordsSubTab', 'shopsTab')" data-i18n="sub_shop_records">4- سجل العمليات</button>
+          <button class="sub-tab-btn" onclick="openSubTab(event, 'shopSummarySubTab', 'shopsTab')" data-i18n="sub_shop_summary">5- الملخص والـ Dashboard</button>
         </div>
       </div>
 
@@ -793,7 +795,56 @@
       </div>
 
       <div id="shopsTab" class="tab-content">
-        <div id="addShopSubTab" class="sub-tab-content active">
+        <div id="addShopDirectorySubTab" class="sub-tab-content active">
+          <h3 data-i18n="h_add_shop_directory">تسجيل محل جديد</h3>
+          <div class="form-row">
+            <div class="form-group"><label data-i18n="lbl_shop_name">اسم المحل</label><input type="text" id="shopDirName" placeholder="اسم المحل" data-i18n-placeholder="lbl_shop_name"></div>
+            <div class="form-group"><label data-i18n="lbl_region">المنطقة</label>
+              <select id="shopDirRegion">
+                <option value="الجيزة" data-i18n="opt_region_giza">الجيزة</option>
+                <option value="مصر القديمة" data-i18n="opt_region_old_cairo">مصر القديمة</option>
+                <option value="أسوان" data-i18n="opt_region_aswan">أسوان</option>
+                <option value="الأقصر" data-i18n="opt_region_luxor">الأقصر</option>
+                <option value="أخرى" data-i18n="opt_region_other">أخرى</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label data-i18n="lbl_shop_type">نوع المحل</label>
+              <select id="shopDirType">
+                <option value="بردي" data-i18n="opt_shop_papyrus">بردي</option>
+                <option value="بازار" data-i18n="opt_shop_bazaar">بازار</option>
+                <option value="قطن" data-i18n="opt_shop_cotton">قطن</option>
+                <option value="ريحة" data-i18n="opt_shop_perfume">ريحة</option>
+                <option value="حجر" data-i18n="opt_shop_stone">حجر</option>
+                <option value="سجاد" data-i18n="opt_shop_carpet">سجاد</option>
+                <option value="أخرى" data-i18n="opt_region_other">أخرى</option>
+              </select>
+            </div>
+            <div class="form-group"><label data-i18n="lbl_commission">العمولة</label><input type="number" id="shopDirCommission" placeholder="النسبة %" data-i18n-placeholder="ph_commission" step="any" min="0" max="100"></div>
+          </div>
+          <div class="btn-group">
+            <button class="submit-btn" id="btnSaveShopDirectory" onclick="App.saveShopDirectory()" data-i18n="btn_save_shop">حفظ المحل</button>
+          </div>
+          <div style="margin-top:25px; padding-top:20px; border-top:2px dashed #cbd5e1;">
+            <h4 style="margin-bottom:10px; color:#0f172a;" data-i18n="h_seed_shops">📥 استيراد القائمة الأساسية للمحلات</h4>
+            <p style="font-size:13px; color:#64748b; margin-bottom:12px;" data-i18n="p_seed_shops">استيراد قائمة المحلات الجاهزة (27 محل) دفعة واحدة. المحلات المُضافة مسبقًا بنفس الاسم لن تتكرر.</p>
+            <button class="excel-btn" id="btnSeedShops" onclick="App.seedDefaultShops()" data-i18n="btn_seed_shops">📥 استيراد القائمة الأساسية</button>
+          </div>
+        </div>
+
+        <div id="shopDirectoryListSubTab" class="sub-tab-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h3 data-i18n="h_shop_directory_list">دليل المحلات</h3>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="text" id="searchShopDirectory" placeholder="🔍 بحث..." data-i18n-placeholder="ph_search" onkeyup="filterShopDirectoryTable()" style="max-width:200px;">
+              <button class="excel-btn" onclick="App.exportShopDirectoryList()" data-i18n="btn_excel">📊 Excel</button>
+            </div>
+          </div>
+          <div class="table-wrapper"><table id="shopDirectoryTable"><thead><tr><th>#</th><th data-i18n="lbl_shop_name">اسم المحل</th><th data-i18n="lbl_region">المنطقة</th><th data-i18n="lbl_shop_type">نوع المحل</th><th data-i18n="lbl_commission">العمولة</th><th data-i18n="lbl_actions">إجراءات</th></tr></thead><tbody id="shopDirectoryTableBody"><tr><td colspan="6" style="text-align:center;" data-i18n="msg_loading">جاري التحميل...</td></tr></tbody></table></div>
+        </div>
+
+        <div id="addShopSubTab" class="sub-tab-content">
           <h3 data-i18n="h_add_shop">تسجيل حركة مع محل</h3>
           <div class="form-row">
             <div class="form-group" style="position:relative;">
@@ -947,6 +998,40 @@
     <div class="btn-group" style="justify-content:flex-end;">
       <button class="submit-btn" onclick="App.saveEditedSettlement()">حفظ التعديلات</button>
       <button class="print-btn" onclick="App.closeSettlementEditModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal تعديل محل -->
+<div id="editShopDirectoryModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3 data-i18n="h_edit_shop_directory">تعديل المحل</h3>
+    <input type="hidden" id="editShopDirId">
+    <div class="form-group"><label data-i18n="lbl_shop_name">اسم المحل</label><input type="text" id="editShopDirName"></div>
+    <div class="form-group"><label data-i18n="lbl_region">المنطقة</label>
+      <select id="editShopDirRegion">
+        <option value="الجيزة">الجيزة</option>
+        <option value="مصر القديمة">مصر القديمة</option>
+        <option value="أسوان">أسوان</option>
+        <option value="الأقصر">الأقصر</option>
+        <option value="أخرى">أخرى</option>
+      </select>
+    </div>
+    <div class="form-group"><label data-i18n="lbl_shop_type">نوع المحل</label>
+      <select id="editShopDirType">
+        <option value="بردي">بردي</option>
+        <option value="بازار">بازار</option>
+        <option value="قطن">قطن</option>
+        <option value="ريحة">ريحة</option>
+        <option value="حجر">حجر</option>
+        <option value="سجاد">سجاد</option>
+        <option value="أخرى">أخرى</option>
+      </select>
+    </div>
+    <div class="form-group"><label data-i18n="lbl_commission">العمولة</label><input type="number" id="editShopDirCommission" step="any" min="0" max="100"></div>
+    <div class="btn-group" style="justify-content:flex-end;">
+      <button class="submit-btn" onclick="App.saveEditedShopDirectory()" data-i18n="btn_save_edits">حفظ التعديلات</button>
+      <button class="print-btn" onclick="App.closeShopDirectoryEditModal()" data-i18n="btn_cancel">إلغاء</button>
     </div>
   </div>
 </div>

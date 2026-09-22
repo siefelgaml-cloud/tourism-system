@@ -142,6 +142,7 @@
     currentTickets: [],
     currentSettlements: [],
     currentShops: [],
+    currentShopDirectory: [],
 
     init() {
       this.listenToSuppliers();
@@ -150,6 +151,7 @@
       this.listenToTickets();
       this.listenToSettlements();
       this.listenToShops();
+      this.listenToShopDirectory();
       this.renderFixedTicketRows();
     },
 
@@ -643,6 +645,152 @@
         `;
       });
       tbody.innerHTML = html || `<tr><td colspan="7" style="text-align:center;">${t('msg_no_data')}</td></tr>`;
+    },
+
+    // دليل المحلات (Shop Directory) - بيانات ثابتة لكل محل: الاسم، المنطقة، النوع، العمولة
+    listenToShopDirectory() {
+      const q = query(collection(db, "shop_directory"), orderBy("createdAt", "desc"));
+      onSnapshot(q, (snapshot) => {
+        const tbody = $('shopDirectoryTableBody');
+        this.currentShopDirectory = [];
+        if (!tbody) return;
+        if (snapshot.empty) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">${t('msg_no_data')}</td></tr>`;
+          return;
+        }
+
+        let idx = 1;
+        let htmlBuffer = '';
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data(); data.id = docSnap.id;
+          if (data.isDeleted) return;
+          this.currentShopDirectory.push(data);
+
+          htmlBuffer += `
+            <tr>
+              <td>${idx++}</td>
+              <td><strong>${escapeHTML(data.name)}</strong></td>
+              <td>${escapeHTML(data.region || '-')}</td>
+              <td>${escapeHTML(data.type || '-')}</td>
+              <td>${data.commissionRate != null ? data.commissionRate + '%' : '-'}</td>
+              <td class="no-print">
+                <button class="edit-btn" onclick="App.openShopDirectoryEditModal('${docSnap.id}')">${t('btn_edit')}</button>
+                <button class="delete-btn" onclick="App.deleteShopDirectory('${docSnap.id}')">${t('btn_delete')}</button>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = htmlBuffer;
+      });
+    },
+
+    async saveShopDirectory() {
+      const name = $('shopDirName').value.trim();
+      const region = $('shopDirRegion').value;
+      const type = $('shopDirType').value;
+      const commissionRate = parseFloat($('shopDirCommission').value);
+
+      if (!name) return showToast(t('msg_enter_shop_name'), 'error');
+      if (this.isDuplicate(this.currentShopDirectory, 'name', name)) return showToast(t('msg_duplicate_shop'), 'error');
+
+      const btn = $('btnSaveShopDirectory'); btn.disabled = true;
+      try {
+        await addDoc(collection(db, "shop_directory"), {
+          name, region, type, commissionRate: isNaN(commissionRate) ? null : commissionRate, isDeleted: false, createdAt: new Date()
+        });
+        showToast(t('msg_shop_saved'), 'success');
+        $('shopDirName').value = ''; $('shopDirCommission').value = '';
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.disabled = false; }
+    },
+
+    async deleteShopDirectory(id) {
+      if (!confirm(t('confirm_delete_shop'))) return;
+      try { await deleteDocAsync(doc(db, "shop_directory", id)); showToast(t('msg_deleted'), 'success'); } catch (e) { showToast(e.message, 'error'); }
+    },
+
+    openShopDirectoryEditModal(id) {
+      const item = this.currentShopDirectory.find(s => s.id === id);
+      if (!item) return;
+      $('editShopDirId').value = id;
+      $('editShopDirName').value = item.name || '';
+      $('editShopDirRegion').value = item.region || 'الجيزة';
+      $('editShopDirType').value = item.type || 'بردي';
+      $('editShopDirCommission').value = (item.commissionRate != null) ? item.commissionRate : '';
+      $('editShopDirectoryModal').style.display = 'flex';
+    },
+
+    closeShopDirectoryEditModal() { $('editShopDirectoryModal').style.display = 'none'; },
+
+    async saveEditedShopDirectory() {
+      const id = $('editShopDirId').value;
+      const name = $('editShopDirName').value.trim();
+      const region = $('editShopDirRegion').value;
+      const type = $('editShopDirType').value;
+      const commissionRate = parseFloat($('editShopDirCommission').value);
+
+      if (!name) return showToast(t('msg_enter_shop_name'), 'error');
+      if (this.isDuplicate(this.currentShopDirectory, 'name', name, id)) return showToast(t('msg_duplicate_shop'), 'error');
+      try {
+        await updateDoc(doc(db, "shop_directory", id), { name, region, type, commissionRate: isNaN(commissionRate) ? null : commissionRate });
+        showToast(t('msg_edit_saved'), 'success');
+        this.closeShopDirectoryEditModal();
+      } catch (e) { showToast(e.message, 'error'); }
+    },
+
+    exportShopDirectoryList() {
+      if (this.currentShopDirectory.length === 0) return showToast(t('msg_no_data_export'), 'error');
+      const data = this.currentShopDirectory.map((item, idx) => ({
+        [t('col_idx')]: idx+1, [t('lbl_shop_name')]: item.name, [t('lbl_region')]: item.region || '',
+        [t('lbl_shop_type')]: item.type || '', [t('lbl_commission')]: item.commissionRate != null ? item.commissionRate + '%' : ''
+      }));
+      const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, t('sheet_shop_directory')); XLSX.writeFile(wb, "Shop_Directory.xlsx");
+    },
+
+    // استيراد القائمة الأساسية للمحلات (27 محل)؛ يتجاهل أي محل موجود بالفعل بنفس الاسم لتجنب التكرار
+    async seedDefaultShops() {
+      const defaultShops = [
+        { name: "محل ميرت بردي", region: "الجيزة", type: "بردي", commissionRate: 40 },
+        { name: "ميرت بازار +طبيعه للاقطان", region: "الجيزة", type: "بازار", commissionRate: 20 },
+        { name: "طيبة قطن وريحة - ساره", region: "مصر القديمة", type: "قطن", commissionRate: 20 },
+        { name: "محل جولدن ايجل ريحة", region: "الجيزة", type: "ريحة", commissionRate: 40 },
+        { name: "بازار جولدن ايجل بردي", region: "الجيزة", type: "بردي", commissionRate: 20 },
+        { name: "محل فانوس للاقطان", region: "الجيزة", type: "قطن", commissionRate: 20 },
+        { name: "مملوك بازار", region: "مصر القديمة", type: "بازار", commissionRate: 20 },
+        { name: "محل فايد اسوان ريحة", region: "أسوان", type: "ريحة", commissionRate: 40 },
+        { name: "محل فايد الأقصر ريحة", region: "الأقصر", type: "ريحة", commissionRate: 40 },
+        { name: "محل حابي للالباستر حجر", region: "الأقصر", type: "حجر", commissionRate: 35 },
+        { name: "يو سكاراب", region: "أسوان", type: "بازار", commissionRate: 25 },
+        { name: "إيجيبتيوس - الهرم", region: "الجيزة", type: "بردي", commissionRate: 35 },
+        { name: "محل 3 بيراميدز", region: "الجيزة", type: "بردي", commissionRate: 35 },
+        { name: "مصر للسجاد", region: "الجيزة", type: "سجاد", commissionRate: 20 },
+        { name: "اورينتال", region: "الجيزة", type: "سجاد", commissionRate: 20 },
+        { name: "كيفي برفان اسوان", region: "أسوان", type: "ريحة", commissionRate: 35 },
+        { name: "كيفي برفان الأقصر", region: "الأقصر", type: "ريحة", commissionRate: 35 },
+        { name: "إيجيبتيوس - الأقصر", region: "الأقصر", type: "بازار", commissionRate: 35 },
+        { name: "كيفي برفان الهرم", region: "الجيزة", type: "ريحة", commissionRate: 35 },
+        { name: "نفرتاري - طارق", region: "الجيزة", type: "قطن", commissionRate: 33 },
+        { name: "جوهر - الأقصر", region: "الأقصر", type: "بازار", commissionRate: 25 },
+        { name: "اختفون كاربت", region: "الجيزة", type: "سجاد", commissionRate: 20 },
+        { name: "فيله - بازار ذهب", region: "الجيزة", type: "ريحة", commissionRate: 40 },
+        { name: "تحمس الاباستر", region: "الأقصر", type: "حجر", commissionRate: 35 },
+        { name: "حسابي الاباستر اسوان", region: "الأقصر", type: "حجر", commissionRate: 35 },
+        { name: "مدرسة النيل للسجاد", region: "الجيزة", type: "سجاد", commissionRate: 20 },
+        { name: "رويال مصر القديمة للعطور", region: "مصر القديمة", type: "ريحة", commissionRate: 35 }
+      ];
+
+      const btn = $('btnSeedShops'); btn.disabled = true; btn.innerText = t('msg_importing');
+      try {
+        let addedCount = 0, skippedCount = 0;
+        for (const shop of defaultShops) {
+          if (this.isDuplicate(this.currentShopDirectory, 'name', shop.name)) { skippedCount++; continue; }
+          await addDoc(collection(db, "shop_directory"), { ...shop, isDeleted: false, createdAt: new Date() });
+          addedCount++;
+        }
+        showToast(`${t('msg_seed_result')}: ${addedCount} ${t('msg_added')}, ${skippedCount} ${t('msg_skipped_duplicate')}`, 'success');
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.disabled = false; btn.innerText = t('btn_seed_shops'); }
     },
 
     // 3. AVIATION

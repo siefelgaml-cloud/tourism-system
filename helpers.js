@@ -140,6 +140,16 @@
     });
   }
 
+  function filterShopDirectoryTable() {
+    const input = document.getElementById("searchShopDirectory");
+    const filter = input ? input.value.toLowerCase() : "";
+    const trs = document.querySelectorAll("#shopDirectoryTable tbody tr");
+    trs.forEach(tr => {
+      if (tr.children.length === 1) return;
+      tr.style.display = tr.innerText.toLowerCase().includes(filter) ? "" : "none";
+    });
+  }
+
   function filterAviationTable() {
     const input = document.getElementById("searchAviation");
     const filter = input ? input.value.toLowerCase() : "";
@@ -353,13 +363,25 @@
     const dropdown = document.getElementById('shopEntitySuggestions');
     if (!queryVal || !window.App) { dropdown.style.display = 'none'; return; }
 
-    // نبحث في أسماء المحلات المسجلة فعليًا في سجل عمليات المحلات
-    const matched = [...new Set(window.App.currentShops.map(s => s.entity))]
-      .filter(e => e && e.toLowerCase().includes(queryVal));
+    // نبحث في المحلات المسجلة في دليل المحلات، وكمان في أسماء المحلات اللي ليها حركات سابقة
+    const directoryMatches = (window.App.currentShopDirectory || [])
+      .filter(s => (s.name || '').toLowerCase().includes(queryVal))
+      .map(s => ({ name: s.name, extra: [s.region, s.type].filter(Boolean).join(' • ') }));
 
+    const historyNames = new Set(directoryMatches.map(m => m.name));
+    const historyMatches = [...new Set(window.App.currentShops.map(s => s.entity))]
+      .filter(e => e && e.toLowerCase().includes(queryVal) && !historyNames.has(e))
+      .map(e => ({ name: e, extra: '' }));
+
+    const matched = [...directoryMatches, ...historyMatches];
     if (matched.length === 0) { dropdown.style.display = 'none'; return; }
 
-    dropdown.innerHTML = matched.map(m => `<div class="suggestion-item" onclick="selectShopEntitySuggestion('${escapeHTML(m)}')"><span>${escapeHTML(m)}</span></div>`).join('');
+    dropdown.innerHTML = matched.map(m => `
+      <div class="suggestion-item" onclick="selectShopEntitySuggestion('${escapeHTML(m.name)}')">
+        <span>${escapeHTML(m.name)}</span>
+        ${m.extra ? `<span style="font-size:12px; color:#94a3b8;">${escapeHTML(m.extra)}</span>` : ''}
+      </div>
+    `).join('');
     dropdown.style.display = 'block';
   }
   function selectShopEntitySuggestion(name) {
