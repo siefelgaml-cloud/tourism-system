@@ -849,10 +849,10 @@
           <div class="form-row">
             <div class="form-group" style="position:relative;">
               <label data-i18n="lbl_shop_name">اسم المحل</label>
-              <input type="text" id="shopEntity" placeholder="أدخل اسم المحل..." data-i18n-placeholder="ph_shop_name" autocomplete="off" oninput="searchShopEntitySuggestions()" onfocus="searchShopEntitySuggestions()">
+              <input type="text" id="shopEntity" placeholder="أدخل اسم المحل..." data-i18n-placeholder="ph_shop_name" autocomplete="off" oninput="searchShopEntitySuggestions()" onfocus="searchShopEntitySuggestions()" onchange="applyShopCommission(this.value)">
               <div id="shopEntitySuggestions" class="suggestions-dropdown" style="display:none;"></div>
             </div>
-            <div class="form-group"><label data-i18n="lbl_file_code">رقم الملف</label><input type="text" id="shopFileCode" placeholder="EG-2026-99"></div>
+            <div class="form-group"><label data-i18n="lbl_guide_name">اسم المرشد</label><input type="text" id="shopGuideName" placeholder="أدخل اسم المرشد..." data-i18n-placeholder="ph_guide_name"></div>
           </div>
           <div class="form-row">
             <div class="form-group"><label data-i18n="lbl_transaction_type">نوع الحركة</label><select id="shopType"><option value="deposit" data-i18n="opt_debit">مدين (لنا)</option><option value="deduction" data-i18n="opt_credit">دائن (المستخدم)</option></select></div>
@@ -867,6 +867,7 @@
                 </select>
               </div>
             </div>
+            <div class="form-group"><label data-i18n="lbl_commission">العمولة</label><input type="number" id="shopCommission" placeholder="النسبة %" data-i18n-placeholder="ph_commission" step="any" min="0" max="100"></div>
           </div>
           <div class="form-group"><label data-i18n="lbl_description">البيان</label><textarea id="shopDescription" placeholder="تفاصيل الحركة..." data-i18n-placeholder="ph_transaction_details"></textarea></div>
           <div class="btn-group">
@@ -882,7 +883,7 @@
               <button class="excel-btn" onclick="App.exportShopsList()" data-i18n="btn_excel">📊 Excel</button>
             </div>
           </div>
-          <div class="table-wrapper"><table id="shopsTable"><thead><tr><th>#</th><th data-i18n="lbl_shop">المحل</th><th data-i18n="lbl_file_code">رقم الملف</th><th data-i18n="lbl_type">النوع</th><th data-i18n="lbl_amount">المبلغ</th><th data-i18n="lbl_currency">العملة</th><th data-i18n="lbl_description">البيان</th><th data-i18n="lbl_date">التاريخ</th><th data-i18n="lbl_actions">إجراءات</th></tr></thead><tbody id="shopsTableBody"><tr><td colspan="9" style="text-align:center;" data-i18n="msg_loading">جاري التحميل...</td></tr></tbody></table></div>
+          <div class="table-wrapper"><table id="shopsTable"><thead><tr><th>#</th><th data-i18n="lbl_shop">المحل</th><th data-i18n="lbl_guide_name">اسم المرشد</th><th data-i18n="lbl_type">النوع</th><th data-i18n="lbl_amount">المبلغ</th><th data-i18n="lbl_currency">العملة</th><th data-i18n="lbl_commission">العمولة</th><th data-i18n="lbl_description">البيان</th><th data-i18n="lbl_date">التاريخ</th><th data-i18n="lbl_actions">إجراءات</th></tr></thead><tbody id="shopsTableBody"><tr><td colspan="10" style="text-align:center;" data-i18n="msg_loading">جاري التحميل...</td></tr></tbody></table></div>
         </div>
 
         <div id="shopSummarySubTab" class="sub-tab-content">

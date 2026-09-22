@@ -333,6 +333,8 @@ const translations = {
     lbl_shop_name: "Shop Name",
     ph_shop_name: "Enter shop name...",
     lbl_file_code: "File Code",
+    lbl_guide_name: "Guide Name",
+    ph_guide_name: "Enter guide name...",
     lbl_transaction_type: "Transaction Type",
     opt_debit: "Debit (Owed to Us)",
     opt_credit: "Credit (Owed by Us)",
